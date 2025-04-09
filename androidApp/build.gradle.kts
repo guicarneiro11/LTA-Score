@@ -65,6 +65,9 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
 
+    // Datetime
+    implementation(libs.kotlinx.datetime)
+
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
@@ -83,6 +86,8 @@ dependencies {
     testImplementation(libs.kotest.runner)
     testImplementation(libs.kotest.assertions)
     testImplementation(libs.kotlin.test)
+
+    implementation(libs.material.icons.extended)
 }
 
 // Configuração para testes Kotest

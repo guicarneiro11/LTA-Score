@@ -7,7 +7,7 @@ data class Vote(
     val matchId: String,
     val playerId: String,
     val userId: String,
-    val rating: Int,
+    val rating: Float,
     val timestamp: Instant
 )
 

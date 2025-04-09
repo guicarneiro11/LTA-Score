@@ -10,5 +10,5 @@ data class Player(
 )
 
 enum class PlayerPosition {
-    TOP, JUNGLE, MID, ADC, SUPPORT, SUBSTITUTE
+    TOP, JUNGLE, MID, ADC, SUPPORT
 }

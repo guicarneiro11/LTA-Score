@@ -3,10 +3,6 @@ package com.guicarneirodev.ltascore.data.datasource.static
 import com.guicarneirodev.ltascore.domain.models.Player
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 
-/**
- * Fonte de dados estática para jogadores da LTA Sul e Norte.
- * Contém informações básicas sobre os jogadores que não mudam frequentemente.
- */
 class PlayersStaticDataSource {
 
     // Cache de jogadores por ID do time
@@ -14,21 +10,12 @@ class PlayersStaticDataSource {
         allPlayers.groupBy { it.teamId }
     }
 
-    /**
-     * Obtém todos os jogadores cadastrados
-     */
     fun getAllPlayers(): List<Player> = allPlayers
 
-    /**
-     * Obtém jogadores de um time específico
-     */
     fun getPlayersByTeamId(teamId: String): List<Player> {
         return playersByTeamId[teamId] ?: emptyList()
     }
 
-    /**
-     * Obtém um jogador pelo ID
-     */
     fun getPlayerById(playerId: String): Player? {
         return allPlayers.find { it.id == playerId }
     }
@@ -374,8 +361,6 @@ class PlayersStaticDataSource {
                 position = PlayerPosition.SUPPORT,
                 teamId = "fxw7"
             ),
-            // Adicione aqui os demais jogadores da LTA Sul
-            // ...
 
             // E depois os da LTA Norte
             // ...

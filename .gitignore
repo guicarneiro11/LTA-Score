@@ -31,3 +31,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# API Config
+/shared/src/commonMain/kotlin/com/guicarneirodev/ltascore/api/config/ApiConfig.kt
