@@ -2,11 +2,13 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.domain.models.Match
 import com.guicarneirodev.ltascore.domain.models.VoteSummary
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import com.guicarneirodev.ltascore.domain.usecases.GetMatchByIdUseCase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +30,8 @@ data class MatchSummaryUiState(
 class MatchSummaryViewModel(
     private val getMatchByIdUseCase: GetMatchByIdUseCase,
     private val voteRepository: VoteRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MatchSummaryUiState(isLoading = true))
@@ -42,6 +45,9 @@ class MatchSummaryViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
+                // Adiciona um pequeno atraso para permitir que os dados sejam atualizados no Firestore
+                delay(500)
+
                 // Obtém o usuário atual
                 val currentUser = userRepository.getCurrentUser().first()
 
@@ -53,22 +59,52 @@ class MatchSummaryViewModel(
                     return@launch
                 }
 
-                // Verifica se o usuário já votou nesta partida
-                val userHasVoted = voteRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
-
-                // Obtém os detalhes da partida
-                val match = getMatchByIdUseCase(matchId).first()
+                // Tentamos buscar os detalhes da partida com até 3 tentativas
+                var match: Match? = null
+                var attempts = 0
+                while (match == null && attempts < 3) {
+                    match = getMatchByIdUseCase(matchId).first()
+                    if (match == null) {
+                        delay(500) // Espera meio segundo antes de tentar novamente
+                        attempts++
+                    }
+                }
 
                 if (match == null) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = "Partida não encontrada"
+                        error = "Partida não encontrada após várias tentativas"
                     )
                     return@launch
                 }
 
+                // Primeiro verifica no DataStore local se o usuário já votou
+                val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
+
+                // Se não temos registro local, verificamos no Firestore
+                var userHasVoted = hasVotedLocally
+                if (!hasVotedLocally) {
+                    try {
+                        val hasVotedInFirestore = voteRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
+
+                        // Se encontrou voto no Firestore, salva localmente para futuras verificações
+                        if (hasVotedInFirestore) {
+                            userPreferencesRepository.markMatchVoted(currentUser.id, matchId)
+                            userHasVoted = true
+                        }
+                    } catch (e: Exception) {
+                        // Se houver erro na verificação do Firestore, confiamos no registro local
+                        println("Erro ao verificar votos do usuário no Firestore: ${e.message}")
+                    }
+                }
+
                 // Obtém os resumos de votação dos jogadores
-                val voteSummaries = voteRepository.getMatchVoteSummary(matchId).first()
+                val voteSummaries = try {
+                    voteRepository.getMatchVoteSummary(matchId).first()
+                } catch (e: Exception) {
+                    println("Erro ao obter resumos de votação: ${e.message}")
+                    emptyList()
+                }
 
                 // Atualiza o estado da UI
                 _uiState.value = _uiState.value.copy(
@@ -97,9 +133,8 @@ class MatchSummaryViewModel(
         viewModelScope.launch {
             voteRepository.getMatchVoteSummary(matchId)
                 .catch { e ->
-                    _uiState.value = _uiState.value.copy(
-                        error = "Erro ao atualizar resumos: ${e.message}"
-                    )
+                    println("Erro ao observar resumos: ${e.message}")
+                    // Não atualizamos o estado de erro para não sobrescrever a UI
                 }
                 .collect { summaries ->
                     _uiState.value = _uiState.value.copy(

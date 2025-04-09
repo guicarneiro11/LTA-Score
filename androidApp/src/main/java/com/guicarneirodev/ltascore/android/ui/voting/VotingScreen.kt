@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -39,7 +38,7 @@ fun VotingScreen(
     viewModel: VotingViewModel = koinViewModel(),
     matchId: String,
     onBackClick: () -> Unit,
-    onVoteSubmitted: () -> Unit // Novo parâmetro para callback após envio de votos
+    onVoteSubmitted: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

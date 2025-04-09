@@ -9,10 +9,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.android.ui.auth.LoginScreen
 import com.guicarneirodev.ltascore.android.ui.auth.RegisterScreen
 import com.guicarneirodev.ltascore.android.ui.auth.ResetPasswordScreen
 import com.guicarneirodev.ltascore.android.ui.matches.MatchesScreen
+import com.guicarneirodev.ltascore.android.ui.profile.ProfileScreen
 import com.guicarneirodev.ltascore.android.ui.summary.MatchSummaryScreen
 import com.guicarneirodev.ltascore.android.ui.voting.VotingScreen
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
@@ -29,6 +31,7 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object ResetPassword : Screen("reset_password")
     object Matches : Screen("matches")
+    object Profile : Screen("profile")
 
     // Telas com argumentos
     object Voting : Screen("voting/{matchId}") {
@@ -46,7 +49,8 @@ fun AppNavigation(
     startDestination: String = Screen.Matches.route,
     authViewModel: AuthViewModel = koinViewModel(),
     userRepository: UserRepository,
-    voteRepository: VoteRepository
+    voteRepository: VoteRepository,
+    userPreferencesRepository: UserPreferencesRepository
 ) {
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
@@ -78,8 +82,44 @@ fun AppNavigation(
                         navController = navController,
                         matchId = matchId,
                         userRepository = userRepository,
-                        voteRepository = voteRepository
+                        voteRepository = voteRepository,
+                        userPreferencesRepository = userPreferencesRepository
                     )
+                },
+                onProfileClick = {
+                    navController.navigate(Screen.Profile.route)
+                }
+            )
+        }
+
+        // Tela de perfil do usuário
+        composable(Screen.Profile.route) {
+            // Verifica se o usuário está autenticado
+            LaunchedEffect(isLoggedIn) {
+                if (!isLoggedIn) {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Profile.route) { inclusive = true }
+                    }
+                }
+            }
+
+            ProfileScreen(
+                onNavigateToEditProfile = {
+                    // Temporariamente, apenas mostra o perfil
+                    // No futuro, implementar tela de edição
+                },
+                onNavigateToMatchHistory = {
+                    // Navega de volta para partidas por enquanto
+                    navController.navigate(Screen.Matches.route)
+                },
+                onNavigateToSettings = {
+                    // Temporariamente, apenas mostra o perfil
+                    // No futuro, implementar tela de configurações
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Matches.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -97,6 +137,23 @@ fun AppNavigation(
 
             val matchId = backStackEntry.arguments?.getString("matchId") ?: ""
             val votingViewModel = koinViewModel<VotingViewModel>()
+
+            // Verifica se o usuário já votou nesta partida
+            LaunchedEffect(matchId, isLoggedIn) {
+                if (isLoggedIn) {
+                    val currentUser = userRepository.getCurrentUser().first()
+                    if (currentUser != null) {
+                        // Verifica no DataStore local
+                        val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
+                        if (hasVotedLocally) {
+                            // Se já votou, redireciona para a tela de resumo
+                            navController.navigate(Screen.MatchSummary.createRoute(matchId)) {
+                                popUpTo(Screen.Voting.route) { inclusive = true }
+                            }
+                        }
+                    }
+                }
+            }
 
             VotingScreen(
                 viewModel = votingViewModel,
@@ -134,7 +191,11 @@ fun AppNavigation(
                 viewModel = summaryViewModel,
                 matchId = matchId,
                 onBackClick = {
-                    navController.popBackStack()
+                    // Navega para a tela principal de partidas
+                    navController.navigate(Screen.Matches.route) {
+                        // Configuração para limpar a pilha e evitar múltiplos retornos
+                        popUpTo(Screen.Matches.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -202,7 +263,8 @@ private fun navigateToMatchDetails(
     navController: NavHostController,
     matchId: String,
     userRepository: UserRepository,
-    voteRepository: VoteRepository
+    voteRepository: VoteRepository,
+    userPreferencesRepository: UserPreferencesRepository
 ) {
     // Lança uma coroutine para verificar o estado de voto
     kotlinx.coroutines.MainScope().launch {
@@ -211,13 +273,33 @@ private fun navigateToMatchDetails(
             val currentUser = userRepository.getCurrentUser().first()
 
             if (currentUser != null) {
-                // Verifica se o usuário já votou nesta partida
-                val hasVoted = voteRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
+                // MODIFICADO: Primeiro verifica no DataStore local (resposta mais rápida)
+                val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
 
-                // Navega para a tela apropriada
-                if (hasVoted) {
+                if (hasVotedLocally) {
+                    // Se já temos registro local, navegamos direto para o resumo
                     navController.navigate(Screen.MatchSummary.createRoute(matchId))
-                } else {
+                    return@launch
+                }
+
+                // Se não temos registro local, verificamos no Firestore
+                try {
+                    val hasVotedInFirestore = voteRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
+
+                    // Se encontrou voto no Firestore, salva localmente para futuras verificações
+                    if (hasVotedInFirestore) {
+                        userPreferencesRepository.markMatchVoted(currentUser.id, matchId)
+                    }
+
+                    // Navega para a tela apropriada
+                    if (hasVotedInFirestore) {
+                        navController.navigate(Screen.MatchSummary.createRoute(matchId))
+                    } else {
+                        navController.navigate(Screen.Voting.createRoute(matchId))
+                    }
+                } catch (e: Exception) {
+                    // Em caso de erro na verificação Firestore, confiamos apenas no registro local
+                    // Como não temos registro local, vamos para a tela de votação
                     navController.navigate(Screen.Voting.createRoute(matchId))
                 }
             } else {
@@ -225,7 +307,7 @@ private fun navigateToMatchDetails(
                 navController.navigate(Screen.Login.route)
             }
         } catch (e: Exception) {
-            // Em caso de erro, vai para a tela de votação (experiência padrão)
+            // Em caso de erro geral, vai para a tela de votação (experiência padrão)
             navController.navigate(Screen.Voting.createRoute(matchId))
         }
     }

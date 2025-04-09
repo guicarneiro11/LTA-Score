@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
     // Injetar repositórios para o AppNavigation
     private val userRepository: UserRepository by inject()
     private val voteRepository: VoteRepository by inject()
+    private val userPreferencesRepository: UserPreferencesRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,10 +33,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Usar o novo AppNavigation em vez de MainNavigation
+                    // O AppNavigation recebe os repositórios necessários
                     AppNavigation(
                         userRepository = userRepository,
-                        voteRepository = voteRepository
+                        voteRepository = voteRepository,
+                        userPreferencesRepository = userPreferencesRepository
                     )
                 }
             }

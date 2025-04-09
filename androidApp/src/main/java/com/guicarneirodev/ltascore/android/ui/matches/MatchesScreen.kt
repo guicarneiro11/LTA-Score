@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
@@ -23,6 +24,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -47,7 +49,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun MatchesScreen(
     viewModel: MatchesViewModel = koinViewModel(),
-    onMatchClick: (String) -> Unit
+    onMatchClick: (String) -> Unit,
+    onProfileClick: () -> Unit // Novo parâmetro para navegação ao perfil
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -56,7 +59,7 @@ fun MatchesScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Cabeçalho com título
+        // Cabeçalho com título e botão de perfil
         TopAppBar(
             title = {
                 Text(
@@ -67,7 +70,17 @@ fun MatchesScreen(
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            ),
+            actions = {
+                // Botão de perfil
+                IconButton(onClick = onProfileClick) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Perfil do usuário",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
         )
 
         // Tabs para alternar entre ligas

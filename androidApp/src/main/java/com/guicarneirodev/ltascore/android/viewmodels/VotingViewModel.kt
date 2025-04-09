@@ -2,9 +2,12 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.domain.models.Match
+import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.usecases.GetMatchByIdUseCase
 import com.guicarneirodev.ltascore.domain.usecases.SubmitPlayerVoteUseCase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +26,9 @@ data class VotingUiState(
 
 class VotingViewModel(
     private val getMatchByIdUseCase: GetMatchByIdUseCase,
-    private val submitPlayerVoteUseCase: SubmitPlayerVoteUseCase
+    private val submitPlayerVoteUseCase: SubmitPlayerVoteUseCase,
+    private val userRepository: UserRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VotingUiState())
@@ -31,7 +36,7 @@ class VotingViewModel(
 
     fun loadMatch(matchId: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
                 val match = getMatchByIdUseCase(matchId).first()
@@ -58,7 +63,7 @@ class VotingViewModel(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message
+                    error = "Erro ao carregar partida: ${e.message}"
                 )
             }
         }
@@ -79,32 +84,61 @@ class VotingViewModel(
 
     fun submitAllRatings() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isSubmitting = true)
+            _uiState.value = _uiState.value.copy(isSubmitting = true, error = null)
 
             try {
                 val match = _uiState.value.match
-                if (match != null) {
-                    val userId = "user_temp_id" // Temporário até implementar autenticação
+                val currentUser = userRepository.getCurrentUser().first()
+
+                if (match != null && currentUser != null) {
+                    // Usa o ID real do usuário autenticado
+                    val userId = currentUser.id
+                    var successCount = 0
+                    var totalToSubmit = _uiState.value.ratings.size
 
                     // Envia cada avaliação
                     _uiState.value.ratings.forEach { (playerId, rating) ->
-                        submitPlayerVoteUseCase(
-                            matchId = match.id,
-                            playerId = playerId,
-                            userId = userId,
-                            rating = rating
-                        )
+                        try {
+                            submitPlayerVoteUseCase(
+                                matchId = match.id,
+                                playerId = playerId,
+                                userId = userId,
+                                rating = rating
+                            )
+                            successCount++
+                        } catch (e: Exception) {
+                            println("Erro ao enviar voto para jogador $playerId: ${e.message}")
+                            // Continuamos mesmo com erro em um jogador específico
+                        }
                     }
 
+                    // Aguardamos um momento para que os dados sejam armazenados
+                    delay(500)
+
+                    if (successCount > 0) {
+                        // NOVA FUNCIONALIDADE: Marca no DataStore que o usuário votou nesta partida
+                        userPreferencesRepository.markMatchVoted(userId, match.id)
+
+                        _uiState.value = _uiState.value.copy(
+                            isSubmitting = false,
+                            submitSuccess = true
+                        )
+                    } else {
+                        _uiState.value = _uiState.value.copy(
+                            isSubmitting = false,
+                            error = "Falha ao enviar votos. Tente novamente."
+                        )
+                    }
+                } else {
                     _uiState.value = _uiState.value.copy(
                         isSubmitting = false,
-                        submitSuccess = true
+                        error = "Usuário não autenticado ou partida não encontrada"
                     )
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isSubmitting = false,
-                    error = e.message
+                    error = "Erro ao enviar votos: ${e.message}"
                 )
             }
         }

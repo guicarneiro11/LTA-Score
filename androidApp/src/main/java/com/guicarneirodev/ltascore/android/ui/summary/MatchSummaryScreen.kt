@@ -1,15 +1,43 @@
 package com.guicarneirodev.ltascore.android.ui.summary
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,15 +52,10 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
-import com.guicarneirodev.ltascore.domain.models.Match
 import com.guicarneirodev.ltascore.domain.models.Player
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
-import com.guicarneirodev.ltascore.domain.models.VoteSummary
 import org.koin.androidx.compose.koinViewModel
 
-/**
- * Tela que mostra o resumo das avaliações dos jogadores de uma partida
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MatchSummaryScreen(
@@ -42,6 +65,7 @@ fun MatchSummaryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // Carregar a partida quando o ID mudar e quando a tela for montada
     LaunchedEffect(matchId) {
         viewModel.loadMatch(matchId)
     }
@@ -54,10 +78,17 @@ fun MatchSummaryScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
                     }
+                },
+                actions = {
+                    // Botão de atualizar
+                    IconButton(onClick = { viewModel.loadMatch(matchId) }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Atualizar")
+                    }
                 }
             )
         }
     ) { innerPadding ->
+        // Estado de carregamento
         if (uiState.isLoading) {
             Box(
                 modifier = Modifier
@@ -65,18 +96,63 @@ fun MatchSummaryScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Carregando avaliações...",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
-        } else if (uiState.match == null) {
+        }
+        // Estado de erro
+        else if (uiState.error != null || uiState.match == null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Partida não encontrada")
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ErrorOutline,
+                        contentDescription = "Erro",
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = uiState.error ?: "Partida não encontrada",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = { viewModel.loadMatch(matchId) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Tentar Novamente")
+                    }
+                }
             }
-        } else {
+        }
+        // Estado com dados carregados
+        else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -105,7 +181,8 @@ fun MatchSummaryScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Total de $totalVotes votos computados",
+                        text = if (totalVotes > 0) "Total de $totalVotes votos computados"
+                        else "Aguardando primeiro voto",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
@@ -186,10 +263,36 @@ fun MatchSummaryScreen(
                                 }
                             }
                         } else {
-                            // Se o usuário não votou ainda, não mostra nada nesta tela
-                            // (ele deveria estar na tela de votação)
-                            Spacer(modifier = Modifier.height(16.dp))
+                            // Se o usuário não votou ainda, mostramos uma mensagem convidando-o a votar
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "Você ainda não votou!",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                    Text(
+                                        text = "Volte para a tela de partidas e selecione esta partida para votar.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
+                            }
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
