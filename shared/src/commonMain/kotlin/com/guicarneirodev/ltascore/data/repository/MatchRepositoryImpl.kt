@@ -20,6 +20,8 @@ class MatchRepositoryImpl(
     private val playersDataSource: PlayersStaticDataSource
 ) : MatchRepository {
 
+    private val split2StartDate = Instant.parse("2025-04-01T00:00:00Z")
+
     override suspend fun getMatches(leagueSlug: String): Flow<List<Match>> {
         return flow {
             // Primeiro emite dados do cache
@@ -83,21 +85,24 @@ class MatchRepositoryImpl(
             val matches = scheduleResponse.data?.schedule?.events?.mapNotNull { event ->
                 if (event.type != "match") return@mapNotNull null
 
+                // Filtrar apenas partidas do Split 2 - verificando se a data é depois do início do Split 2
+                // ou se o blockName está relacionado ao Split 2
+                val matchDate = Instant.parse(event.startTime)
+                val isSplit2 = matchDate > split2StartDate ||
+                        isSplit2BlockName(event.blockName)
+
+                // Pular partidas do Split 1
+                if (!isSplit2) {
+                    println("Ignorando partida do Split 1: ${event.blockName} em ${event.startTime}")
+                    return@mapNotNull null
+                }
+
                 val matchDto = event.match
                 val teams = matchDto.teams.map { teamDto ->
                     // Agora passamos tanto o ID (se disponível) quanto o código do time
                     val internalTeamId = TeamIdMapping.getInternalTeamId(teamDto.id, teamDto.code)
 
-                    // Log para debug
-                    println("Mapeando time: código=${teamDto.code}, ID API=${teamDto.id}, ID interno=${internalTeamId}")
-
                     val players = playersDataSource.getPlayersByTeamId(internalTeamId)
-
-                    // Log de jogadores encontrados
-                    println("Jogadores encontrados para ${teamDto.name}: ${players.size}")
-                    players.forEach { player ->
-                        println(" - ${player.nickname} (${player.position})")
-                    }
 
                     Team(
                         id = teamDto.id ?: internalTeamId,
@@ -112,7 +117,7 @@ class MatchRepositoryImpl(
 
                 Match(
                     id = matchDto.id,
-                    startTime = Instant.parse(event.startTime),
+                    startTime = matchDate,
                     state = parseMatchState(event.state),
                     blockName = event.blockName,
                     leagueName = event.league.name,
@@ -127,9 +132,23 @@ class MatchRepositoryImpl(
             localDataSource.saveMatches(matches)
         } catch (e: Exception) {
             println("Erro ao atualizar partidas: ${e.message}")
-            e.printStackTrace()
             throw e
         }
+    }
+
+    private fun isSplit2BlockName(blockName: String): Boolean {
+        // Adapte esses critérios conforme a nomenclatura real usada pela API
+        val split2Keywords = listOf("Semana", "Week", "Fase de Grupos", "Split 2")
+        val split1Keywords = listOf("Eliminatórias", "Knockouts", "Split 1", "Playoffs")
+
+        // Se contém palavras-chave do Split 2
+        val containsSplit2Keyword = split2Keywords.any { blockName.contains(it, ignoreCase = true) }
+
+        // Se contém palavras-chave do Split 1
+        val containsSplit1Keyword = split1Keywords.any { blockName.contains(it, ignoreCase = true) }
+
+        // Considera ser do Split 2 se tem palavra-chave do Split 2 e não tem do Split 1
+        return containsSplit2Keyword && !containsSplit1Keyword
     }
 
     private fun parseMatchState(state: String): MatchState {

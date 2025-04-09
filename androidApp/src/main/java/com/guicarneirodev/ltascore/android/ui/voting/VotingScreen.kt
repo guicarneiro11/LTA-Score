@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -36,9 +38,17 @@ import org.koin.androidx.compose.koinViewModel
 fun VotingScreen(
     viewModel: VotingViewModel = koinViewModel(),
     matchId: String,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onVoteSubmitted: () -> Unit // Novo parâmetro para callback após envio de votos
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Monitorar o sucesso do envio para chamar o callback
+    LaunchedEffect(uiState.submitSuccess) {
+        if (uiState.submitSuccess) {
+            onVoteSubmitted() // Chama o callback quando os votos são enviados com sucesso
+        }
+    }
 
     LaunchedEffect(matchId) {
         viewModel.loadMatch(matchId)
@@ -191,9 +201,26 @@ fun VotingScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 16.dp),
-                            enabled = hasPlayers && uiState.allPlayersRated
+                            enabled = uiState.allPlayersRated && !uiState.isSubmitting
                         ) {
-                            Text("Enviar Avaliações")
+                            if (uiState.isSubmitting) {
+                                CircularProgressIndicator(
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else {
+                                Text("Enviar Avaliações")
+                            }
+                        }
+
+                        // Mensagem de erro
+                        if (uiState.error != null) {
+                            Text(
+                                text = uiState.error!!,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
                         }
                     }
                 }
