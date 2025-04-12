@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 enum class MatchFilter {
-    ALL, UPCOMING, COMPLETED
+    ALL, UPCOMING, LIVE, COMPLETED
 }
 
 data class League(val name: String, val slug: String)
@@ -88,6 +88,7 @@ class MatchesViewModel(
         return when (filter) {
             MatchFilter.ALL -> matches
             MatchFilter.UPCOMING -> matches.filter { it.state == MatchState.UNSTARTED }
+            MatchFilter.LIVE -> matches.filter { it.state == MatchState.INPROGRESS }
             MatchFilter.COMPLETED -> matches.filter { it.state == MatchState.COMPLETED }
         }
     }

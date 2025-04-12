@@ -67,6 +67,14 @@ class MatchRepositoryImpl(
         }
     }
 
+    private fun ensureHttpsUrl(url: String): String {
+        return if (url.startsWith("http://")) {
+            url.replace("http://", "https://")
+        } else {
+            url
+        }
+    }
+
     override suspend fun getMatchesByBlock(
         leagueSlug: String,
         blockName: String
@@ -101,14 +109,13 @@ class MatchRepositoryImpl(
                 val teams = matchDto.teams.map { teamDto ->
                     // Agora passamos tanto o ID (se disponível) quanto o código do time
                     val internalTeamId = TeamIdMapping.getInternalTeamId(teamDto.id, teamDto.code)
-
                     val players = playersDataSource.getPlayersByTeamId(internalTeamId)
 
                     Team(
                         id = teamDto.id ?: internalTeamId,
                         name = teamDto.name,
                         code = teamDto.code,
-                        imageUrl = teamDto.image,
+                        imageUrl = ensureHttpsUrl(teamDto.image), // Use a função helper aqui
                         players = players,
                         result = parseTeamResult(teamDto.result.outcome, teamDto.result.gameWins,
                             teamDto.record?.wins ?: 0, teamDto.record?.losses ?: 0)

@@ -19,15 +19,19 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,8 +41,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.viewmodels.MatchFilter
 import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
 import kotlinx.datetime.TimeZone
@@ -50,7 +57,7 @@ import org.koin.androidx.compose.koinViewModel
 fun MatchesScreen(
     viewModel: MatchesViewModel = koinViewModel(),
     onMatchClick: (String) -> Unit,
-    onProfileClick: () -> Unit // Novo parâmetro para navegação ao perfil
+    onProfileClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -58,18 +65,23 @@ fun MatchesScreen(
         viewModel.loadMatches()
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LTAThemeColors.DarkBackground)
+    ) {
         // Cabeçalho com título e botão de perfil
         TopAppBar(
             title = {
                 Text(
                     text = "LTA Score",
-                    style = MaterialTheme.typography.headlineSmall
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
                 )
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = LTAThemeColors.PrimaryGold,
+                titleContentColor = Color.White
             ),
             actions = {
                 // Botão de perfil
@@ -77,7 +89,7 @@ fun MatchesScreen(
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = "Perfil do usuário",
-                        tint = MaterialTheme.colorScheme.onPrimary
+                        tint = Color.White
                     )
                 }
             }
@@ -86,14 +98,26 @@ fun MatchesScreen(
         // Tabs para alternar entre ligas
         TabRow(
             selectedTabIndex = uiState.selectedLeagueIndex,
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = Color(0xFF2A2A30),
+            contentColor = Color.White,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[uiState.selectedLeagueIndex]),
+                    height = 3.dp,
+                    color = LTAThemeColors.PrimaryGold
+                )
+            }
         ) {
             uiState.availableLeagues.forEachIndexed { index, league ->
                 Tab(
                     selected = index == uiState.selectedLeagueIndex,
                     onClick = { viewModel.selectLeague(index) },
-                    text = { Text(league.name) }
+                    text = {
+                        Text(
+                            text = league.name,
+                            fontWeight = if (index == uiState.selectedLeagueIndex) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
                 )
             }
         }
@@ -102,36 +126,67 @@ fun MatchesScreen(
         Text(
             text = "Split 2 - 2025",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = LTAThemeColors.TextSecondary,
+            fontWeight = FontWeight.Medium,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .background(LTAThemeColors.DarkBackground)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         )
 
         // Filtros de estado das partidas
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             FilterChip(
                 selected = uiState.filter == MatchFilter.ALL,
                 onClick = { viewModel.setFilter(MatchFilter.ALL) },
                 label = { Text("Todas") },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = Color(0xFF252530),
+                    labelColor = LTAThemeColors.TextSecondary,
+                    selectedContainerColor = LTAThemeColors.PrimaryGold.copy(alpha = 0.2f),
+                    selectedLabelColor = LTAThemeColors.PrimaryGold
+                ),
                 modifier = Modifier.weight(1f)
             )
             FilterChip(
                 selected = uiState.filter == MatchFilter.UPCOMING,
                 onClick = { viewModel.setFilter(MatchFilter.UPCOMING) },
-                label = { Text("Próximas") },
+                label = { Text("Próx.") },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = Color(0xFF252530),
+                    labelColor = LTAThemeColors.TextSecondary,
+                    selectedContainerColor = LTAThemeColors.Warning.copy(alpha = 0.2f),
+                    selectedLabelColor = LTAThemeColors.Warning
+                ),
+                modifier = Modifier.weight(1f)
+            )
+            FilterChip(
+                selected = uiState.filter == MatchFilter.LIVE,
+                onClick = { viewModel.setFilter(MatchFilter.LIVE) },
+                label = { Text("Ao Vivo") },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = Color(0xFF252530),
+                    labelColor = LTAThemeColors.TextSecondary,
+                    selectedContainerColor = LTAThemeColors.LiveRed.copy(alpha = 0.2f),
+                    selectedLabelColor = LTAThemeColors.LiveRed
+                ),
                 modifier = Modifier.weight(1f)
             )
             FilterChip(
                 selected = uiState.filter == MatchFilter.COMPLETED,
                 onClick = { viewModel.setFilter(MatchFilter.COMPLETED) },
-                label = { Text("Concluídas") },
+                label = { Text("Concl.") },
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = Color(0xFF252530),
+                    labelColor = LTAThemeColors.TextSecondary,
+                    selectedContainerColor = LTAThemeColors.Success.copy(alpha = 0.2f),
+                    selectedLabelColor = LTAThemeColors.Success
+                ),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -149,35 +204,46 @@ fun MatchesScreen(
                     text = when(uiState.filter) {
                         MatchFilter.ALL -> "Todas as partidas"
                         MatchFilter.UPCOMING -> "Próximas partidas"
+                        MatchFilter.LIVE -> "Partidas ao vivo"
                         MatchFilter.COMPLETED -> "Partidas concluídas"
                     },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = LTAThemeColors.TextSecondary
                 )
 
                 if (!uiState.isLoading) {
                     Text(
                         text = "${uiState.filteredMatches.size} partidas",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = LTAThemeColors.TextSecondary
                     )
                 }
             }
         }
 
         // Linha separadora
-        Divider(modifier = Modifier.padding(horizontal = 16.dp))
+        Divider(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            color = Color(0xFF333340)
+        )
 
         // Lista de partidas ou estados de erro/carregamento
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(LTAThemeColors.DarkBackground),
             contentAlignment = Alignment.Center
         ) {
             if (uiState.isLoading) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(
+                        color = LTAThemeColors.PrimaryGold
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = "Carregando partidas...")
+                    Text(
+                        text = "Carregando partidas...",
+                        color = LTAThemeColors.TextSecondary
+                    )
                 }
             } else if (uiState.error != null) {
                 // Exibe o erro de forma mais visível
@@ -188,7 +254,7 @@ fun MatchesScreen(
                     Icon(
                         imageVector = Icons.Default.Error,
                         contentDescription = "Erro",
-                        tint = MaterialTheme.colorScheme.error,
+                        tint = LTAThemeColors.SecondaryRed,
                         modifier = Modifier.size(48.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -196,10 +262,15 @@ fun MatchesScreen(
                         text = uiState.error ?: "Erro desconhecido",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.error
+                        color = LTAThemeColors.SecondaryRed
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { viewModel.loadMatches() }) {
+                    Button(
+                        onClick = { viewModel.loadMatches() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LTAThemeColors.PrimaryGold
+                        )
+                    ) {
                         Text("Tentar Novamente")
                     }
                 }
@@ -211,7 +282,7 @@ fun MatchesScreen(
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "Informação",
-                        tint = MaterialTheme.colorScheme.secondary,
+                        tint = LTAThemeColors.TextSecondary,
                         modifier = Modifier.size(48.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -219,10 +290,12 @@ fun MatchesScreen(
                         text = when(uiState.filter) {
                             MatchFilter.ALL -> "Nenhuma partida encontrada no Split 2"
                             MatchFilter.UPCOMING -> "Não há próximas partidas agendadas"
+                            MatchFilter.LIVE -> "Nenhuma partida acontecendo agora"
                             MatchFilter.COMPLETED -> "Nenhuma partida concluída ainda"
                         },
                         style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        color = LTAThemeColors.TextSecondary
                     )
                 }
             } else {
@@ -230,7 +303,7 @@ fun MatchesScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Agrupe as partidas por dia
                     val matchesByDay = uiState.filteredMatches.groupBy { match ->
@@ -245,8 +318,9 @@ fun MatchesScreen(
                             Text(
                                 text = day,
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(vertical = 8.dp)
+                                color = LTAThemeColors.TertiaryGold,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
                             )
                         }
 
