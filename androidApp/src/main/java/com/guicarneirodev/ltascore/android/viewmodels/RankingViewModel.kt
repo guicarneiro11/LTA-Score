@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * Estado da UI da tela de Ranking
@@ -65,14 +66,14 @@ class RankingViewModel(
                 .groupBy { it.teamId }
                 .map { (teamId, players) ->
                     // Pegar o primeiro jogador para obter informações do time
-                    val firstPlayer = players.first()
+                    players.first()
 
                     // Inferir código do time do ID (temporário, idealmente viria da API)
                     val teamCode = teamId.split("-").last().uppercase().take(3)
 
                     TeamFilterItem(
                         id = teamId,
-                        name = teamId.split("-").joinToString(" ") { it.capitalize() },
+                        name = teamId.split("-").joinToString(" ") { it.capitalize(Locale.ROOT) },
                         code = teamCode,
                         imageUrl = "" // Idealmente, buscar da API
                     )

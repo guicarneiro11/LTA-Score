@@ -1,7 +1,6 @@
 package com.guicarneirodev.ltascore.domain.models
 
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
 
 /**
  * Representa um item no ranking de jogadores
@@ -31,9 +30,6 @@ enum class RankingFilter {
     MOST_VOTED      // Mais votados (todos os tempos)
 }
 
-/**
- * Estado atual do filtro de ranking
- */
 data class RankingFilterState(
     val currentFilter: RankingFilter = RankingFilter.ALL,
     val selectedTeamId: String? = null,

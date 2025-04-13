@@ -1,6 +1,5 @@
 package com.guicarneirodev.ltascore.domain.usecases
 
-import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
 import com.guicarneirodev.ltascore.domain.models.RankingFilter
 import com.guicarneirodev.ltascore.domain.models.RankingFilterState

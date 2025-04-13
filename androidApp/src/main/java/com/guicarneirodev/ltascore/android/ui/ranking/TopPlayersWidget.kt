@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.ranking
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -43,9 +44,9 @@ import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
  */
 @Composable
 fun TopPlayersWidget(
+    modifier: Modifier = Modifier,
     topPlayers: List<PlayerRankingItem>,
     title: String = "Melhores Avaliações",
-    modifier: Modifier = Modifier
 ) {
     if (topPlayers.isEmpty()) return
 
@@ -77,7 +78,7 @@ fun TopPlayersWidget(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 // Player 1 (centro e maior)
-                if (topPlayers.size >= 1) {
+                if (topPlayers.isNotEmpty()) {
                     val firstPlayer = topPlayers[0]
                     TopPlayerItem(
                         player = firstPlayer,
@@ -126,6 +127,7 @@ fun TopPlayersWidget(
  * Item individual de um jogador no pódio do top 3
  */
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun TopPlayerItem(
     player: PlayerRankingItem,

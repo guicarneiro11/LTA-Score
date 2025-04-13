@@ -324,7 +324,7 @@ private fun navigateToMatchDetails(
                     } else {
                         navController.navigate(Screen.Voting.createRoute(matchId))
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // Em caso de erro na verificação Firestore, confiamos apenas no registro local
                     // Como não temos registro local, vamos para a tela de votação
                     navController.navigate(Screen.Voting.createRoute(matchId))
@@ -333,7 +333,7 @@ private fun navigateToMatchDetails(
                 // Se o usuário não estiver logado, vai para a tela de login
                 navController.navigate(Screen.Login.route)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Em caso de erro geral, vai para a tela de votação (experiência padrão)
             navController.navigate(Screen.Voting.createRoute(matchId))
         }

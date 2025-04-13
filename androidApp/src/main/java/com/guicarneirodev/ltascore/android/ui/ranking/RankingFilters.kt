@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.ChipBorder
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -312,7 +311,7 @@ fun PositionSelector(
             )
 
             // Chips para cada posição
-            PlayerPosition.values().forEach { position ->
+            PlayerPosition.entries.forEach { position ->
                 val isSelected = selectedPosition == position
                 val (backgroundColor, textColor) = when(position) {
                     PlayerPosition.TOP -> Color(0xFF3498db) to Color.White

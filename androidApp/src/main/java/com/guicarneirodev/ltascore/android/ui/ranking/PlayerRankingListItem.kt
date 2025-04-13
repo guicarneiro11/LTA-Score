@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.ranking
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
@@ -38,6 +38,7 @@ import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
 /**
  * Item da lista de ranking que exibe as informações de um jogador
  */
+@SuppressLint("DefaultLocale")
 @Composable
 fun PlayerRankingListItem(
     item: PlayerRankingItem,

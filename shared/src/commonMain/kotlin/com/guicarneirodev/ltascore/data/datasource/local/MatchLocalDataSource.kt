@@ -57,28 +57,4 @@ class MatchLocalDataSource {
         }
     }
 
-    fun saveMatch(match: Match) {
-        val leagueSlug = match.leagueSlug
-        val existingMatches = getMatches(leagueSlug).toMutableList()
-
-        // Remove a partida existente com o mesmo ID, se houver
-        val existingIndex = existingMatches.indexOfFirst { it.id == match.id }
-        if (existingIndex >= 0) {
-            existingMatches.removeAt(existingIndex)
-        }
-
-        // Adiciona a nova versão da partida
-        existingMatches.add(match)
-
-        // Atualiza o cache
-        if (matchesByLeague.containsKey(leagueSlug)) {
-            matchesByLeague[leagueSlug]?.value = existingMatches
-        } else {
-            matchesByLeague[leagueSlug] = MutableStateFlow(existingMatches)
-        }
-    }
-
-    fun clearAllData() {
-        matchesByLeague.clear()
-    }
 }

@@ -4,7 +4,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.guicarneirodev.ltascore.data.datasource.local.MatchLocalDataSource
 import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
-import com.guicarneirodev.ltascore.domain.models.Player
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
 import com.guicarneirodev.ltascore.domain.models.TimeFrame
@@ -20,7 +19,7 @@ import kotlinx.datetime.minus
 import java.util.Date
 
 class FirebaseRankingRepository(
-    private val firestore: FirebaseFirestore,
+    firestore: FirebaseFirestore,
     private val playersDataSource: PlayersStaticDataSource,
     private val matchLocalDataSource: MatchLocalDataSource
 ) : RankingRepository {
@@ -63,7 +62,7 @@ class FirebaseRankingRepository(
     override suspend fun getGeneralRanking(limit: Int): Flow<List<PlayerRankingItem>> = flow {
         try {
             // Buscar todos os resumos de votos e agregar por jogador
-            val playerSummaries = getPlayerAverages(limit)
+            val playerSummaries = getPlayerAverages()
 
             // Converter para o modelo de domínio
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
@@ -81,7 +80,7 @@ class FirebaseRankingRepository(
     override suspend fun getRankingByTeam(teamId: String): Flow<List<PlayerRankingItem>> = flow {
         try {
             // Buscar todos os resumos e depois filtrar por time
-            val playerSummaries = getPlayerAverages(100)
+            val playerSummaries = getPlayerAverages()
 
             // Converter e filtrar apenas jogadores do time especificado
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
@@ -100,7 +99,7 @@ class FirebaseRankingRepository(
     override suspend fun getRankingByPosition(position: PlayerPosition): Flow<List<PlayerRankingItem>> = flow {
         try {
             // Buscar todos os resumos e depois filtrar por posição
-            val playerSummaries = getPlayerAverages(100)
+            val playerSummaries = getPlayerAverages()
 
             // Converter e filtrar apenas jogadores da posição especificada
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
@@ -121,7 +120,7 @@ class FirebaseRankingRepository(
             val cutoffDate = getCutoffDateForTimeFrame(timeFrame)
 
             // Buscar resumos de votos mais recentes que a data de corte
-            val playerSummaries = getPlayerAverages(100, cutoffDate)
+            val playerSummaries = getPlayerAverages(cutoffDate)
 
             // Converter para o modelo de domínio
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
@@ -138,7 +137,7 @@ class FirebaseRankingRepository(
     override suspend fun getMostVotedRanking(limit: Int): Flow<List<PlayerRankingItem>> = flow {
         try {
             // Buscar todos os resumos de votos
-            val playerSummaries = getPlayerAverages(limit * 2) // Buscamos mais para garantir
+            val playerSummaries = getPlayerAverages() // Buscamos mais para garantir
 
             // Converter para o modelo de domínio
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
@@ -159,7 +158,7 @@ class FirebaseRankingRepository(
     }
 
     // Função auxiliar para buscar médias agregadas por jogador
-    private suspend fun getPlayerAverages(limit: Int, cutoffDate: Date? = null): Map<String, PlayerData> {
+    private suspend fun getPlayerAverages(cutoffDate: Date? = null): Map<String, PlayerData> {
         val result = mutableMapOf<String, PlayerData>()
 
         // Buscar todos os documentos de resumos de votos
