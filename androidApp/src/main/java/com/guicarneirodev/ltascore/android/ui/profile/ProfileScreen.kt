@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,6 +50,7 @@ fun ProfileScreen(
     viewModel: AuthViewModel = koinViewModel(),
     onNavigateToEditProfile: () -> Unit,
     onNavigateToMatchHistory: () -> Unit,
+    onNavigateToRanking: () -> Unit, // Novo callback para navegar para o ranking
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -85,6 +87,7 @@ fun ProfileScreen(
             // Estatísticas e opções do usuário
             ProfileOptions(
                 onNavigateToMatchHistory = onNavigateToMatchHistory,
+                onNavigateToRanking = onNavigateToRanking,
                 onNavigateToSettings = onNavigateToSettings
             )
 
@@ -179,6 +182,7 @@ fun UserProfileHeader(
 @Composable
 fun ProfileOptions(
     onNavigateToMatchHistory: () -> Unit,
+    onNavigateToRanking: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     Column(
@@ -197,6 +201,16 @@ fun ProfileOptions(
             title = "Histórico de Votos",
             subtitle = "Veja todas as partidas em que você votou",
             onClick = onNavigateToMatchHistory
+        )
+
+        Divider()
+
+        // Ranking (nova opção)
+        ProfileOptionItem(
+            icon = Icons.Default.Leaderboard,
+            title = "Ranking de Jogadores",
+            subtitle = "Veja as melhores avaliações da comunidade",
+            onClick = onNavigateToRanking
         )
 
         Divider()

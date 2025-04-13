@@ -2,23 +2,27 @@ package com.guicarneirodev.ltascore.android.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.guicarneirodev.ltascore.android.data.repository.FirebaseRankingRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseUserRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteRepository
 import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.RankingViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.data.datasource.local.MatchLocalDataSource
 import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
 import com.guicarneirodev.ltascore.data.repository.MatchRepositoryImpl
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
+import com.guicarneirodev.ltascore.domain.repository.RankingRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import com.guicarneirodev.ltascore.domain.usecases.GetCompletedMatchesUseCase
 import com.guicarneirodev.ltascore.domain.usecases.GetMatchByIdUseCase
 import com.guicarneirodev.ltascore.domain.usecases.GetMatchesUseCase
+import com.guicarneirodev.ltascore.domain.usecases.GetPlayerRankingUseCase
 import com.guicarneirodev.ltascore.domain.usecases.SubmitPlayerVoteUseCase
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -40,6 +44,7 @@ val appModule = module {
     single<MatchRepository> { MatchRepositoryImpl(get(), get(), get()) }
     single<UserRepository> { FirebaseUserRepository(get(), get()) }
     single<VoteRepository> { FirebaseVoteRepository(get()) }
+    single<RankingRepository> { FirebaseRankingRepository(get(), get(), get()) }
 
     // DataStore Repository
     single { UserPreferencesRepository(androidContext()) }
@@ -49,10 +54,12 @@ val appModule = module {
     single { GetCompletedMatchesUseCase(get()) }
     single { GetMatchByIdUseCase(get()) }
     single { SubmitPlayerVoteUseCase(get()) }
+    single { GetPlayerRankingUseCase(get()) }
 
     // ViewModels
-    viewModel { MatchesViewModel(get()) }
-    viewModel { VotingViewModel(get(), get(), get(), get()) } // Adicionamos UserPreferencesRepository
-    viewModel { MatchSummaryViewModel(get(), get(), get(), get()) } // Adicionamos UserPreferencesRepository
-    viewModel { AuthViewModel(get()) }
+    viewModel { MatchesViewModel(get(), get()) }
+    viewModel { VotingViewModel(get(), get(), get(), get()) }
+    viewModel { MatchSummaryViewModel(get(), get(), get(), get()) }
+    viewModel { AuthViewModel(get(), get()) }
+    viewModel { RankingViewModel(get(), get()) }
 }

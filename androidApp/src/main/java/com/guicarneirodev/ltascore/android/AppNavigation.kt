@@ -15,6 +15,7 @@ import com.guicarneirodev.ltascore.android.ui.auth.RegisterScreen
 import com.guicarneirodev.ltascore.android.ui.auth.ResetPasswordScreen
 import com.guicarneirodev.ltascore.android.ui.matches.MatchesScreen
 import com.guicarneirodev.ltascore.android.ui.profile.ProfileScreen
+import com.guicarneirodev.ltascore.android.ui.ranking.RankingScreen
 import com.guicarneirodev.ltascore.android.ui.summary.MatchSummaryScreen
 import com.guicarneirodev.ltascore.android.ui.voting.VotingScreen
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
@@ -32,6 +33,7 @@ sealed class Screen(val route: String) {
     object ResetPassword : Screen("reset_password")
     object Matches : Screen("matches")
     object Profile : Screen("profile")
+    object Ranking : Screen("ranking") // Nova tela de ranking
 
     // Telas com argumentos
     object Voting : Screen("voting/{matchId}") {
@@ -88,6 +90,27 @@ fun AppNavigation(
                 },
                 onProfileClick = {
                     navController.navigate(Screen.Profile.route)
+                },
+                onRankingClick = {
+                    navController.navigate(Screen.Ranking.route)
+                }
+            )
+        }
+
+        // Nova tela de Ranking
+        composable(Screen.Ranking.route) {
+            // Verifica se o usuário está autenticado
+            LaunchedEffect(isLoggedIn) {
+                if (!isLoggedIn) {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Ranking.route) { inclusive = true }
+                    }
+                }
+            }
+
+            RankingScreen(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -111,6 +134,10 @@ fun AppNavigation(
                 onNavigateToMatchHistory = {
                     // Navega de volta para partidas por enquanto
                     navController.navigate(Screen.Matches.route)
+                },
+                onNavigateToRanking = {
+                    // Navega para a nova tela de ranking
+                    navController.navigate(Screen.Ranking.route)
                 },
                 onNavigateToSettings = {
                     // Temporariamente, apenas mostra o perfil

@@ -160,7 +160,6 @@ fun LogoImage(
         contentDescription = name,
         contentScale = ContentScale.Fit,
         loading = {
-            // Placeholder durante o carregamento
             Box(
                 modifier = Modifier
                     .size(40.dp)

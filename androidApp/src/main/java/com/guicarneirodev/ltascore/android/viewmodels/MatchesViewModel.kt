@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.domain.models.Match
 import com.guicarneirodev.ltascore.domain.models.MatchState
 import com.guicarneirodev.ltascore.domain.usecases.GetMatchesUseCase
@@ -26,11 +27,13 @@ data class MatchesUiState(
         League("LTA Norte", "lta_n")
     ),
     val selectedLeagueIndex: Int = 0,
-    val error: String? = null
+    val error: String? = null,
+    val ltaCrossLogo: String? = null
 )
 
 class MatchesViewModel(
-    private val getMatchesUseCase: GetMatchesUseCase
+    private val getMatchesUseCase: GetMatchesUseCase,
+    private val loLEsportsApi: LoLEsportsApi // Adicionando a API diretamente
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MatchesUiState())
@@ -38,6 +41,24 @@ class MatchesViewModel(
 
     init {
         loadMatches()
+        loadLtaCrossLogo()
+    }
+
+    private fun loadLtaCrossLogo() {
+        viewModelScope.launch {
+            try {
+                val response = loLEsportsApi.getLeagues()
+                val crossLeague = response.data?.leagues?.find { it.slug == "lta_cross" }
+                crossLeague?.let { league ->
+                    // Substituir http por https para evitar erros de segurança
+                    val secureImageUrl = league.image.replace("http://", "https://")
+                    _uiState.value = _uiState.value.copy(ltaCrossLogo = secureImageUrl)
+                }
+            } catch (e: Exception) {
+                println("Erro ao carregar logo LTA Cross: ${e.message}")
+                // Não exibimos erro para não afetar a experiência principal
+            }
+        }
     }
 
     fun loadMatches() {

@@ -1,6 +1,7 @@
 package com.guicarneirodev.ltascore.api
 
 import com.guicarneirodev.ltascore.api.config.ApiConfig
+import com.guicarneirodev.ltascore.api.models.LeaguesResponse
 import com.guicarneirodev.ltascore.api.models.ScheduleResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -35,6 +36,26 @@ class LoLEsportsApi {
 
     // Definindo uma função de log para depuração
     private val logger = LoLEsportsApiLogger()
+
+    /**
+     * Obtém informações sobre todas as ligas disponíveis
+     */
+    suspend fun getLeagues(): LeaguesResponse {
+        logger.log("Buscando informações das ligas")
+
+        try {
+            val response = httpClient.get("$baseUrl/getLeagues") {
+                parameter("hl", "pt-BR")
+            }
+
+            logger.log("Resposta HTTP para ligas: ${response.status}")
+
+            return response.body()
+        } catch (e: Exception) {
+            logger.log("Erro na chamada API getLeagues: ${e.message}")
+            throw e
+        }
+    }
 
     /**
      * Obtém o cronograma de partidas para uma liga específica

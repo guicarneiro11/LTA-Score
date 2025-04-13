@@ -18,6 +18,7 @@ object LTAThemeColors {
     // Cores principais
     val DarkBackground = Color(0xFF1A1A1F)
     val CardBackground = Color(0xFF2A2A30)
+    val TopBarMatches = Color(0xFF111111)
     val PrimaryGold = Color(0xFFB1A280)
     val SecondaryRed = Color(0xFFFF4550)
     val TertiaryGold = Color(0xFFD9B151)

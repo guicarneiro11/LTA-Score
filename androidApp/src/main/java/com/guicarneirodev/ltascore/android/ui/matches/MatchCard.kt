@@ -188,14 +188,12 @@ fun MatchCard(
                 }
             }
 
-            // Match status section (remains the same as in your original code)
             val (statusText, statusColor) = when (match.state) {
                 MatchState.UNSTARTED -> Pair("Em breve", LTAThemeColors.Warning)
                 MatchState.INPROGRESS -> Pair("AO VIVO", LTAThemeColors.LiveRed)
                 MatchState.COMPLETED -> Pair("Concluída - Clique para votar", LTAThemeColors.Success)
             }
 
-            // Live match status (with pulsating effect)
             if (match.state == MatchState.INPROGRESS) {
                 Surface(
                     color = LTAThemeColors.LiveRed.copy(alpha = 0.2f),
@@ -237,7 +235,6 @@ fun MatchCard(
                     }
                 }
             } else {
-                // Default status for other states
                 Text(
                     text = statusText,
                     color = statusColor,

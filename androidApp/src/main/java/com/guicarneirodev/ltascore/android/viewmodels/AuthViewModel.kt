@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.domain.models.User
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,8 @@ import kotlinx.coroutines.launch
 data class LoginUiState(
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val ltaCrossLogo: String? = null
 )
 
 data class RegisterUiState(
@@ -28,7 +30,8 @@ data class ResetPasswordUiState(
 )
 
 class AuthViewModel(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val loLEsportsApi: LoLEsportsApi? = null // Opcional para compatibilidade retroativa
 ) : ViewModel() {
 
     // Estado da tela de login
@@ -67,6 +70,29 @@ class AuthViewModel(
         viewModelScope.launch {
             userRepository.getCurrentUser().collect { user ->
                 _currentUser.value = user
+            }
+        }
+
+        // Carregar o logo se a API estiver disponível
+        loadLtaCrossLogo()
+    }
+
+    private fun loadLtaCrossLogo() {
+        // Apenas carregar se a API for fornecida
+        loLEsportsApi?.let { api ->
+            viewModelScope.launch {
+                try {
+                    val response = api.getLeagues()
+                    val crossLeague = response.data?.leagues?.find { it.slug == "lta_cross" }
+                    crossLeague?.let { league ->
+                        // Substituir http por https para evitar erros de segurança
+                        val secureImageUrl = league.image.replace("http://", "https://")
+                        _loginUiState.value = _loginUiState.value.copy(ltaCrossLogo = secureImageUrl)
+                    }
+                } catch (e: Exception) {
+                    println("Erro ao carregar logo LTA Cross: ${e.message}")
+                    // Não exibimos erro para não afetar a experiência principal
+                }
             }
         }
     }
