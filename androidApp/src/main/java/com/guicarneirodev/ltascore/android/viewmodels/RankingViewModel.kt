@@ -169,11 +169,30 @@ class RankingViewModel(
      */
     fun refreshRanking() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
+                // Forçar atualização dos dados do ranking
                 getPlayerRankingUseCase.refreshRanking()
-                loadRanking()
+
+                // Carregar dados com um intervalo maior para garantir melhor cobertura
+                val largeLimitForRefresh = 100
+
+                getPlayerRankingUseCase(_uiState.value.filterState, largeLimitForRefresh).collect { players ->
+                    if (players.isEmpty()) {
+                        // Se não há jogadores mesmo com limite maior, provavelmente há um problema
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            error = "Não foi possível carregar dados do ranking. Tente novamente."
+                        )
+                    } else {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            players = players,
+                            filteredPlayers = applySearch(players, _uiState.value.searchQuery)
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

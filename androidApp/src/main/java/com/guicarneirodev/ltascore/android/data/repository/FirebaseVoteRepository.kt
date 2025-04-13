@@ -1,12 +1,15 @@
 package com.guicarneirodev.ltascore.android.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.Transaction
 import com.guicarneirodev.ltascore.domain.models.Vote
 import com.guicarneirodev.ltascore.domain.models.VoteSummary
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
@@ -18,7 +21,7 @@ import kotlinx.datetime.toJavaInstant
 import java.util.Date
 
 class FirebaseVoteRepository(
-    firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : VoteRepository {
 
     private val votesCollection = firestore.collection("votes")
@@ -37,7 +40,7 @@ class FirebaseVoteRepository(
                 .collection("user_votes")
                 .document(vote.userId)
 
-            // Salvar o voto
+            // Dados do voto
             val voteData = hashMapOf(
                 "matchId" to vote.matchId,
                 "playerId" to vote.playerId,
@@ -46,16 +49,13 @@ class FirebaseVoteRepository(
                 "timestamp" to Date.from(vote.timestamp.toJavaInstant())
             )
 
+            // Salvar o voto
             voteRef.set(voteData).await()
 
-            // Tentamos atualizar o resumo, mas não impedimos o fluxo principal se falhar
-            try {
-                updateVoteSummary(vote.matchId, vote.playerId)
-            } catch (e: Exception) {
-                // Registramos o erro mas continuamos, considerando o voto como enviado
-                println("Erro ao atualizar resumo de votos: ${e.message}")
-            }
+            // Atualizar o resumo separadamente, após o voto ser salvo
+            updateVoteSummary(vote.matchId, vote.playerId)
         } catch (e: Exception) {
+            println("Erro ao enviar voto: ${e.message}")
             throw Exception("Erro ao enviar voto: ${e.message}")
         }
     }
@@ -140,6 +140,27 @@ class FirebaseVoteRepository(
                     ioScope.launch {
                         try {
                             val calculatedSummaries = calculateRealTimeSummary(matchId)
+
+                            // Tenta atualizar os resumos no Firestore para uso futuro do ranking
+                            calculatedSummaries.forEach { summary ->
+                                try {
+                                    val summaryRef = voteSummariesCollection
+                                        .document(matchId)
+                                        .collection("players")
+                                        .document(summary.playerId)
+
+                                    val summaryData = hashMapOf(
+                                        "averageRating" to summary.averageRating,
+                                        "totalVotes" to summary.totalVotes,
+                                        "lastUpdated" to Date.from(Clock.System.now().toJavaInstant())
+                                    )
+
+                                    summaryRef.set(summaryData).await()
+                                } catch (e: Exception) {
+                                    println("Erro ao salvar resumo calculado: ${e.message}")
+                                }
+                            }
+
                             trySend(calculatedSummaries)
                         } catch (e: Exception) {
                             // Em caso de erro no cálculo, já emitimos lista vazia acima
@@ -254,8 +275,27 @@ class FirebaseVoteRepository(
 
     // Função auxiliar para obter IDs de jogadores de uma partida
     private suspend fun getPlayerIdsForMatch(matchId: String): List<String> {
-        // Na implementação real, você buscaria esses IDs de algum outro lugar
-        // Por enquanto, retornamos uma lista de IDs comuns
+        try {
+            // Buscar os jogadores para os quais existem votos nesta partida
+            val playersCollection = votesCollection.document(matchId).collection("players")
+            val playersSnapshot = playersCollection.get().await()
+
+            if (!playersSnapshot.isEmpty) {
+                return playersSnapshot.documents.map { it.id }
+            }
+
+            // Se não encontrou, tenta no resumo
+            val summaryPlayersCollection = voteSummariesCollection.document(matchId).collection("players")
+            val summarySnapshot = summaryPlayersCollection.get().await()
+
+            if (!summarySnapshot.isEmpty) {
+                return summarySnapshot.documents.map { it.id }
+            }
+        } catch (e: Exception) {
+            println("Erro ao buscar IDs de jogadores: ${e.message}")
+        }
+
+        // Se tudo falhar, retorna lista padrão
         return listOf(
             "player_ie_burdol", "player_ie_josedeodo", "player_ie_mireu",
             "player_ie_snaker", "player_ie_ackerman", "player_pain_wizer",
@@ -265,10 +305,48 @@ class FirebaseVoteRepository(
     }
 
     /**
-     * Atualiza o resumo de votos para um jogador em uma partida
-     * Esta função pode falhar devido a permissões, mas não deve impedir o fluxo principal
+     * Atualiza o resumo de votos para um jogador em uma partida dentro de uma transação
      */
-    private suspend fun updateVoteSummary(matchId: String, playerId: String) {
+    private fun updateVoteSummaryInTransaction(
+        transaction: Transaction,
+        matchId: String,
+        playerId: String
+    ) {
+        try {
+            // Referência para o documento de resumo
+            val summaryRef = voteSummariesCollection
+                .document(matchId)
+                .collection("players")
+                .document(playerId)
+
+            // Observe que não podemos recuperar toda a coleção em uma transação
+            // Em vez disso, vamos apenas criar um resumo básico para marcar que o voto foi processado
+            // O resumo completo será atualizado posteriormente por um processo separado
+
+            val summaryData = hashMapOf(
+                "needsUpdate" to true,
+                "lastUpdated" to Date.from(Clock.System.now().toJavaInstant())
+            )
+
+            // Atualizar resumo com informação de que precisa ser recalculado
+            transaction.set(summaryRef, summaryData, SetOptions.merge())
+
+            // Agendamos uma atualização do resumo fora da transação
+            ioScope.launch {
+                try {
+                    delay(500) // Pequeno atraso para garantir que o voto foi salvo
+                    updateVoteSummary(matchId, playerId)
+                } catch (e: Exception) {
+                    println("Erro ao atualizar resumo após transação: ${e.message}")
+                }
+            }
+        } catch (e: Exception) {
+            println("Erro ao marcar resumo para atualização: ${e.message}")
+        }
+    }
+
+    // Método para atualizar resumos fora de uma transação (usado pelo ranking)
+    suspend fun updateVoteSummary(matchId: String, playerId: String) {
         try {
             // Obter todos os votos para este jogador nesta partida
             val querySnapshot = votesCollection
@@ -284,33 +362,31 @@ class FirebaseVoteRepository(
                     doc.getDouble("rating")?.toFloat()
                 }
 
-                // Calcular média
-                val average = votes.average()
-                val total = votes.size
+                if (votes.isNotEmpty()) {
+                    // Calcular média
+                    val average = votes.average()
+                    val total = votes.size
 
-                // Atualizar ou criar o documento de resumo
-                val summaryRef = voteSummariesCollection
-                    .document(matchId)
-                    .collection("players")
-                    .document(playerId)
+                    // Atualizar ou criar o documento de resumo
+                    val summaryRef = voteSummariesCollection
+                        .document(matchId)
+                        .collection("players")
+                        .document(playerId)
 
-                val summaryData = hashMapOf(
-                    "averageRating" to average,
-                    "totalVotes" to total,
-                    "lastUpdated" to Date.from(Clock.System.now().toJavaInstant())
-                )
+                    val summaryData = hashMapOf(
+                        "averageRating" to average,
+                        "totalVotes" to total,
+                        "lastUpdated" to Date.from(Clock.System.now().toJavaInstant())
+                    )
 
-                try {
-                    // Tentamos atualizar o resumo, mas capturamos exceções aqui para
-                    // não interromper o fluxo principal se falhar devido a permissões
-                    summaryRef.set(summaryData).await()
-                } catch (e: Exception) {
-                    // Registramos o erro mas não o propagamos
-                    println("Erro ao salvar resumo de votos no Firestore: ${e.message}")
+                    try {
+                        summaryRef.set(summaryData).await()
+                    } catch (e: Exception) {
+                        println("Erro ao salvar resumo de votos no Firestore: ${e.message}")
+                    }
                 }
             }
         } catch (e: Exception) {
-            // Registramos o erro ao obter os votos, mas não o propagamos
             println("Erro ao calcular resumo de votos: ${e.message}")
         }
     }
