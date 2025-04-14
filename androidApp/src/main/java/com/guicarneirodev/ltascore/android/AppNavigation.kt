@@ -133,8 +133,8 @@ fun AppNavigation(
                     // No futuro, implementar tela de edição
                 },
                 onNavigateToMatchHistory = {
-                    // Navega de volta para partidas por enquanto
-                    navController.navigate(Screen.Matches.route)
+                    // ALTERAR AQUI: Navega para a tela de histórico em vez de partidas
+                    navController.navigate(Screen.VoteHistory.route)
                 },
                 onNavigateToRanking = {
                     // Navega para a nova tela de ranking

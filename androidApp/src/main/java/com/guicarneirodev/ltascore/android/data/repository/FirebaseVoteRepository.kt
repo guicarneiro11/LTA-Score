@@ -426,7 +426,10 @@ class FirebaseVoteRepository(
 
     override suspend fun addVoteToUserHistory(userId: String, historyItem: UserVoteHistoryItem) {
         try {
-            val historyRef = userVoteHistoryCollection
+            println("Adicionando voto ao histórico do usuário $userId: ${historyItem.playerNickname}")
+
+            val historyRef = firestore
+                .collection("user_vote_history")
                 .document(userId)
                 .collection("votes")
                 .document(historyItem.id)
@@ -449,72 +452,110 @@ class FirebaseVoteRepository(
             )
 
             historyRef.set(historyData).await()
+            println("Voto adicionado com sucesso ao histórico")
         } catch (e: Exception) {
-            println("Erro ao salvar histórico de voto: ${e.message}")
-            // Não propagar erro para não impedir o fluxo principal
+            println("ERRO ao salvar histórico de voto: ${e.message}")
+            e.printStackTrace()
         }
     }
 
-    override suspend fun getUserVoteHistory(userId: String): Flow<List<UserVoteHistoryItem>> = flow {
+    override suspend fun getUserVoteHistory(userId: String): Flow<List<UserVoteHistoryItem>> = callbackFlow {
         try {
-            val historySnapshot = userVoteHistoryCollection
+            println("Buscando histórico de votos para usuário $userId")
+
+            // Adicionar listener para atualizações em tempo real
+            val listener = firestore
+                .collection("user_vote_history")
                 .document(userId)
                 .collection("votes")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            val historyItems = historySnapshot.documents.mapNotNull { doc ->
-                try {
-                    val matchId = doc.getString("matchId") ?: return@mapNotNull null
-                    val matchDate = doc.getDate("matchDate")?.toInstant() ?: Clock.System.now().toJavaInstant()
-                    val playerId = doc.getString("playerId") ?: return@mapNotNull null
-                    val playerName = doc.getString("playerName") ?: ""
-                    val playerNickname = doc.getString("playerNickname") ?: ""
-                    val playerImage = doc.getString("playerImage") ?: ""
-                    val playerPositionStr = doc.getString("playerPosition") ?: ""
-                    val teamId = doc.getString("teamId") ?: ""
-                    val teamName = doc.getString("teamName") ?: ""
-                    val teamCode = doc.getString("teamCode") ?: ""
-                    val teamImage = doc.getString("teamImage") ?: ""
-                    val opponentTeamCode = doc.getString("opponentTeamCode") ?: ""
-                    val rating = doc.getDouble("rating")?.toFloat() ?: 0f
-                    val timestamp = doc.getDate("timestamp")?.toInstant() ?: Clock.System.now().toJavaInstant()
-
-                    // Converter string de posição para enum
-                    val playerPosition = try {
-                        PlayerPosition.valueOf(playerPositionStr)
-                    } catch (e: Exception) {
-                        PlayerPosition.TOP // Valor padrão
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        println("Erro ao observar histórico: ${error.message}")
+                        trySend(emptyList())
+                        return@addSnapshotListener
                     }
 
-                    UserVoteHistoryItem(
-                        id = doc.id,
-                        matchId = matchId,
-                        matchDate = Instant.fromEpochMilliseconds(matchDate.toEpochMilli()),
-                        playerId = playerId,
-                        playerName = playerName,
-                        playerNickname = playerNickname,
-                        playerImage = playerImage,
-                        playerPosition = playerPosition,
-                        teamId = teamId,
-                        teamName = teamName,
-                        teamCode = teamCode,
-                        teamImage = teamImage,
-                        opponentTeamCode = opponentTeamCode,
-                        rating = rating,
-                        timestamp = Instant.fromEpochMilliseconds(timestamp.toEpochMilli())
-                    )
-                } catch (e: Exception) {
-                    println("Erro ao converter documento para histórico: ${e.message}")
-                    null
-                }
-            }
+                    if (snapshot == null || snapshot.isEmpty) {
+                        println("Nenhum voto encontrado no histórico")
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
 
-            emit(historyItems)
+                    val historyItems = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            val matchId = doc.getString("matchId") ?: return@mapNotNull null
+                            val matchDateTimestamp = doc.getDate("matchDate")
+                            val playerId = doc.getString("playerId") ?: return@mapNotNull null
+                            val playerName = doc.getString("playerName") ?: ""
+                            val playerNickname = doc.getString("playerNickname") ?: ""
+                            val playerImage = doc.getString("playerImage") ?: ""
+                            val playerPositionStr = doc.getString("playerPosition") ?: "TOP"
+                            val teamId = doc.getString("teamId") ?: ""
+                            val teamName = doc.getString("teamName") ?: ""
+                            val teamCode = doc.getString("teamCode") ?: ""
+                            val teamImage = doc.getString("teamImage") ?: ""
+                            val opponentTeamCode = doc.getString("opponentTeamCode") ?: ""
+                            val rating = doc.getDouble("rating")?.toFloat() ?: 0f
+                            val timestampDate = doc.getDate("timestamp")
+
+                            // Converter string de posição para enum
+                            val playerPosition = try {
+                                PlayerPosition.valueOf(playerPositionStr)
+                            } catch (e: Exception) {
+                                PlayerPosition.TOP // Valor padrão
+                            }
+
+                            val matchDate = if (matchDateTimestamp != null) {
+                                Instant.fromEpochMilliseconds(matchDateTimestamp.time)
+                            } else {
+                                Clock.System.now()
+                            }
+
+                            val timestamp = if (timestampDate != null) {
+                                Instant.fromEpochMilliseconds(timestampDate.time)
+                            } else {
+                                Clock.System.now()
+                            }
+
+                            val item = UserVoteHistoryItem(
+                                id = doc.id,
+                                matchId = matchId,
+                                matchDate = matchDate,
+                                playerId = playerId,
+                                playerName = playerName,
+                                playerNickname = playerNickname,
+                                playerImage = playerImage,
+                                playerPosition = playerPosition,
+                                teamId = teamId,
+                                teamName = teamName,
+                                teamCode = teamCode,
+                                teamImage = teamImage,
+                                opponentTeamCode = opponentTeamCode,
+                                rating = rating,
+                                timestamp = timestamp
+                            )
+
+                            println("Voto encontrado para jogador: ${item.playerNickname}, rating: ${item.rating}")
+                            item
+                        } catch (e: Exception) {
+                            println("Erro ao processar documento do histórico: ${e.message}")
+                            null
+                        }
+                    }
+
+                    println("Total de ${historyItems.size} votos encontrados no histórico")
+                    trySend(historyItems)
+                }
+
+            awaitClose {
+                listener.remove()
+            }
         } catch (e: Exception) {
-            println("Erro ao buscar histórico de votos: ${e.message}")
-            emit(emptyList())
+            println("Erro crítico ao buscar histórico de votos: ${e.message}")
+            e.printStackTrace()
+            trySend(emptyList())
+            close(e)
         }
     }
 

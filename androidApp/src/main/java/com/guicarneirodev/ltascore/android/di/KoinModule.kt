@@ -55,7 +55,7 @@ val appModule = module {
     single { GetMatchesUseCase(get()) }
     single { GetCompletedMatchesUseCase(get()) }
     single { GetMatchByIdUseCase(get()) }
-    single { SubmitPlayerVoteUseCase(get()) }
+    single { SubmitPlayerVoteUseCase(get(), get(), get()) }
     single { GetPlayerRankingUseCase(get()) }
     single { GetUserVoteHistoryUseCase(get(), get()) }
 

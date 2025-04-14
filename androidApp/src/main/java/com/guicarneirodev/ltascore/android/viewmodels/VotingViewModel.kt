@@ -105,18 +105,18 @@ class VotingViewModel(
                                 userId = userId,
                                 rating = rating
                             )
+
+                            // FALTANDO: Adicionar o voto ao histórico do usuário
+
                             successCount++
                         } catch (e: Exception) {
-                            println("Erro ao enviar voto para jogador $playerId: ${e.message}")
-                            // Continuamos mesmo com erro em um jogador específico
+                            // Continua em caso de erro em um jogador específico
                         }
                     }
 
-                    // Aguardamos um momento para que os dados sejam armazenados
-                    delay(500)
-
+                    // MODIFICAÇÃO NECESSÁRIA: Marcar partida como votada no histórico
                     if (successCount > 0) {
-                        // NOVA FUNCIONALIDADE: Marca no DataStore que o usuário votou nesta partida
+                        // Marca no DataStore que o usuário votou nesta partida
                         userPreferencesRepository.markMatchVoted(userId, match.id)
 
                         _uiState.value = _uiState.value.copy(
