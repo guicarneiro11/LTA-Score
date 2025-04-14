@@ -13,6 +13,7 @@ import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesReposi
 import com.guicarneirodev.ltascore.android.ui.auth.LoginScreen
 import com.guicarneirodev.ltascore.android.ui.auth.RegisterScreen
 import com.guicarneirodev.ltascore.android.ui.auth.ResetPasswordScreen
+import com.guicarneirodev.ltascore.android.ui.history.VoteHistoryScreen
 import com.guicarneirodev.ltascore.android.ui.matches.MatchesScreen
 import com.guicarneirodev.ltascore.android.ui.profile.ProfileScreen
 import com.guicarneirodev.ltascore.android.ui.ranking.RankingScreen
@@ -33,7 +34,8 @@ sealed class Screen(val route: String) {
     object ResetPassword : Screen("reset_password")
     object Matches : Screen("matches")
     object Profile : Screen("profile")
-    object Ranking : Screen("ranking") // Nova tela de ranking
+    object Ranking : Screen("ranking")
+    object VoteHistory : Screen("vote_history")
 
     // Telas com argumentos
     object Voting : Screen("voting/{matchId}") {
@@ -60,7 +62,6 @@ fun AppNavigation(
         navController = navController,
         startDestination = startDestination
     ) {
-        // Telas de autenticação
         authGraph(
             navController = navController,
             authViewModel = authViewModel
@@ -223,6 +224,23 @@ fun AppNavigation(
                         // Configuração para limpar a pilha e evitar múltiplos retornos
                         popUpTo(Screen.Matches.route) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable(Screen.VoteHistory.route) {
+            // Verifica se o usuário está autenticado
+            LaunchedEffect(isLoggedIn) {
+                if (!isLoggedIn) {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.VoteHistory.route) { inclusive = true }
+                    }
+                }
+            }
+
+            VoteHistoryScreen(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

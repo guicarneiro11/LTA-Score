@@ -1,8 +1,12 @@
 package com.guicarneirodev.ltascore.android.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Transaction
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.domain.models.PlayerPosition
+import com.guicarneirodev.ltascore.domain.models.UserVoteHistoryItem
 import com.guicarneirodev.ltascore.domain.models.Vote
 import com.guicarneirodev.ltascore.domain.models.VoteSummary
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
@@ -21,44 +25,18 @@ import kotlinx.datetime.toJavaInstant
 import java.util.Date
 
 class FirebaseVoteRepository(
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
+    private val playersStaticDataSource: PlayersStaticDataSource
 ) : VoteRepository {
 
     private val votesCollection = firestore.collection("votes")
     private val voteSummariesCollection = firestore.collection("vote_summaries")
+    private val userVoteHistoryCollection = firestore.collection("user_vote_history")
+
+
 
     // Escopo de IO para operações em background
     private val ioScope = CoroutineScope(Dispatchers.IO)
-
-    override suspend fun submitVote(vote: Vote) {
-        try {
-            // Referência para o documento do voto
-            val voteRef = votesCollection
-                .document(vote.matchId)
-                .collection("players")
-                .document(vote.playerId)
-                .collection("user_votes")
-                .document(vote.userId)
-
-            // Dados do voto
-            val voteData = hashMapOf(
-                "matchId" to vote.matchId,
-                "playerId" to vote.playerId,
-                "userId" to vote.userId,
-                "rating" to vote.rating,
-                "timestamp" to Date.from(vote.timestamp.toJavaInstant())
-            )
-
-            // Salvar o voto
-            voteRef.set(voteData).await()
-
-            // Atualizar o resumo separadamente, após o voto ser salvo
-            updateVoteSummary(vote.matchId, vote.playerId)
-        } catch (e: Exception) {
-            println("Erro ao enviar voto: ${e.message}")
-            throw Exception("Erro ao enviar voto: ${e.message}")
-        }
-    }
 
     override suspend fun getUserVotes(userId: String): Flow<List<Vote>> = callbackFlow {
         // Encontrar os votos usando a coleção específica em vez de collectionGroup
@@ -390,4 +368,244 @@ class FirebaseVoteRepository(
             println("Erro ao calcular resumo de votos: ${e.message}")
         }
     }
+
+    override suspend fun submitVote(vote: Vote) {
+        try {
+            // Salvar o voto original (código existente)
+            val voteRef = votesCollection
+                .document(vote.matchId)
+                .collection("players")
+                .document(vote.playerId)
+                .collection("user_votes")
+                .document(vote.userId)
+
+            val voteData = hashMapOf(
+                "matchId" to vote.matchId,
+                "playerId" to vote.playerId,
+                "userId" to vote.userId,
+                "rating" to vote.rating,
+                "timestamp" to Date.from(vote.timestamp.toJavaInstant())
+            )
+
+            voteRef.set(voteData).await()
+
+            // Atualizar o resumo
+            updateVoteSummary(vote.matchId, vote.playerId)
+
+            // NOVO: Adicionar ao histórico do usuário
+            // Precisamos buscar mais informações sobre a partida e o jogador
+            val matchInfo = getMatchMetadata(vote.matchId)
+            val playerInfo = getPlayerMetadata(vote.playerId)
+
+            if (matchInfo != null && playerInfo != null) {
+                val historyItem = UserVoteHistoryItem(
+                    id = "${vote.matchId}_${vote.playerId}",
+                    matchId = vote.matchId,
+                    matchDate = matchInfo.date,
+                    playerId = vote.playerId,
+                    playerName = playerInfo.name,
+                    playerNickname = playerInfo.nickname,
+                    playerImage = playerInfo.imageUrl,
+                    playerPosition = playerInfo.position,
+                    teamId = playerInfo.teamId,
+                    teamName = matchInfo.teams[playerInfo.teamId]?.name ?: "",
+                    teamCode = matchInfo.teams[playerInfo.teamId]?.code ?: "",
+                    teamImage = matchInfo.teams[playerInfo.teamId]?.image ?: "",
+                    opponentTeamCode = matchInfo.opponentCode,
+                    rating = vote.rating,
+                    timestamp = vote.timestamp
+                )
+
+                addVoteToUserHistory(vote.userId, historyItem)
+            }
+        } catch (e: Exception) {
+            println("Erro ao enviar voto: ${e.message}")
+            throw Exception("Erro ao enviar voto: ${e.message}")
+        }
+    }
+
+    override suspend fun addVoteToUserHistory(userId: String, historyItem: UserVoteHistoryItem) {
+        try {
+            val historyRef = userVoteHistoryCollection
+                .document(userId)
+                .collection("votes")
+                .document(historyItem.id)
+
+            val historyData = hashMapOf(
+                "matchId" to historyItem.matchId,
+                "matchDate" to Date.from(historyItem.matchDate.toJavaInstant()),
+                "playerId" to historyItem.playerId,
+                "playerName" to historyItem.playerName,
+                "playerNickname" to historyItem.playerNickname,
+                "playerImage" to historyItem.playerImage,
+                "playerPosition" to historyItem.playerPosition.name,
+                "teamId" to historyItem.teamId,
+                "teamName" to historyItem.teamName,
+                "teamCode" to historyItem.teamCode,
+                "teamImage" to historyItem.teamImage,
+                "opponentTeamCode" to historyItem.opponentTeamCode,
+                "rating" to historyItem.rating,
+                "timestamp" to Date.from(historyItem.timestamp.toJavaInstant())
+            )
+
+            historyRef.set(historyData).await()
+        } catch (e: Exception) {
+            println("Erro ao salvar histórico de voto: ${e.message}")
+            // Não propagar erro para não impedir o fluxo principal
+        }
+    }
+
+    override suspend fun getUserVoteHistory(userId: String): Flow<List<UserVoteHistoryItem>> = flow {
+        try {
+            val historySnapshot = userVoteHistoryCollection
+                .document(userId)
+                .collection("votes")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            val historyItems = historySnapshot.documents.mapNotNull { doc ->
+                try {
+                    val matchId = doc.getString("matchId") ?: return@mapNotNull null
+                    val matchDate = doc.getDate("matchDate")?.toInstant() ?: Clock.System.now().toJavaInstant()
+                    val playerId = doc.getString("playerId") ?: return@mapNotNull null
+                    val playerName = doc.getString("playerName") ?: ""
+                    val playerNickname = doc.getString("playerNickname") ?: ""
+                    val playerImage = doc.getString("playerImage") ?: ""
+                    val playerPositionStr = doc.getString("playerPosition") ?: ""
+                    val teamId = doc.getString("teamId") ?: ""
+                    val teamName = doc.getString("teamName") ?: ""
+                    val teamCode = doc.getString("teamCode") ?: ""
+                    val teamImage = doc.getString("teamImage") ?: ""
+                    val opponentTeamCode = doc.getString("opponentTeamCode") ?: ""
+                    val rating = doc.getDouble("rating")?.toFloat() ?: 0f
+                    val timestamp = doc.getDate("timestamp")?.toInstant() ?: Clock.System.now().toJavaInstant()
+
+                    // Converter string de posição para enum
+                    val playerPosition = try {
+                        PlayerPosition.valueOf(playerPositionStr)
+                    } catch (e: Exception) {
+                        PlayerPosition.TOP // Valor padrão
+                    }
+
+                    UserVoteHistoryItem(
+                        id = doc.id,
+                        matchId = matchId,
+                        matchDate = Instant.fromEpochMilliseconds(matchDate.toEpochMilli()),
+                        playerId = playerId,
+                        playerName = playerName,
+                        playerNickname = playerNickname,
+                        playerImage = playerImage,
+                        playerPosition = playerPosition,
+                        teamId = teamId,
+                        teamName = teamName,
+                        teamCode = teamCode,
+                        teamImage = teamImage,
+                        opponentTeamCode = opponentTeamCode,
+                        rating = rating,
+                        timestamp = Instant.fromEpochMilliseconds(timestamp.toEpochMilli())
+                    )
+                } catch (e: Exception) {
+                    println("Erro ao converter documento para histórico: ${e.message}")
+                    null
+                }
+            }
+
+            emit(historyItems)
+        } catch (e: Exception) {
+            println("Erro ao buscar histórico de votos: ${e.message}")
+            emit(emptyList())
+        }
+    }
+
+    // Função auxiliar para obter metadados da partida
+    private suspend fun getMatchMetadata(matchId: String): MatchMetadata? {
+        try {
+            // Buscar dados da partida do cache local ou Firestore
+            // Implementação dependente da sua estrutura
+            // Aqui está um exemplo simplificado:
+            val matchDoc = firestore
+                .collection("match_metadata")
+                .document(matchId)
+                .get()
+                .await()
+
+            if (matchDoc.exists()) {
+                val date = matchDoc.getDate("date")?.toInstant() ?: Clock.System.now().toJavaInstant()
+                val teamsMap = mutableMapOf<String, TeamInfo>()
+
+                // Ler os dados dos times
+                val teamsData = matchDoc.get("teams") as? Map<*, *>
+                teamsData?.forEach { (teamId, data) ->
+                    if (teamId is String && data is Map<*, *>) {
+                        teamsMap[teamId] = TeamInfo(
+                            id = teamId,
+                            name = data["name"] as? String ?: "",
+                            code = data["code"] as? String ?: "",
+                            image = data["image"] as? String ?: ""
+                        )
+                    }
+                }
+
+                return MatchMetadata(
+                    id = matchId,
+                    date = Instant.fromEpochMilliseconds(date.toEpochMilli()),
+                    teams = teamsMap,
+                    opponentCode = matchDoc.getString("opponentCode") ?: ""
+                )
+            }
+
+            return null
+        } catch (e: Exception) {
+            println("Erro ao buscar metadados da partida: ${e.message}")
+            return null
+        }
+    }
+
+    // Função auxiliar para obter metadados do jogador
+    private suspend fun getPlayerMetadata(playerId: String): PlayerMetadata? {
+        try {
+            // Buscar dados do jogador do cache estático
+            // Esta função dependeria da sua implementação do PlayersStaticDataSource
+            val player = playersStaticDataSource.getPlayerById(playerId)
+
+            return player?.let {
+                PlayerMetadata(
+                    id = it.id,
+                    name = it.name,
+                    nickname = it.nickname,
+                    imageUrl = it.imageUrl,
+                    position = it.position,
+                    teamId = it.teamId
+                )
+            }
+        } catch (e: Exception) {
+            println("Erro ao buscar metadados do jogador: ${e.message}")
+            return null
+        }
+    }
+
+    // Classes auxiliares para metadados
+    private data class MatchMetadata(
+        val id: String,
+        val date: Instant,
+        val teams: Map<String, TeamInfo>,
+        val opponentCode: String
+    )
+
+    private data class TeamInfo(
+        val id: String,
+        val name: String,
+        val code: String,
+        val image: String
+    )
+
+    private data class PlayerMetadata(
+        val id: String,
+        val name: String,
+        val nickname: String,
+        val imageUrl: String,
+        val position: PlayerPosition,
+        val teamId: String
+    )
 }
