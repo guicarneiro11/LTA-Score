@@ -1,6 +1,5 @@
 package com.guicarneirodev.ltascore.android.ui.friends
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -39,8 +38,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,11 +60,11 @@ import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.ui.friends.social.CommentSection
 import com.guicarneirodev.ltascore.android.ui.friends.social.ReactionBar
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsFeedViewModel
-import com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState
 import com.guicarneirodev.ltascore.domain.models.FriendVoteHistoryItem
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.VoteComment
 import com.guicarneirodev.ltascore.domain.models.VoteReaction
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +74,15 @@ fun FriendsFeedScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // Manter os listeners ativos mesmo quando a tela não estiver em foco
+    DisposableEffect(Unit) {
+        onDispose {
+            // Não fazemos nada na disposição, deixando os listeners ativos
+            println("FriendsFeedScreen sendo disposta, mas mantendo listeners ativos")
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -80,7 +91,7 @@ fun FriendsFeedScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Voltar"
                         )
                     }
@@ -91,7 +102,12 @@ fun FriendsFeedScreen(
                     navigationIconContentColor = Color.White
                 ),
                 actions = {
-                    IconButton(onClick = { viewModel.loadFeed() }) {
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            // Uso de coroutineScope para manter a operação ativa
+                            viewModel.loadFeed()
+                        }
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Atualizar",
@@ -214,7 +230,7 @@ fun EmptyFeedContent() {
 @Composable
 fun FriendsFeedContent(
     groupedFeed: Map<String, List<FriendVoteHistoryItem>>,
-    voteReactions: Map<String, VoteReactionsState>,
+    voteReactions: Map<String, com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState>,
     voteComments: Map<String, List<VoteComment>>,
     currentUserId: String,
     onAddReaction: (String, String) -> Unit,
@@ -248,8 +264,13 @@ fun FriendsFeedContent(
             // Itens de voto deste grupo
             items(votes, key = { it.id }) { vote ->
                 // Obter reações e comentários para este voto
-                val reactionsState = voteReactions[vote.id] ?: VoteReactionsState()
+                val reactionsState = voteReactions[vote.id] ?: com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState()
                 val commentsList = voteComments[vote.id] ?: emptyList()
+
+                // Debug log para verificar
+                LaunchedEffect(vote.id) {
+                    println("Renderizando voto ${vote.id}: ${reactionsState.reactions.size} reações, ${commentsList.size} comentários")
+                }
 
                 FriendVoteItem(
                     vote = vote,
@@ -332,7 +353,6 @@ fun FeedGroupHeader(
     }
 }
 
-@SuppressLint("DefaultLocale")
 @Composable
 fun FriendVoteItem(
     vote: FriendVoteHistoryItem,
@@ -440,9 +460,9 @@ fun FriendVoteItem(
                 }
             }
 
-            // Barra de reações
+            // Barra de reações - CORRIGIDO: Adicionado o parâmetro voteId
             ReactionBar(
-                voteId = vote.id,  // Adicionando o ID do voto aqui
+                voteId = vote.id,
                 reactions = reactions,
                 userReaction = userReaction,
                 onReactionSelected = onAddReaction,
@@ -459,7 +479,7 @@ fun FriendVoteItem(
 
             // Seção de comentários - CORRIGIDO: Adicionado o parâmetro voteId
             CommentSection(
-                voteId = vote.id,  // Adicionando o ID do voto aqui
+                voteId = vote.id,
                 comments = comments,
                 currentUserId = currentUserId,
                 onAddComment = onAddComment,
