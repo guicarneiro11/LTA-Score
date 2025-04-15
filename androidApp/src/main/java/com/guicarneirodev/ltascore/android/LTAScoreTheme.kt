@@ -1,6 +1,5 @@
 package com.guicarneirodev.ltascore.android
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -40,7 +39,6 @@ object LTAThemeColors {
 
 @Composable
 fun LTAScoreTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val colors = darkColorScheme(

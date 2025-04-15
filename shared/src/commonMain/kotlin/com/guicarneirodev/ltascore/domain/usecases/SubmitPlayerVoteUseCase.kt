@@ -6,6 +6,7 @@ import com.guicarneirodev.ltascore.domain.models.Vote
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import kotlinx.datetime.Clock
+import kotlinx.coroutines.flow.first
 
 /**
  * Caso de uso para enviar um voto para um jogador

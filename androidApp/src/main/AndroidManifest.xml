@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".LOLVotingApp"
+        android:name=".LTAScore"
         android:allowBackup="false"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">

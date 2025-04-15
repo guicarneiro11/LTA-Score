@@ -11,23 +11,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,22 +48,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
+import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.viewmodels.FriendsManagementUiState
+import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
+import com.guicarneirodev.ltascore.domain.models.Friendship
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    viewModel: AuthViewModel = koinViewModel(),
+    friendsViewModel: FriendsViewModel = koinViewModel(),
+    authViewModel: com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel = koinViewModel(),
     onNavigateToEditProfile: () -> Unit,
     onNavigateToMatchHistory: () -> Unit,
-    onNavigateToRanking: () -> Unit, // Novo callback para navegar para o ranking
+    onNavigateToRanking: () -> Unit,
+    onNavigateToFriendsFeed: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit
 ) {
-    val currentUser by viewModel.currentUser.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState()
+    val friendsUiState by friendsViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -68,52 +84,72 @@ fun ProfileScreen(
             )
         }
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Avatar e informações do usuário
-            UserProfileHeader(
-                username = currentUser?.username ?: "Usuário",
-                email = currentUser?.email ?: "",
-                onEditProfile = onNavigateToEditProfile
-            )
+            item {
+                UserProfileHeader(
+                    username = currentUser?.username ?: "Usuário",
+                    email = currentUser?.email ?: "",
+                    onEditProfile = onNavigateToEditProfile
+                )
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
-            // Estatísticas e opções do usuário
-            ProfileOptions(
-                onNavigateToMatchHistory = onNavigateToMatchHistory,
-                onNavigateToRanking = onNavigateToRanking,
-                onNavigateToSettings = onNavigateToSettings
-            )
+            // Seção de amigos
+            item {
+                FriendsSection(
+                    uiState = friendsUiState,
+                    onFriendUsernameChange = friendsViewModel::updateFriendUsername,
+                    onAddFriend = friendsViewModel::addFriend,
+                    onRemoveFriend = friendsViewModel::removeFriend,
+                    onViewFriendsFeed = onNavigateToFriendsFeed
+                )
 
-            Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Opções do perfil
+            item {
+                ProfileOptionsSection(
+                    onNavigateToMatchHistory = onNavigateToMatchHistory,
+                    onNavigateToRanking = onNavigateToRanking
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
             // Botão de logout
-            Button(
-                onClick = {
-                    viewModel.signOut()
-                    onLogout()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Logout,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Sair da Conta")
+            item {
+                Button(
+                    onClick = {
+                        authViewModel.signOut()
+                        onLogout()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Sair da Conta")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -180,64 +216,6 @@ fun UserProfileHeader(
 }
 
 @Composable
-fun ProfileOptions(
-    onNavigateToMatchHistory: () -> Unit,
-    onNavigateToRanking: () -> Unit,
-    onNavigateToSettings: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = "Atividades",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        // Histórico de partidas
-        ProfileOptionItem(
-            icon = Icons.Default.History,
-            title = "Histórico de Votos",
-            subtitle = "Veja todas as partidas em que você votou",
-            onClick = onNavigateToMatchHistory
-        )
-
-        Divider()
-
-        // Ranking (nova opção)
-        ProfileOptionItem(
-            icon = Icons.Default.Leaderboard,
-            title = "Ranking de Jogadores",
-            subtitle = "Veja as melhores avaliações da comunidade",
-            onClick = onNavigateToRanking
-        )
-
-        Divider()
-
-        // Estatísticas
-        ProfileOptionItem(
-            icon = Icons.Default.BarChart,
-            title = "Estatísticas",
-            subtitle = "Veja suas estatísticas de votação",
-            onClick = { /* TODO: Implementar estatísticas */ }
-        )
-
-        Divider()
-
-        // Configurações
-        ProfileOptionItem(
-            icon = Icons.Default.Settings,
-            title = "Configurações",
-            subtitle = "Notificações, tema e preferências",
-            onClick = onNavigateToSettings
-        )
-
-        Divider()
-    }
-}
-
-@Composable
 fun ProfileOptionItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
@@ -284,6 +262,329 @@ fun ProfileOptionItem(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun FriendsSection(
+    uiState: FriendsManagementUiState,
+    onFriendUsernameChange: (String) -> Unit,
+    onAddFriend: () -> Unit,
+    onRemoveFriend: (Friendship) -> Unit,
+    onViewFriendsFeed: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = LTAThemeColors.CardBackground
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Título da seção
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Groups,
+                    contentDescription = null,
+                    tint = LTAThemeColors.PrimaryGold,
+                    modifier = Modifier.size(24.dp)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "Amigos",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = LTAThemeColors.TextPrimary
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Botão para ver feed de amigos
+                if (uiState.friends.isNotEmpty()) {
+                    Button(
+                        onClick = onViewFriendsFeed,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LTAThemeColors.PrimaryGold
+                        ),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("Ver Feed", style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Campo para adicionar amigo
+            AddFriendField(
+                username = uiState.friendUsername,
+                onUsernameChange = onFriendUsernameChange,
+                onAddFriend = onAddFriend,
+                isLoading = uiState.isLoading
+            )
+
+            // Mensagens de erro ou sucesso
+            if (uiState.error != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = uiState.error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (uiState.success != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = uiState.success,
+                    color = LTAThemeColors.Success,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Lista de amigos
+            Text(
+                text = "Meus Amigos (${uiState.friends.size})",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = LTAThemeColors.TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (uiState.friends.isEmpty()) {
+                EmptyFriendsList()
+            } else {
+                FriendsList(
+                    friends = uiState.friends,
+                    onRemoveFriend = onRemoveFriend
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AddFriendField(
+    username: String,
+    onUsernameChange: (String) -> Unit,
+    onAddFriend: () -> Unit,
+    isLoading: Boolean
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = username,
+            onValueChange = onUsernameChange,
+            label = { Text("Nome de usuário") },
+            placeholder = { Text("Digite o username do amigo") },
+            singleLine = true,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.PersonAdd,
+                    contentDescription = null,
+                    tint = LTAThemeColors.TextSecondary
+                )
+            },
+            modifier = Modifier.weight(1f),
+            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = LTAThemeColors.PrimaryGold,
+                unfocusedBorderColor = LTAThemeColors.TextSecondary,
+                focusedLabelColor = LTAThemeColors.PrimaryGold,
+                unfocusedLabelColor = LTAThemeColors.TextSecondary,
+                cursorColor = LTAThemeColors.PrimaryGold,
+                focusedTextColor = LTAThemeColors.TextPrimary,
+                unfocusedTextColor = LTAThemeColors.TextPrimary
+            )
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Button(
+            onClick = onAddFriend,
+            enabled = username.isNotEmpty() && !isLoading,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = LTAThemeColors.PrimaryGold,
+                disabledContainerColor = LTAThemeColors.PrimaryGold.copy(alpha = 0.5f)
+            ),
+            modifier = Modifier.height(56.dp)
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Adicionar",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyFriendsList() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .background(
+                color = LTAThemeColors.DarkBackground,
+                shape = RoundedCornerShape(8.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Você ainda não adicionou nenhum amigo",
+            style = MaterialTheme.typography.bodyMedium,
+            color = LTAThemeColors.TextSecondary,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun FriendsList(
+    friends: List<Friendship>,
+    onRemoveFriend: (Friendship) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = LTAThemeColors.DarkBackground,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(8.dp)
+    ) {
+        friends.forEach { friendship ->
+            FriendItem(
+                friendship = friendship,
+                onRemove = { onRemoveFriend(friendship) }
+            )
+        }
+    }
+}
+
+@Composable
+fun FriendItem(
+    friendship: Friendship,
+    onRemove: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        color = LTAThemeColors.CardBackground,
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar (placeholder circular)
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(LTAThemeColors.PrimaryGold.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = friendship.friendUsername.take(1).uppercase(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = LTAThemeColors.PrimaryGold
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Nome de usuário
+            Text(
+                text = friendship.friendUsername,
+                style = MaterialTheme.typography.bodyLarge,
+                color = LTAThemeColors.TextPrimary,
+                modifier = Modifier.weight(1f)
+            )
+
+            // Botão de remover
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Remover amigo",
+                    tint = LTAThemeColors.SecondaryRed
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileOptionsSection(
+    onNavigateToMatchHistory: () -> Unit,
+    onNavigateToRanking: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = LTAThemeColors.CardBackground
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Atividades",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = LTAThemeColors.TextPrimary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // Histórico de votos
+            ProfileOptionItem(
+                icon = Icons.Default.Person,
+                title = "Meu Histórico de Votos",
+                subtitle = "Veja suas avaliações de jogadores",
+                onClick = onNavigateToMatchHistory
+            )
+
+            Divider(color = LTAThemeColors.DarkBackground, thickness = 1.dp)
+
+            // Ranking
+            ProfileOptionItem(
+                icon = Icons.Default.Leaderboard,
+                title = "Ranking de Jogadores",
+                subtitle = "Veja as avaliações da comunidade",
+                onClick = onNavigateToRanking
             )
         }
     }

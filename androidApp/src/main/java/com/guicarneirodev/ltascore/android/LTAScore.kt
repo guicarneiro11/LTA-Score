@@ -9,7 +9,7 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 
-class LOLVotingApp : Application() {
+class LTAScore : Application() {
     override fun onCreate() {
         super.onCreate()
 
@@ -20,11 +20,11 @@ class LOLVotingApp : Application() {
 
         // Inicializa o Koin
         startKoin {
-            androidLogger(Level.ERROR) // Use Level.DEBUG para desenvolvimento
-            androidContext(this@LOLVotingApp)
+            androidLogger(Level.ERROR)
+            androidContext(this@LTAScore)
             modules(appModule)
         }
 
-        Log.d("LOLVotingApp", "Firebase e Koin inicializados com sucesso")
+        Log.d("LTAScore", "Firebase e Koin inicializados com sucesso")
     }
 }

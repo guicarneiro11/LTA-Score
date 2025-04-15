@@ -13,6 +13,7 @@ import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesReposi
 import com.guicarneirodev.ltascore.android.ui.auth.LoginScreen
 import com.guicarneirodev.ltascore.android.ui.auth.RegisterScreen
 import com.guicarneirodev.ltascore.android.ui.auth.ResetPasswordScreen
+import com.guicarneirodev.ltascore.android.ui.friends.FriendsFeedScreen
 import com.guicarneirodev.ltascore.android.ui.history.VoteHistoryScreen
 import com.guicarneirodev.ltascore.android.ui.matches.MatchesScreen
 import com.guicarneirodev.ltascore.android.ui.profile.ProfileScreen
@@ -36,6 +37,7 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     object Ranking : Screen("ranking")
     object VoteHistory : Screen("vote_history")
+    object FriendsFeed : Screen("friends_feed")
 
     // Telas com argumentos
     object Voting : Screen("voting/{matchId}") {
@@ -63,6 +65,11 @@ fun AppNavigation(
         startDestination = startDestination
     ) {
         authGraph(
+            navController = navController,
+            authViewModel = authViewModel
+        )
+
+        friendshipGraph(
             navController = navController,
             authViewModel = authViewModel
         )
@@ -128,21 +135,21 @@ fun AppNavigation(
             }
 
             ProfileScreen(
+                authViewModel = authViewModel,
                 onNavigateToEditProfile = {
                     // Temporariamente, apenas mostra o perfil
-                    // No futuro, implementar tela de edição
                 },
                 onNavigateToMatchHistory = {
-                    // ALTERAR AQUI: Navega para a tela de histórico em vez de partidas
                     navController.navigate(Screen.VoteHistory.route)
                 },
                 onNavigateToRanking = {
-                    // Navega para a nova tela de ranking
                     navController.navigate(Screen.Ranking.route)
+                },
+                onNavigateToFriendsFeed = {
+                    navController.navigate(Screen.FriendsFeed.route)
                 },
                 onNavigateToSettings = {
                     // Temporariamente, apenas mostra o perfil
-                    // No futuro, implementar tela de configurações
                 },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
@@ -355,5 +362,28 @@ private fun navigateToMatchDetails(
             // Em caso de erro geral, vai para a tela de votação (experiência padrão)
             navController.navigate(Screen.Voting.createRoute(matchId))
         }
+    }
+}
+
+fun NavGraphBuilder.friendshipGraph(
+    navController: NavHostController,
+    authViewModel: AuthViewModel
+) {
+    // Tela de feed de amigos
+    composable(Screen.FriendsFeed.route) {
+        // Verifica se o usuário está autenticado
+        LaunchedEffect(key1 = true) {
+            if (!authViewModel.isLoggedIn.first()) {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(Screen.FriendsFeed.route) { inclusive = true }
+                }
+            }
+        }
+
+        FriendsFeedScreen(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
     }
 }
