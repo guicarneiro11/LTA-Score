@@ -112,11 +112,15 @@ class FirebaseVoteSocialRepository(
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    // PROBLEMA 1: A mensagem de erro não está sendo logada
+                    println("Erro ao buscar reações: ${error.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null || snapshot.isEmpty) {
+                    // PROBLEMA 2: Não estamos logando quando não há reações
+                    println("Nenhuma reação encontrada para o voto $voteId")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
@@ -144,14 +148,19 @@ class FirebaseVoteSocialRepository(
                             timestamp = timestamp
                         )
                     } catch (e: Exception) {
+                        // PROBLEMA 3: Exceções durante o processamento de documentos não são logadas
+                        println("Erro ao processar documento de reação: ${e.message}")
                         null
                     }
                 }
 
+                // MELHORIA: Adicionar log para confirmar que encontramos reações
+                println("Encontradas ${reactions.size} reações para o voto $voteId")
                 trySend(reactions)
             }
 
         awaitClose {
+            println("Fechando listener de reações para voto $voteId")
             listener.remove()
         }
     }
@@ -291,11 +300,15 @@ class FirebaseVoteSocialRepository(
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    // PROBLEMA 1: A mensagem de erro não está sendo logada
+                    println("Erro ao buscar comentários: ${error.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null || snapshot.isEmpty) {
+                    // PROBLEMA 2: Não estamos logando quando não há comentários
+                    println("Nenhum comentário encontrado para o voto $voteId")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
@@ -323,14 +336,19 @@ class FirebaseVoteSocialRepository(
                             timestamp = timestamp
                         )
                     } catch (e: Exception) {
+                        // PROBLEMA 3: Exceções durante o processamento de documentos não são logadas
+                        println("Erro ao processar documento de comentário: ${e.message}")
                         null
                     }
                 }
 
+                // MELHORIA: Adicionar log para confirmar que encontramos comentários
+                println("Encontrados ${comments.size} comentários para o voto $voteId")
                 trySend(comments)
             }
 
         awaitClose {
+            println("Fechando listener de comentários para voto $voteId")
             listener.remove()
         }
     }

@@ -11,7 +11,6 @@ import com.guicarneirodev.ltascore.domain.usecases.GetFriendsFeedUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -55,9 +54,12 @@ class FriendsFeedViewModel(
                     _uiState.value = _uiState.value.copy(
                         currentUserId = user.id
                     )
+                    println("Usuário atual carregado: ${user.id}")
+                } else {
+                    println("Nenhum usuário logado encontrado")
                 }
             } catch (e: Exception) {
-                // Ignorar erro
+                println("Erro ao carregar usuário atual: ${e.message}")
             }
         }
     }
@@ -67,7 +69,9 @@ class FriendsFeedViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
-                getFriendsFeedUseCase.execute().collectLatest { feedItems ->
+                getFriendsFeedUseCase.execute().collect { feedItems ->
+                    println("Feed recebido: ${feedItems.size} itens")
+
                     // Agrupar por amigo + partida para melhor visualização
                     val groupedItems = feedItems.groupBy { item ->
                         // Formato: "Amigo: MatchId|Data"
@@ -82,11 +86,14 @@ class FriendsFeedViewModel(
 
                     // Carregar reações e comentários para cada voto
                     feedItems.forEach { voteItem ->
+                        println("Carregando reações e comentários para voto: ${voteItem.id}")
                         loadReactionsForVote(voteItem.id)
                         loadCommentsForVote(voteItem.id)
                     }
                 }
             } catch (e: Exception) {
+                println("Erro ao carregar feed: ${e.message}")
+                e.printStackTrace()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "Erro ao carregar feed: ${e.message}"
@@ -98,10 +105,15 @@ class FriendsFeedViewModel(
     private fun loadReactionsForVote(voteId: String) {
         viewModelScope.launch {
             try {
-                // Carregar todas as reações
-                voteSocialRepository.getReactionsForVote(voteId).collectLatest { reactions ->
+                println("Iniciando carregamento de reações para: $voteId")
+
+                // CORREÇÃO 1: Mudando de collectLatest para collect para evitar cancelamentos
+                voteSocialRepository.getReactionsForVote(voteId).collect { reactions ->
+                    println("Reações recebidas para $voteId: ${reactions.size}")
+
                     // Carregar a reação do usuário atual
                     val userReaction = voteSocialRepository.getUserReactionForVote(voteId).first()
+                    println("Reação do usuário atual para $voteId: ${userReaction?.reaction ?: "nenhuma"}")
 
                     // Atualizar o estado
                     val currentReactions = _uiState.value.voteReactions
@@ -117,7 +129,8 @@ class FriendsFeedViewModel(
                     )
                 }
             } catch (e: Exception) {
-                println("Erro ao carregar reações: ${e.message}")
+                println("Erro ao carregar reações para $voteId: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -125,7 +138,12 @@ class FriendsFeedViewModel(
     private fun loadCommentsForVote(voteId: String) {
         viewModelScope.launch {
             try {
-                voteSocialRepository.getCommentsForVote(voteId).collectLatest { comments ->
+                println("Iniciando carregamento de comentários para: $voteId")
+
+                // CORREÇÃO 2: Mudando de collectLatest para collect para evitar cancelamentos
+                voteSocialRepository.getCommentsForVote(voteId).collect { comments ->
+                    println("Comentários recebidos para $voteId: ${comments.size}")
+
                     val currentComments = _uiState.value.voteComments
                     val updatedComments = currentComments.toMutableMap().apply {
                         this[voteId] = comments
@@ -136,17 +154,54 @@ class FriendsFeedViewModel(
                     )
                 }
             } catch (e: Exception) {
-                println("Erro ao carregar comentários: ${e.message}")
+                println("Erro ao carregar comentários para $voteId: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
 
+    // CORREÇÃO 3: Melhorar os métodos de ação para atualizar o estado local além de chamar o repositório
     fun addReaction(voteId: String, reaction: String) {
         viewModelScope.launch {
             try {
-                voteSocialRepository.addReaction(voteId, reaction)
+                println("Adicionando reação '$reaction' ao voto $voteId")
+
+                // Realizar a operação no repositório
+                val result = voteSocialRepository.addReaction(voteId, reaction)
+
+                // CORREÇÃO: Atualizar o estado local imediatamente para feedback rápido
+                result.onSuccess { newReaction ->
+                    println("Reação adicionada com sucesso: ${newReaction.reaction}")
+
+                    // Atualizar a lista de reações atual
+                    val currentState = _uiState.value
+                    val currentReactionsState = currentState.voteReactions[voteId] ?: VoteReactionsState()
+
+                    // Removendo reação anterior do usuário (se existir)
+                    val filteredReactions = currentReactionsState.reactions.filter {
+                        it.userId != newReaction.userId
+                    }
+
+                    // Criando nova lista com a reação adicionada
+                    val updatedReactions = filteredReactions + newReaction
+
+                    // Atualizando o estado
+                    val updatedReactionsMap = currentState.voteReactions.toMutableMap().apply {
+                        this[voteId] = VoteReactionsState(
+                            reactions = updatedReactions,
+                            userReaction = newReaction
+                        )
+                    }
+
+                    _uiState.value = currentState.copy(
+                        voteReactions = updatedReactionsMap
+                    )
+                }.onFailure { error ->
+                    println("Erro ao adicionar reação: ${error.message}")
+                }
             } catch (e: Exception) {
                 println("Erro ao adicionar reação: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -154,9 +209,43 @@ class FriendsFeedViewModel(
     fun removeReaction(voteId: String) {
         viewModelScope.launch {
             try {
-                voteSocialRepository.removeReaction(voteId)
+                println("Removendo reação do voto $voteId")
+
+                // Salvar informação da reação atual antes de remover
+                val currentState = _uiState.value
+                val currentReactionsState = currentState.voteReactions[voteId] ?: VoteReactionsState()
+                val userReaction = currentReactionsState.userReaction
+
+                // Realizar a operação no repositório
+                val result = voteSocialRepository.removeReaction(voteId)
+
+                // CORREÇÃO: Atualizar o estado local imediatamente para feedback rápido
+                result.onSuccess {
+                    println("Reação removida com sucesso")
+
+                    // Filtrar a reação removida da lista
+                    val userId = userReaction?.userId ?: currentState.currentUserId
+                    val updatedReactions = currentReactionsState.reactions.filter {
+                        it.userId != userId
+                    }
+
+                    // Atualizando o estado
+                    val updatedReactionsMap = currentState.voteReactions.toMutableMap().apply {
+                        this[voteId] = VoteReactionsState(
+                            reactions = updatedReactions,
+                            userReaction = null
+                        )
+                    }
+
+                    _uiState.value = currentState.copy(
+                        voteReactions = updatedReactionsMap
+                    )
+                }.onFailure { error ->
+                    println("Erro ao remover reação: ${error.message}")
+                }
             } catch (e: Exception) {
                 println("Erro ao remover reação: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -164,9 +253,34 @@ class FriendsFeedViewModel(
     fun addComment(voteId: String, text: String) {
         viewModelScope.launch {
             try {
-                voteSocialRepository.addComment(voteId, text)
+                println("Adicionando comentário ao voto $voteId: '$text'")
+
+                // Realizar a operação no repositório
+                val result = voteSocialRepository.addComment(voteId, text)
+
+                // CORREÇÃO: Atualizar o estado local imediatamente para feedback rápido
+                result.onSuccess { newComment ->
+                    println("Comentário adicionado com sucesso: ${newComment.id}")
+
+                    // Atualizar a lista de comentários
+                    val currentState = _uiState.value
+                    val currentComments = currentState.voteComments[voteId] ?: emptyList()
+                    val updatedComments = currentComments + newComment
+
+                    // Atualizando o estado
+                    val updatedCommentsMap = currentState.voteComments.toMutableMap().apply {
+                        this[voteId] = updatedComments
+                    }
+
+                    _uiState.value = currentState.copy(
+                        voteComments = updatedCommentsMap
+                    )
+                }.onFailure { error ->
+                    println("Erro ao adicionar comentário: ${error.message}")
+                }
             } catch (e: Exception) {
                 println("Erro ao adicionar comentário: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -174,9 +288,30 @@ class FriendsFeedViewModel(
     fun deleteComment(commentId: String) {
         viewModelScope.launch {
             try {
-                voteSocialRepository.removeComment(commentId)
+                println("Removendo comentário $commentId")
+
+                // Realizar a operação no repositório
+                val result = voteSocialRepository.removeComment(commentId)
+
+                // CORREÇÃO: Atualizar o estado local imediatamente para feedback rápido
+                result.onSuccess {
+                    println("Comentário removido com sucesso")
+
+                    // Atualizar todas as listas de comentários
+                    val currentState = _uiState.value
+                    val updatedCommentsMap = currentState.voteComments.mapValues { (_, comments) ->
+                        comments.filter { it.id != commentId }
+                    }.toMutableMap()
+
+                    _uiState.value = currentState.copy(
+                        voteComments = updatedCommentsMap
+                    )
+                }.onFailure { error ->
+                    println("Erro ao remover comentário: ${error.message}")
+                }
             } catch (e: Exception) {
                 println("Erro ao remover comentário: ${e.message}")
+                e.printStackTrace()
             }
         }
     }

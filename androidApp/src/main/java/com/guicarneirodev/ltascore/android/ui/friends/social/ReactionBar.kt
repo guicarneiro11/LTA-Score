@@ -1,4 +1,4 @@
-package com.guicarneirodev.ltascore.android.ui.social
+package com.guicarneirodev.ltascore.android.ui.friends.social
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,6 +46,9 @@ fun ReactionBar(
     // Estado para controlar se o seletor de reações está aberto
     var showReactionSelector by remember { mutableStateOf(false) }
 
+    // Debug log para verificar as reações
+    println("ReactionBar para $voteId: ${reactions.size} reações, userReaction=${userReaction?.reaction ?: "nenhuma"}")
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -64,6 +66,8 @@ fun ReactionBar(
                 val reactionCounts = reactions.groupBy { it.reaction }
                     .mapValues { it.value.size }
 
+                println("Contadores de reações: $reactionCounts")
+
                 reactionCounts.forEach { (emoji, count) ->
                     ReactionCounter(
                         emoji = emoji,
@@ -71,8 +75,10 @@ fun ReactionBar(
                         isSelected = userReaction?.reaction == emoji,
                         onClick = {
                             if (userReaction?.reaction == emoji) {
+                                println("Removendo reação $emoji")
                                 onReactionRemoved()
                             } else {
+                                println("Alterando para reação $emoji")
                                 onReactionSelected(emoji)
                             }
                         }
@@ -94,7 +100,10 @@ fun ReactionBar(
                 color = LTAThemeColors.TextSecondary,
                 fontSize = 12.sp,
                 modifier = Modifier
-                    .clickable { showReactionSelector = !showReactionSelector }
+                    .clickable {
+                        println("Alternando seletor de reações: ${!showReactionSelector}")
+                        showReactionSelector = !showReactionSelector
+                    }
                     .padding(end = 4.dp)
             )
 
@@ -107,11 +116,31 @@ fun ReactionBar(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    ReactionEmoji("👍", userReaction?.reaction == "👍") { onReactionSelected("👍"); showReactionSelector = false }
-                    ReactionEmoji("🔥", userReaction?.reaction == "🔥") { onReactionSelected("🔥"); showReactionSelector = false }
-                    ReactionEmoji("👎", userReaction?.reaction == "👎") { onReactionSelected("👎"); showReactionSelector = false }
-                    ReactionEmoji("😮", userReaction?.reaction == "😮") { onReactionSelected("😮"); showReactionSelector = false }
-                    ReactionEmoji("❤️", userReaction?.reaction == "❤️") { onReactionSelected("❤️"); showReactionSelector = false }
+                    ReactionEmoji("👍", userReaction?.reaction == "👍") {
+                        println("Selecionada reação 👍")
+                        onReactionSelected("👍")
+                        showReactionSelector = false
+                    }
+                    ReactionEmoji("🔥", userReaction?.reaction == "🔥") {
+                        println("Selecionada reação 🔥")
+                        onReactionSelected("🔥")
+                        showReactionSelector = false
+                    }
+                    ReactionEmoji("👎", userReaction?.reaction == "👎") {
+                        println("Selecionada reação 👎")
+                        onReactionSelected("👎")
+                        showReactionSelector = false
+                    }
+                    ReactionEmoji("😮", userReaction?.reaction == "😮") {
+                        println("Selecionada reação 😮")
+                        onReactionSelected("😮")
+                        showReactionSelector = false
+                    }
+                    ReactionEmoji("❤️", userReaction?.reaction == "❤️") {
+                        println("Selecionada reação ❤️")
+                        onReactionSelected("❤️")
+                        showReactionSelector = false
+                    }
                 }
             }
         }

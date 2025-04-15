@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.friends
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -54,8 +55,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
-import com.guicarneirodev.ltascore.android.ui.social.CommentSection
-import com.guicarneirodev.ltascore.android.ui.social.ReactionBar
+import com.guicarneirodev.ltascore.android.ui.friends.social.CommentSection
+import com.guicarneirodev.ltascore.android.ui.friends.social.ReactionBar
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsFeedViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState
 import com.guicarneirodev.ltascore.domain.models.FriendVoteHistoryItem
@@ -79,7 +80,7 @@ fun FriendsFeedScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar"
                         )
                     }
@@ -150,7 +151,14 @@ fun FriendsFeedScreen(
                 EmptyFeedContent()
             } else {
                 FriendsFeedContent(
-                    groupedFeed = uiState.groupedFeed
+                    groupedFeed = uiState.groupedFeed,
+                    voteReactions = uiState.voteReactions,
+                    voteComments = uiState.voteComments,
+                    currentUserId = uiState.currentUserId,
+                    onAddReaction = { voteId, reaction -> viewModel.addReaction(voteId, reaction) },
+                    onRemoveReaction = { voteId -> viewModel.removeReaction(voteId) },
+                    onAddComment = { voteId, text -> viewModel.addComment(voteId, text) },
+                    onDeleteComment = { commentId -> viewModel.deleteComment(commentId) }
                 )
             }
         }
@@ -324,6 +332,7 @@ fun FeedGroupHeader(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun FriendVoteItem(
     vote: FriendVoteHistoryItem,
@@ -433,7 +442,7 @@ fun FriendVoteItem(
 
             // Barra de reações
             ReactionBar(
-                voteId = vote.id,
+                voteId = vote.id,  // Adicionando o ID do voto aqui
                 reactions = reactions,
                 userReaction = userReaction,
                 onReactionSelected = onAddReaction,
@@ -448,9 +457,9 @@ fun FriendVoteItem(
                 .background(LTAThemeColors.DarkBackground)
             )
 
-            // Seção de comentários
+            // Seção de comentários - CORRIGIDO: Adicionado o parâmetro voteId
             CommentSection(
-                voteId = vote.id,
+                voteId = vote.id,  // Adicionando o ID do voto aqui
                 comments = comments,
                 currentUserId = currentUserId,
                 onAddComment = onAddComment,

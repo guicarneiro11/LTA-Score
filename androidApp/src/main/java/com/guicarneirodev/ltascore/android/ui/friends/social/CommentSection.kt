@@ -1,4 +1,4 @@
-package com.guicarneirodev.ltascore.android.ui.social
+package com.guicarneirodev.ltascore.android.ui.friends.social
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -12,22 +12,29 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
@@ -58,6 +66,11 @@ fun CommentSection(
     var commentText by remember { mutableStateOf("") }
     var showComments by remember { mutableStateOf(false) }
 
+    // MELHORIA: Adicionar log para debug
+    LaunchedEffect(comments) {
+        println("CommentSection: Recebidos ${comments.size} comentários para voto $voteId")
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -67,7 +80,11 @@ fun CommentSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { showComments = !showComments }
+                .clickable {
+                    // MELHORIA: Adicionar log de debug
+                    println("Alterando visibilidade dos comentários: ${!showComments}")
+                    showComments = !showComments
+                }
                 .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -96,17 +113,39 @@ fun CommentSection(
         ) {
             Column {
                 if (comments.isNotEmpty()) {
-                    comments.forEach { comment ->
-                        CommentItem(
-                            comment = comment,
-                            isCurrentUser = comment.userId == currentUserId,
-                            onDelete = { onDeleteComment(comment.id) }
-                        )
+                    // MELHORIA: Adicionar log para debug
+                    println("Renderizando ${comments.size} comentários")
+
+                    // CORREÇÃO: Usar Column em vez de LazyColumn com items
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp) // Limitar altura máxima
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        comments.forEach { comment ->
+                            CommentItem(
+                                comment = comment,
+                                isCurrentUser = comment.userId == currentUserId,
+                                onDelete = { onDeleteComment(comment.id) }
+                            )
+                        }
                     }
 
                     Divider(
                         modifier = Modifier.padding(vertical = 8.dp),
                         color = LTAThemeColors.DarkBackground
+                    )
+                } else {
+                    // Mostrar mensagem quando não há comentários
+                    Text(
+                        text = "Nenhum comentário ainda. Seja o primeiro a comentar!",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LTAThemeColors.TextSecondary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        textAlign = TextAlign.Center
                     )
                 }
 
@@ -120,7 +159,7 @@ fun CommentSection(
                         onValueChange = { commentText = it },
                         placeholder = { Text("Adicionar comentário...") },
                         singleLine = true,
-                        colors = TextFieldDefaults.colors(
+                        colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = LTAThemeColors.CardBackground,
                             unfocusedContainerColor = LTAThemeColors.CardBackground,
                             focusedBorderColor = LTAThemeColors.PrimaryGold,
@@ -135,6 +174,8 @@ fun CommentSection(
                     IconButton(
                         onClick = {
                             if (commentText.isNotEmpty()) {
+                                // MELHORIA: Adicionar log de debug
+                                println("Enviando comentário: $commentText")
                                 onAddComment(commentText)
                                 commentText = ""
                             }
