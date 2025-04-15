@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.friends
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -87,7 +89,7 @@ fun FriendsFeedScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Feed de Amigos") },
+                title = { Text("Feed de Avaliações") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -208,7 +210,7 @@ fun EmptyFeedContent() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Seus amigos ainda não fizeram avaliações ou você não adicionou amigos.",
+            text = "Ainda não há avaliações para exibir. Avalie alguns jogadores ou adicione amigos para ver suas avaliações aqui.",
             style = MaterialTheme.typography.bodyMedium,
             color = LTAThemeColors.TextSecondary,
             textAlign = TextAlign.Center
@@ -257,6 +259,7 @@ fun FriendsFeedContent(
                     friendName = friendName,
                     date = dateStr,
                     teams = "${votes.firstOrNull()?.teamCode ?: ""} vs ${votes.firstOrNull()?.opponentTeamCode ?: ""}",
+                    isCurrentUser = friendName.contains("(você)"),
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
             }
@@ -267,17 +270,21 @@ fun FriendsFeedContent(
                 val reactionsState = voteReactions[vote.id] ?: com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState()
                 val commentsList = voteComments[vote.id] ?: emptyList()
 
+                // Remover comentários duplicados
+                val uniqueComments = commentsList.distinctBy { it.id }
+
                 // Debug log para verificar
                 LaunchedEffect(vote.id) {
-                    println("Renderizando voto ${vote.id}: ${reactionsState.reactions.size} reações, ${commentsList.size} comentários")
+                    println("Renderizando voto ${vote.id}: ${reactionsState.reactions.size} reações, ${uniqueComments.size} comentários únicos")
                 }
 
                 FriendVoteItem(
                     vote = vote,
                     reactions = reactionsState.reactions,
                     userReaction = reactionsState.userReaction,
-                    comments = commentsList,
+                    comments = uniqueComments,
                     currentUserId = currentUserId,
+                    isCurrentUser = vote.friendId == currentUserId,
                     onAddReaction = { reaction -> onAddReaction(vote.id, reaction) },
                     onRemoveReaction = { onRemoveReaction(vote.id) },
                     onAddComment = { text -> onAddComment(vote.id, text) },
@@ -301,6 +308,7 @@ fun FeedGroupHeader(
     friendName: String,
     date: String,
     teams: String,
+    isCurrentUser: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -313,14 +321,17 @@ fun FeedGroupHeader(
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)
-                    .background(LTAThemeColors.PrimaryGold.copy(alpha = 0.2f)),
+                    .background(
+                        if (isCurrentUser) LTAThemeColors.TertiaryGold.copy(alpha = 0.3f)
+                        else LTAThemeColors.PrimaryGold.copy(alpha = 0.2f)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = friendName.take(1).uppercase(),
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold,
-                    color = LTAThemeColors.PrimaryGold
+                    color = if (isCurrentUser) LTAThemeColors.TertiaryGold else LTAThemeColors.PrimaryGold
                 )
             }
 
@@ -329,7 +340,7 @@ fun FeedGroupHeader(
             Text(
                 text = friendName,
                 style = MaterialTheme.typography.titleMedium,
-                color = LTAThemeColors.PrimaryGold,
+                color = if (isCurrentUser) LTAThemeColors.TertiaryGold else LTAThemeColors.PrimaryGold,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -360,6 +371,7 @@ fun FriendVoteItem(
     userReaction: VoteReaction?,
     comments: List<VoteComment>,
     currentUserId: String,
+    isCurrentUser: Boolean = false,
     onAddReaction: (String) -> Unit,
     onRemoveReaction: () -> Unit,
     onAddComment: (String) -> Unit,
@@ -377,9 +389,17 @@ fun FriendVoteItem(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = LTAThemeColors.CardBackground
+            containerColor = if (isCurrentUser)
+                LTAThemeColors.CardBackground.copy(alpha = 0.95f)
+                    .compositeOver(LTAThemeColors.TertiaryGold.copy(alpha = 0.1f))
+            else
+                LTAThemeColors.CardBackground
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = if (isCurrentUser)
+            BorderStroke(1.dp, LTAThemeColors.TertiaryGold.copy(alpha = 0.3f))
+        else
+            null
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -460,7 +480,17 @@ fun FriendVoteItem(
                 }
             }
 
-            // Barra de reações - CORRIGIDO: Adicionado o parâmetro voteId
+            // Indicador visual se o voto for do usuário atual
+            if (isCurrentUser) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(LTAThemeColors.TertiaryGold.copy(alpha = 0.3f))
+                )
+            }
+
+            // Barra de reações
             ReactionBar(
                 voteId = vote.id,
                 reactions = reactions,
@@ -477,7 +507,7 @@ fun FriendVoteItem(
                 .background(LTAThemeColors.DarkBackground)
             )
 
-            // Seção de comentários - CORRIGIDO: Adicionado o parâmetro voteId
+            // Seção de comentários
             CommentSection(
                 voteId = vote.id,
                 comments = comments,

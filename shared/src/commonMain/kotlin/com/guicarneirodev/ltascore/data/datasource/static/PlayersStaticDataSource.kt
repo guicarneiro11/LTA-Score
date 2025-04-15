@@ -112,6 +112,14 @@ class PlayersStaticDataSource {
 
             // Isurus Estral
             Player(
+                id = "player_ie_summit",
+                name = "Park Woo-tae",
+                nickname = "Summit",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/35/R7_Summit_2024_Closing.png/revision/latest?cb=20240613054346",
+                position = PlayerPosition.TOP,
+                teamId = "isurus-estral"
+            ),
+            Player(
                 id = "player_ie_burdol",
                 name = "Noh Tae-yoon",
                 nickname = "Burdol",

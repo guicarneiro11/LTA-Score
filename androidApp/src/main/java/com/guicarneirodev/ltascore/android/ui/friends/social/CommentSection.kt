@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,9 +67,15 @@ fun CommentSection(
     var commentText by remember { mutableStateOf("") }
     var showComments by remember { mutableStateOf(false) }
 
+    // Certifica-se de que comentários duplicados são removidos
+    // Usamos distinctBy com id para garantir que cada comentário seja único
+    val uniqueComments = remember(comments) {
+        comments.distinctBy { it.id }
+    }
+
     // MELHORIA: Adicionar log para debug
     LaunchedEffect(comments) {
-        println("CommentSection: Recebidos ${comments.size} comentários para voto $voteId")
+        println("CommentSection: Recebidos ${comments.size} comentários, ${uniqueComments.size} únicos para voto $voteId")
     }
 
     Column(
@@ -88,8 +95,9 @@ fun CommentSection(
                 .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Mostrar o contador de comentários com a contagem real de comentários únicos
             Text(
-                text = if (comments.isEmpty()) "Comentários" else "Comentários (${comments.size})",
+                text = if (uniqueComments.isEmpty()) "Comentários" else "Comentários (${uniqueComments.size})",
                 color = LTAThemeColors.TextSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -112,9 +120,9 @@ fun CommentSection(
             exit = fadeOut() + shrinkVertically()
         ) {
             Column {
-                if (comments.isNotEmpty()) {
+                if (uniqueComments.isNotEmpty()) {
                     // MELHORIA: Adicionar log para debug
-                    println("Renderizando ${comments.size} comentários")
+                    println("Renderizando ${uniqueComments.size} comentários únicos")
 
                     // CORREÇÃO: Usar Column em vez de LazyColumn com items
                     Column(
@@ -123,7 +131,7 @@ fun CommentSection(
                             .heightIn(max = 200.dp) // Limitar altura máxima
                             .verticalScroll(rememberScrollState())
                     ) {
-                        comments.forEach { comment ->
+                        uniqueComments.forEach { comment ->
                             CommentItem(
                                 comment = comment,
                                 isCurrentUser = comment.userId == currentUserId,
@@ -177,7 +185,7 @@ fun CommentSection(
                                 // MELHORIA: Adicionar log de debug
                                 println("Enviando comentário: $commentText")
                                 onAddComment(commentText)
-                                commentText = ""
+                                commentText = "" // Limpa o campo de texto após enviar
                             }
                         },
                         enabled = commentText.isNotEmpty()

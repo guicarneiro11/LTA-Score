@@ -71,7 +71,7 @@ val appModule = module {
     single { GetPlayerRankingUseCase(get()) }
     single { GetUserVoteHistoryUseCase(get(), get()) }
     single { ManageFriendshipsUseCase(get()) }
-    single { GetFriendsFeedUseCase(get()) }
+    single { GetFriendsFeedUseCase(get(), get(), get()) }
 
     // ViewModels
     viewModel { MatchesViewModel(get(), get()) }

@@ -136,9 +136,6 @@ fun AppNavigation(
 
             ProfileScreen(
                 authViewModel = authViewModel,
-                onNavigateToEditProfile = {
-                    // Temporariamente, apenas mostra o perfil
-                },
                 onNavigateToMatchHistory = {
                     navController.navigate(Screen.VoteHistory.route)
                 },
@@ -148,11 +145,14 @@ fun AppNavigation(
                 onNavigateToFriendsFeed = {
                     navController.navigate(Screen.FriendsFeed.route)
                 },
-                onNavigateToSettings = {
-                    // Temporariamente, apenas mostra o perfil
-                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Matches.route) { inclusive = true }
+                    }
+                },
+                onBackClick = {
+                    navController.navigate(Screen.Matches.route) {
+                        // Configuração para evitar navegação cíclica
                         popUpTo(Screen.Matches.route) { inclusive = true }
                     }
                 }

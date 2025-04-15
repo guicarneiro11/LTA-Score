@@ -8,108 +8,137 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Cache singleton para dados do feed de amigos
- * Este cache permanece ativo enquanto o app estiver em execução
+ * Cache para o Feed de Amigos
+ * Mantém dados em memória entre instâncias do ViewModel
  */
 object FeedCache {
-    // Cache para dados do feed
+    // Feed de amigos
     private val _cachedFeed = MutableStateFlow<List<FriendVoteHistoryItem>>(emptyList())
     val cachedFeed: StateFlow<List<FriendVoteHistoryItem>> = _cachedFeed.asStateFlow()
 
-    // Cache para reações
+    // Reações para cada voto
     private val _cachedReactions = MutableStateFlow<Map<String, List<VoteReaction>>>(emptyMap())
     val cachedReactions: StateFlow<Map<String, List<VoteReaction>>> = _cachedReactions.asStateFlow()
 
-    // Cache para reações do usuário
-    private val _cachedUserReactions = MutableStateFlow<Map<String, VoteReaction?>>(emptyMap())
-    val cachedUserReactions: StateFlow<Map<String, VoteReaction?>> = _cachedUserReactions.asStateFlow()
+    // Reação do usuário atual para cada voto
+    private val _cachedUserReactions = MutableStateFlow<Map<String, VoteReaction>>(emptyMap())
+    val cachedUserReactions: StateFlow<Map<String, VoteReaction>> = _cachedUserReactions.asStateFlow()
 
-    // Cache para comentários
+    // Comentários para cada voto
     private val _cachedComments = MutableStateFlow<Map<String, List<VoteComment>>>(emptyMap())
     val cachedComments: StateFlow<Map<String, List<VoteComment>>> = _cachedComments.asStateFlow()
 
-    // Função para atualizar o feed
+    /**
+     * Atualiza o feed armazenado
+     */
     fun updateFeed(feed: List<FriendVoteHistoryItem>) {
         _cachedFeed.value = feed
     }
 
-    // Função para atualizar as reações de um voto
+    /**
+     * Atualiza as reações para um voto específico
+     */
     fun updateReactions(voteId: String, reactions: List<VoteReaction>) {
-        val currentReactions = _cachedReactions.value.toMutableMap()
-        currentReactions[voteId] = reactions
-        _cachedReactions.value = currentReactions
+        val current = _cachedReactions.value.toMutableMap()
+        current[voteId] = reactions
+        _cachedReactions.value = current
     }
 
-    // Função para atualizar a reação do usuário para um voto
+    /**
+     * Atualiza a reação do usuário atual para um voto específico
+     */
     fun updateUserReaction(voteId: String, reaction: VoteReaction?) {
-        val currentUserReactions = _cachedUserReactions.value.toMutableMap()
-        currentUserReactions[voteId] = reaction
-        _cachedUserReactions.value = currentUserReactions
+        val current = _cachedUserReactions.value.toMutableMap()
+        if (reaction != null) {
+            current[voteId] = reaction
+        } else {
+            current.remove(voteId)
+        }
+        _cachedUserReactions.value = current
     }
 
-    // Função para atualizar os comentários de um voto
-    fun updateComments(voteId: String, comments: List<VoteComment>) {
-        val currentComments = _cachedComments.value.toMutableMap()
-        currentComments[voteId] = comments
-        _cachedComments.value = currentComments
-    }
-
-    // Função para adicionar um comentário
-    fun addComment(voteId: String, comment: VoteComment) {
-        val currentComments = _cachedComments.value.toMutableMap()
-        val voteComments = currentComments[voteId]?.toMutableList() ?: mutableListOf()
-        voteComments.add(comment)
-        currentComments[voteId] = voteComments
-        _cachedComments.value = currentComments
-    }
-
-    // Função para remover um comentário
-    fun removeComment(commentId: String) {
-        val updatedComments = _cachedComments.value.mapValues { (_, comments) ->
-            comments.filter { it.id != commentId }
-        }.toMutableMap()
-        _cachedComments.value = updatedComments
-    }
-
-    // Função para adicionar ou atualizar uma reação
+    /**
+     * Adiciona ou atualiza uma reação
+     */
     fun addOrUpdateReaction(voteId: String, reaction: VoteReaction) {
-        // Atualizar a lista de reações
-        val currentReactions = _cachedReactions.value.toMutableMap()
-        val voteReactions = currentReactions[voteId]?.toMutableList() ?: mutableListOf()
-
-        // Remover reação anterior do mesmo usuário, se existir
-        val updatedReactions = voteReactions.filter { it.userId != reaction.userId }.toMutableList()
-        updatedReactions.add(reaction)
-
-        currentReactions[voteId] = updatedReactions
-        _cachedReactions.value = currentReactions
-
         // Atualizar a reação do usuário
-        if (reaction.userId == reaction.userId) { // Verificação redundante, mas mantida para clareza
-            updateUserReaction(voteId, reaction)
+        updateUserReaction(voteId, reaction)
+
+        // Atualizar a lista de reações para este voto
+        val currentReactions = _cachedReactions.value[voteId] ?: emptyList()
+
+        // Remover reação existente do mesmo usuário (se houver)
+        val filteredReactions = currentReactions.filter { it.userId != reaction.userId }
+
+        // Adicionar a nova reação
+        val updatedReactions = filteredReactions + reaction
+
+        // Atualizar o cache
+        updateReactions(voteId, updatedReactions)
+    }
+
+    /**
+     * Remove uma reação
+     */
+    fun removeReaction(voteId: String, userId: String) {
+        // Remover a reação do usuário
+        val current = _cachedUserReactions.value.toMutableMap()
+        current.remove(voteId)
+        _cachedUserReactions.value = current
+
+        // Remover da lista de reações
+        val currentReactions = _cachedReactions.value[voteId] ?: emptyList()
+        val updatedReactions = currentReactions.filter { it.userId != userId }
+        updateReactions(voteId, updatedReactions)
+    }
+
+    /**
+     * Atualiza os comentários para um voto específico
+     */
+    fun updateComments(voteId: String, comments: List<VoteComment>) {
+        val current = _cachedComments.value.toMutableMap()
+
+        // Garantir que não existem comentários duplicados antes de salvar
+        val uniqueComments = comments.distinctBy { it.id }
+
+        current[voteId] = uniqueComments
+        _cachedComments.value = current
+    }
+
+    /**
+     * Adiciona um comentário
+     */
+    fun addComment(voteId: String, comment: VoteComment) {
+        val currentComments = _cachedComments.value[voteId] ?: emptyList()
+
+        // Garantir que o comentário não é duplicado
+        if (currentComments.none { it.id == comment.id }) {
+            val updatedComments = currentComments + comment
+            updateComments(voteId, updatedComments)
         }
     }
 
-    // Função para remover uma reação
-    fun removeReaction(voteId: String, userId: String) {
-        // Atualizar a lista de reações
-        val currentReactions = _cachedReactions.value.toMutableMap()
-        val voteReactions = currentReactions[voteId]?.toMutableList() ?: mutableListOf()
+    /**
+     * Remove um comentário
+     */
+    fun removeComment(commentId: String) {
+        val currentCommentsMap = _cachedComments.value.toMutableMap()
 
-        // Filtrar para remover a reação do usuário
-        val updatedReactions = voteReactions.filter { it.userId != userId }
+        // Para cada voto, verificar se existe o comentário e removê-lo
+        currentCommentsMap.forEach { (voteId, comments) ->
+            if (comments.any { it.id == commentId }) {
+                val updatedComments = comments.filter { it.id != commentId }
+                currentCommentsMap[voteId] = updatedComments
+            }
+        }
 
-        currentReactions[voteId] = updatedReactions
-        _cachedReactions.value = currentReactions
-
-        // Remover a reação do usuário
-        val currentUserReactions = _cachedUserReactions.value.toMutableMap()
-        currentUserReactions.remove(voteId)
-        _cachedUserReactions.value = currentUserReactions
+        _cachedComments.value = currentCommentsMap
     }
 
-    // Função para limpar o cache
-    fun clear() {
+    /**
+     * Limpa todos os dados do cache
+     */
+    fun clearAll() {
         _cachedFeed.value = emptyList()
         _cachedReactions.value = emptyMap()
         _cachedUserReactions.value = emptyMap()

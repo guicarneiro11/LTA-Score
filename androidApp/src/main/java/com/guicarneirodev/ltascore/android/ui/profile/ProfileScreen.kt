@@ -1,6 +1,12 @@
 package com.guicarneirodev.ltascore.android.ui.profile
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,16 +21,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -41,12 +48,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,25 +74,37 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(
     friendsViewModel: FriendsViewModel = koinViewModel(),
     authViewModel: com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel = koinViewModel(),
-    onNavigateToEditProfile: () -> Unit,
     onNavigateToMatchHistory: () -> Unit,
     onNavigateToRanking: () -> Unit,
     onNavigateToFriendsFeed: () -> Unit,
-    onNavigateToSettings: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onBackClick: () -> Unit // Novo parâmetro para voltar à tela de partidas
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
     val friendsUiState by friendsViewModel.uiState.collectAsState()
+
+    // Estado para controlar a visibilidade da seção de amigos
+    var showFriendsSection by remember { mutableStateOf(true) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Meu Perfil") },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Configurações")
+                navigationIcon = {
+                    // Adicionando botão de voltar
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar"
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = LTAThemeColors.CardBackground,
+                    titleContentColor = LTAThemeColors.TextPrimary,
+                    navigationIconContentColor = LTAThemeColors.TextPrimary
+                )
+                // Removido o ícone de configurações
             )
         }
     ) { innerPadding ->
@@ -95,8 +119,8 @@ fun ProfileScreen(
             item {
                 UserProfileHeader(
                     username = currentUser?.username ?: "Usuário",
-                    email = currentUser?.email ?: "",
-                    onEditProfile = onNavigateToEditProfile
+                    email = currentUser?.email ?: ""
+                    // Removido o botão de editar perfil
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -106,6 +130,8 @@ fun ProfileScreen(
             item {
                 FriendsSection(
                     uiState = friendsUiState,
+                    showFriendsSection = showFriendsSection,
+                    onToggleFriendsSection = { showFriendsSection = !showFriendsSection },
                     onFriendUsernameChange = friendsViewModel::updateFriendUsername,
                     onAddFriend = friendsViewModel::addFriend,
                     onRemoveFriend = friendsViewModel::removeFriend,
@@ -158,8 +184,7 @@ fun ProfileScreen(
 @Composable
 fun UserProfileHeader(
     username: String,
-    email: String,
-    onEditProfile: () -> Unit
+    email: String
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -170,14 +195,14 @@ fun UserProfileHeader(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
+                .background(LTAThemeColors.CardBackground),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = username.take(1).uppercase(),
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = LTAThemeColors.PrimaryGold
             )
         }
 
@@ -187,31 +212,16 @@ fun UserProfileHeader(
         Text(
             text = username,
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = LTAThemeColors.TextPrimary
         )
 
         // Email
         Text(
             text = email,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = LTAThemeColors.TextSecondary
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botão de editar perfil
-        OutlinedButton(
-            onClick = onEditProfile,
-            modifier = Modifier.width(200.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Editar Perfil")
-        }
     }
 }
 
@@ -224,7 +234,8 @@ fun ProfileOptionItem(
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        color = LTAThemeColors.CardBackground
     ) {
         Row(
             modifier = Modifier
@@ -236,7 +247,7 @@ fun ProfileOptionItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = LTAThemeColors.PrimaryGold,
                 modifier = Modifier
                     .size(40.dp)
                     .padding(end = 16.dp)
@@ -248,12 +259,13 @@ fun ProfileOptionItem(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    color = LTAThemeColors.TextPrimary
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = LTAThemeColors.TextSecondary
                 )
             }
 
@@ -261,7 +273,7 @@ fun ProfileOptionItem(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = LTAThemeColors.TextSecondary
             )
         }
     }
@@ -270,6 +282,8 @@ fun ProfileOptionItem(
 @Composable
 fun FriendsSection(
     uiState: FriendsManagementUiState,
+    showFriendsSection: Boolean,
+    onToggleFriendsSection: () -> Unit,
     onFriendUsernameChange: (String) -> Unit,
     onAddFriend: () -> Unit,
     onRemoveFriend: (Friendship) -> Unit,
@@ -287,10 +301,12 @@ fun FriendsSection(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Título da seção
+            // Título da seção com botão para expandir/colapsar
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onToggleFriendsSection)
             ) {
                 Icon(
                     imageVector = Icons.Default.Groups,
@@ -310,8 +326,16 @@ fun FriendsSection(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Botão para ver feed de amigos
+                // Ícone para expandir/colapsar
+                Icon(
+                    imageVector = if (showFriendsSection) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (showFriendsSection) "Esconder amigos" else "Mostrar amigos",
+                    tint = LTAThemeColors.TextSecondary
+                )
+
+                // Botão para ver feed de amigos (permanece visível mesmo quando a seção está recolhida)
                 if (uiState.friends.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = onViewFriendsFeed,
                         colors = ButtonDefaults.buttonColors(
@@ -324,54 +348,63 @@ fun FriendsSection(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Conteúdo expandível da seção de amigos
+            AnimatedVisibility(
+                visible = showFriendsSection,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo para adicionar amigo
-            AddFriendField(
-                username = uiState.friendUsername,
-                onUsernameChange = onFriendUsernameChange,
-                onAddFriend = onAddFriend,
-                isLoading = uiState.isLoading
-            )
+                    // Campo para adicionar amigo
+                    AddFriendField(
+                        username = uiState.friendUsername,
+                        onUsernameChange = onFriendUsernameChange,
+                        onAddFriend = onAddFriend,
+                        isLoading = uiState.isLoading
+                    )
 
-            // Mensagens de erro ou sucesso
-            if (uiState.error != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = uiState.error,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+                    // Mensagens de erro ou sucesso
+                    if (uiState.error != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = uiState.error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
-            if (uiState.success != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = uiState.success,
-                    color = LTAThemeColors.Success,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+                    if (uiState.success != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = uiState.success,
+                            color = LTAThemeColors.Success,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            // Lista de amigos
-            Text(
-                text = "Meus Amigos (${uiState.friends.size})",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = LTAThemeColors.TextPrimary
-            )
+                    // Lista de amigos
+                    Text(
+                        text = "Meus Amigos (${uiState.friends.size})",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = LTAThemeColors.TextPrimary
+                    )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            if (uiState.friends.isEmpty()) {
-                EmptyFriendsList()
-            } else {
-                FriendsList(
-                    friends = uiState.friends,
-                    onRemoveFriend = onRemoveFriend
-                )
+                    if (uiState.friends.isEmpty()) {
+                        EmptyFriendsList()
+                    } else {
+                        FriendsList(
+                            friends = uiState.friends,
+                            onRemoveFriend = onRemoveFriend
+                        )
+                    }
+                }
             }
         }
     }

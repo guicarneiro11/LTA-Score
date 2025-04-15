@@ -23,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 
 data class VoteReactionsState(
     val reactions: List<VoteReaction> = emptyList(),
@@ -83,7 +84,12 @@ class FriendsFeedViewModel(
                 if (feed.isNotEmpty()) {
                     // Agrupar por amigo + partida para exibição
                     val groupedItems = feed.groupBy { item ->
-                        "${item.friendUsername}: ${item.matchId}|${formatDateForGrouping(item.matchDate)}"
+                        val prefix = if (item.friendId == _uiState.value.currentUserId) {
+                            "Seus votos"
+                        } else {
+                            item.friendUsername
+                        }
+                        "$prefix: ${item.matchId}|${formatDateForGrouping(item.matchDate)}"
                     }
 
                     // Criar o mapa de estados de reação
@@ -138,8 +144,14 @@ class FriendsFeedViewModel(
 
                     // Agrupar por amigo + partida para melhor visualização
                     val groupedItems = feedItems.groupBy { item ->
-                        // Formato: "Amigo: MatchId|Data"
-                        "${item.friendUsername}: ${item.matchId}|${formatDateForGrouping(item.matchDate)}"
+                        // Verificar se o item é do próprio usuário
+                        val prefix = if (item.friendId == _uiState.value.currentUserId) {
+                            "Seus votos"
+                        } else {
+                            item.friendUsername
+                        }
+                        // Formato: "Nome do amigo: MatchId|Data" ou "Seus votos: MatchId|Data"
+                        "$prefix: ${item.matchId}|${formatDateForGrouping(item.matchDate)}"
                     }
 
                     _uiState.value = _uiState.value.copy(
@@ -356,6 +368,24 @@ class FriendsFeedViewModel(
             try {
                 println("Adicionando comentário ao voto $voteId: '$text'")
 
+                // Verificar se já existe um comentário igual recente (evitar duplicações por cliques múltiplos)
+                val currentState = _uiState.value
+                val existingComments = currentState.voteComments[voteId] ?: emptyList()
+
+                // Verificar se existe um comentário com texto idêntico nos últimos 5 segundos
+                val recentDuplicateExists = existingComments.any { existingComment ->
+                    val now = Clock.System.now()
+                    val timeDiff = now - existingComment.timestamp
+                    existingComment.text == text &&
+                            existingComment.userId == currentState.currentUserId &&
+                            timeDiff.inWholeSeconds < 5 // Dentro dos últimos 5 segundos
+                }
+
+                if (recentDuplicateExists) {
+                    println("Ignorando comentário duplicado")
+                    return@launch
+                }
+
                 // Realizar a operação no repositório
                 val result = voteSocialRepository.addComment(voteId, text)
 
@@ -367,9 +397,7 @@ class FriendsFeedViewModel(
                     FeedCache.addComment(voteId, newComment)
 
                     // Atualizar a lista de comentários
-                    val currentState = _uiState.value
-                    val currentComments = currentState.voteComments[voteId] ?: emptyList()
-                    val updatedComments = currentComments + newComment
+                    val updatedComments = existingComments + newComment
 
                     // Atualizando o estado
                     val updatedCommentsMap = currentState.voteComments.toMutableMap().apply {
