@@ -42,8 +42,6 @@ kotlin {
 
             // Koin Core
             implementation(libs.koin.core)
-
-            implementation(libs.firebase.functions)
         }
 
         commonTest.dependencies {
@@ -55,6 +53,7 @@ kotlin {
             // Ktor para Android
             implementation(libs.ktor.client.android)
 
+            // Firebase - adicione firebase diretamente sem usar platform()
             implementation(libs.firebase.functions)
         }
 
@@ -63,6 +62,13 @@ kotlin {
             implementation(libs.ktor.client.ios)
         }
     }
+}
+
+// Aqui podemos adicionar as dependências de plataforma para o projeto Android
+dependencies {
+    // Isso garante que a plataforma BOM seja aplicada ao projeto quando necessário
+    // mas não é referenciada diretamente do sourceSet do KMP
+    implementation(platform(libs.firebase.bom))
 }
 
 android {
