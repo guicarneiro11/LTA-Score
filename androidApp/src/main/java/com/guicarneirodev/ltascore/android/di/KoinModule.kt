@@ -48,6 +48,7 @@ val appModule = module {
     // API
     single { LoLEsportsApi() }
 
+
     // DataSources
     single { PlayersStaticDataSource() }
     single { MatchLocalDataSource() }

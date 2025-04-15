@@ -35,24 +35,19 @@ class LoLEsportsApi {
     private val baseUrl = "https://esports-api.lolesports.com/persisted/gw"
 
     // Definindo uma função de log para depuração
+    private val firebaseService = LoLEsportsFirebaseService()
     private val logger = LoLEsportsApiLogger()
 
     /**
      * Obtém informações sobre todas as ligas disponíveis
      */
     suspend fun getLeagues(): LeaguesResponse {
-        logger.log("Buscando informações das ligas")
+        logger.log("Buscando informações das ligas via Firebase")
 
         try {
-            val response = httpClient.get("$baseUrl/getLeagues") {
-                parameter("hl", "pt-BR")
-            }
-
-            logger.log("Resposta HTTP para ligas: ${response.status}")
-
-            return response.body()
+            return firebaseService.getLeagues()
         } catch (e: Exception) {
-            logger.log("Erro na chamada API getLeagues: ${e.message}")
+            logger.log("Erro na chamada API getLeagues via Firebase: ${e.message}")
             throw e
         }
     }
@@ -63,27 +58,12 @@ class LoLEsportsApi {
      * @param leagueSlug O identificador da liga (ex: "lta_s" para LTA Sul)
      */
     suspend fun getSchedule(leagueSlug: String): ScheduleResponse {
-        // Mapeamento de slugs para IDs de liga
-        val leagueId = when (leagueSlug) {
-            "lta_s" -> "113475181634818701" // LTA Sul
-            "lta_n" -> "113475181634818702" // LTA Norte (exemplo, verifique o ID correto)
-            else -> throw IllegalArgumentException("Liga não suportada: $leagueSlug")
-        }
-
-        logger.log("Buscando calendário para liga: $leagueSlug (ID: $leagueId)")
-        logger.log("Usando chave API: ${apiKey.take(5)}...")
+        logger.log("Buscando calendário para liga: $leagueSlug via Firebase")
 
         try {
-            val response = httpClient.get("$baseUrl/getSchedule") {
-                parameter("hl", "pt-BR")
-                parameter("leagueId", leagueId)
-            }
-
-            logger.log("Resposta HTTP: ${response.status}")
-
-            return response.body()
+            return firebaseService.getSchedule(leagueSlug)
         } catch (e: Exception) {
-            logger.log("Erro na chamada API: ${e.message}")
+            logger.log("Erro na chamada API via Firebase: ${e.message}")
             throw e
         }
     }

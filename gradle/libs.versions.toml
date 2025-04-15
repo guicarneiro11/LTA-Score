@@ -19,6 +19,7 @@ coil = "2.7.0"
 datastore = "1.1.4"
 kotest = "5.8.1"
 firebase-bom = "33.12.0"
+firebase-functions = "23.12.1"
 ktor = "2.3.8"
 material-icons = "1.7.8"
 
@@ -69,6 +70,7 @@ datastore-preferences = { module = "androidx.datastore:datastore-preferences", v
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore-ktx" }
+firebase-functions = { module = "com.google.firebase:firebase-functions-ktx" }
 
 material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "material-icons" }
 

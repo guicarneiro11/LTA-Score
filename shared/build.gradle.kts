@@ -42,6 +42,8 @@ kotlin {
 
             // Koin Core
             implementation(libs.koin.core)
+
+            implementation(libs.firebase.functions)
         }
 
         commonTest.dependencies {
@@ -52,6 +54,8 @@ kotlin {
         androidMain.dependencies {
             // Ktor para Android
             implementation(libs.ktor.client.android)
+
+            implementation(libs.firebase.functions)
         }
 
         iosMain.dependencies {
