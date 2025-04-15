@@ -77,7 +77,7 @@ val appModule = module {
     viewModel { MatchesViewModel(get(), get()) }
     viewModel { VotingViewModel(get(), get(), get(), get()) }
     viewModel { MatchSummaryViewModel(get(), get(), get(), get()) }
-    viewModel { AuthViewModel(get(), get()) }
+    viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { RankingViewModel(get(), get()) }
     viewModel { VoteHistoryViewModel(get()) }
     viewModel { FriendsViewModel(get()) }

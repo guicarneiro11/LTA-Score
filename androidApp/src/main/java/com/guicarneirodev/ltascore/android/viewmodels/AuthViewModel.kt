@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestore
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.domain.models.User
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 data class LoginUiState(
     val isLoading: Boolean = false,
@@ -31,7 +33,8 @@ data class ResetPasswordUiState(
 
 class AuthViewModel(
     private val userRepository: UserRepository,
-    private val loLEsportsApi: LoLEsportsApi? = null // Opcional para compatibilidade retroativa
+    private val loLEsportsApi: LoLEsportsApi? = null,
+    private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
     // Estado da tela de login
@@ -53,6 +56,18 @@ class AuthViewModel(
     // Verifica se o usuário está logado
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
+    private val _usernameAvailabilityState = MutableStateFlow<UsernameCheckState>(UsernameCheckState.Initial)
+    val usernameAvailabilityState: StateFlow<UsernameCheckState> = _usernameAvailabilityState.asStateFlow()
+
+    // Enum para estados de verificação de username
+    sealed class UsernameCheckState {
+        object Initial : UsernameCheckState()
+        object Available : UsernameCheckState()
+        data class Unavailable(val message: String) : UsernameCheckState()
+        data class Error(val message: String) : UsernameCheckState()
+        object Checking : UsernameCheckState()
+    }
 
     init {
         // Observa o estado de autenticação
@@ -93,6 +108,50 @@ class AuthViewModel(
                     println("Erro ao carregar logo LTA Cross: ${e.message}")
                     // Não exibimos erro para não afetar a experiência principal
                 }
+            }
+        }
+    }
+
+    fun checkUsernameAvailability(username: String) {
+        viewModelScope.launch {
+            _usernameAvailabilityState.value = UsernameCheckState.Checking
+
+            try {
+                val lowercaseUsername = username.lowercase()
+
+                // Validações locais primeiro
+                if (username.length < 3 || username.length > 20) {
+                    _usernameAvailabilityState.value = UsernameCheckState.Unavailable(
+                        "Nome de usuário deve ter entre 3 e 20 caracteres"
+                    )
+                    return@launch
+                }
+
+                val usernameRegex = Regex("^[a-zA-Z0-9_]+$")
+                if (!usernameRegex.matches(username)) {
+                    _usernameAvailabilityState.value = UsernameCheckState.Unavailable(
+                        "Use apenas letras, números e _"
+                    )
+                    return@launch
+                }
+
+                // Verificação direta no Firestore
+                val snapshot = firestore
+                    .collection("usernames")
+                    .document(lowercaseUsername)
+                    .get()
+                    .await()
+
+                _usernameAvailabilityState.value = if (snapshot.exists()) {
+                    UsernameCheckState.Unavailable("Nome de usuário já está em uso")
+                } else {
+                    UsernameCheckState.Available
+                }
+
+            } catch (e: Exception) {
+                _usernameAvailabilityState.value = UsernameCheckState.Error(
+                    "Erro ao verificar nome de usuário: ${e.message}"
+                )
             }
         }
     }

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel.UsernameCheckState
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,8 +34,19 @@ fun RegisterScreen(
         }
     }
 
-    var email by remember { mutableStateOf("") }
+    val usernameAvailabilityState by viewModel.usernameAvailabilityState.collectAsState()
+
+    // Estado do username
     var username by remember { mutableStateOf("") }
+
+    // Gatilho para verificação de disponibilidade
+    LaunchedEffect(username) {
+        if (username.isNotBlank()) {
+            viewModel.checkUsernameAvailability(username)
+        }
+    }
+
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
@@ -155,20 +167,24 @@ fun RegisterScreen(
                 value = username,
                 onValueChange = {
                     username = it
-                    usernameError = null
+                    // Verificação automática será disparada pelo LaunchedEffect
                 },
                 label = { Text("Nome de usuário") },
-                singleLine = true,
-                isError = usernameError != null,
-                supportingText = { usernameError?.let { Text(it) } },
-                leadingIcon = {
-                    Icon(Icons.Default.Person, contentDescription = null)
+                supportingText = {
+                    when (val state = usernameAvailabilityState) {
+                        is UsernameCheckState.Unavailable -> Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        is UsernameCheckState.Error -> Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        UsernameCheckState.Checking -> CircularProgressIndicator()
+                        else -> Text("Use letras, números e _ (3-20 caracteres)")
+                    }
                 },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth()
+                isError = usernameAvailabilityState is UsernameCheckState.Unavailable
             )
 
             Spacer(modifier = Modifier.height(8.dp))

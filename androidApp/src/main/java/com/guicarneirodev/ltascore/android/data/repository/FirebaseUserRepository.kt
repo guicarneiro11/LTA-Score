@@ -120,16 +120,36 @@ class FirebaseUserRepository(
     }
 
     override suspend fun signUp(email: String, password: String, username: String): Result<User> {
-        // Primeiro verificar se o nome de usuário já está em uso
-        if (isUsernameAlreadyTaken(username)) {
-            return Result.failure(Exception("Nome de usuário já está em uso"))
-        }
+        try {
+            // Primeiro, verificar disponibilidade do username
+            val lowercaseUsername = username.lowercase()
 
-        return try {
+            // Verificação direta sem autenticação
+            val usernameDoc = firestore
+                .collection("usernames")
+                .document(lowercaseUsername)
+                .get()
+                .await()
+
+            if (usernameDoc.exists()) {
+                return Result.failure(Exception("Nome de usuário já está em uso"))
+            }
+
+            // Validações adicionais de username
+            if (username.length < 3 || username.length > 20) {
+                return Result.failure(Exception("Nome de usuário deve ter entre 3 e 20 caracteres"))
+            }
+
+            val usernameRegex = Regex("^[a-zA-Z0-9_]+$")
+            if (!usernameRegex.matches(username)) {
+                return Result.failure(Exception("Nome de usuário inválido. Use apenas letras, números e _"))
+            }
+
+            // Continua processo de criação de conta
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user!!
 
-            // Criar documento do usuário no Firestore
+            // Criar documento do usuário
             val user = User(
                 id = firebaseUser.uid,
                 email = email,
@@ -137,11 +157,37 @@ class FirebaseUserRepository(
                 createdAt = Clock.System.now()
             )
 
+            // Salvar usuário
             usersCollection.document(user.id).set(user).await()
 
-            Result.success(user)
+            // Reservar username
+            firestore.collection("usernames")
+                .document(lowercaseUsername)
+                .set(mapOf(
+                    "username" to lowercaseUsername,
+                    "userId" to user.id
+                ))
+                .await()
+
+            return Result.success(user)
         } catch (e: Exception) {
-            Result.failure(e)
+            return Result.failure(e)
+        }
+    }
+
+    suspend fun isUsernameTaken(username: String): Boolean {
+        return try {
+            val lowercaseUsername = username.lowercase()
+            val snapshot = firestore
+                .collection("usernames")
+                .document(lowercaseUsername)
+                .get()
+                .await()
+
+            snapshot.exists()
+        } catch (e: Exception) {
+            // Em caso de erro, assume que o username está indisponível
+            true
         }
     }
 
