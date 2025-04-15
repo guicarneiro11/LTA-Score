@@ -261,8 +261,18 @@ fun RegisterScreen(
 
             // Erro de cadastro
             if (uiState.error != null) {
+                val errorMessage = when {
+                    uiState.error!!.contains("Nome de usuário já está em uso") ->
+                        "Este nome de usuário já está sendo usado por outra pessoa. Por favor, escolha outro."
+                    uiState.error!!.contains("email already in use") ->
+                        "Este email já está cadastrado. Tente fazer login ou use outro email."
+                    uiState.error!!.contains("weak password") ->
+                        "A senha é muito fraca. Use pelo menos 6 caracteres com letras e números."
+                    else -> uiState.error!!
+                }
+
                 Text(
-                    text = uiState.error!!,
+                    text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,

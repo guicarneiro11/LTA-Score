@@ -41,6 +41,13 @@ class VotingViewModel(
             try {
                 val match = getMatchByIdUseCase(matchId).first()
                 if (match != null) {
+                    // Log para depuração
+                    if (match.teams.any { it.code == "IE" }) {
+                        val ieTeam = match.teams.first { it.code == "IE" }
+                        println("DEBUG VotingViewModel: Time IE carregado para partida ${match.blockName}")
+                        println("DEBUG VotingViewModel: Jogadores do IE: ${ieTeam.players.map { it.nickname }}")
+                    }
+
                     // Inicializa as avaliações com zero
                     val initialRatings = mutableMapOf<String, Float>()
                     match.teams.forEach { team ->

@@ -203,11 +203,13 @@ class AuthViewModel(
     // Mapeia erros do Firebase Auth para mensagens amigáveis
     private fun mapFirebaseAuthError(e: Throwable): String {
         return when {
+            e.message?.contains("Nome de usuário já está em uso") == true -> "Nome de usuário já está em uso"
             e.message?.contains("badly formatted") == true -> "Email inválido"
             e.message?.contains("password is invalid") == true -> "Senha incorreta"
             e.message?.contains("no user record") == true -> "Usuário não encontrado"
             e.message?.contains("email already in use") == true -> "Email já cadastrado"
             e.message?.contains("network error") == true -> "Erro de conexão"
+            e.message?.contains("weak password") == true -> "Senha muito fraca"
             else -> "Erro de autenticação: ${e.message}"
         }
     }

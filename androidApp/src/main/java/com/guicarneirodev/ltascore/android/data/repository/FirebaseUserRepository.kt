@@ -87,7 +87,44 @@ class FirebaseUserRepository(
         }
     }
 
+    /**
+     * Verifica se um nome de usuário já está em uso
+     * @return true se o nome de usuário já existe, false caso contrário
+     */
+    private suspend fun isUsernameAlreadyTaken(username: String): Boolean {
+        try {
+            println("Verificando se o username '$username' já existe...")
+
+            // Abordagem alternativa usando get() diretamente
+            // Verificamos os primeiros 10 usuários para evitar problemas de ordenação
+            val querySnapshot = usersCollection
+                .whereEqualTo("username", username)
+                .limit(1)  // Limitamos a apenas 1 resultado
+                .get(com.google.firebase.firestore.Source.SERVER)  // Forçamos busca no servidor
+                .await()
+
+            val usernameExists = !querySnapshot.isEmpty
+            println("Username '$username' ${if (usernameExists) "já existe" else "disponível"}")
+            return usernameExists
+        } catch (e: Exception) {
+            // Log detalhado do erro para depuração
+            println("Erro ao verificar username: ${e.message}")
+
+            // Mostrar mais detalhes técnicos para depuração
+            println("Detalhes técnicos do erro:")
+            e.printStackTrace()
+
+            // Em caso de erro na consulta, assumimos que o username está em uso (por segurança)
+            return true
+        }
+    }
+
     override suspend fun signUp(email: String, password: String, username: String): Result<User> {
+        // Primeiro verificar se o nome de usuário já está em uso
+        if (isUsernameAlreadyTaken(username)) {
+            return Result.failure(Exception("Nome de usuário já está em uso"))
+        }
+
         return try {
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user!!
@@ -109,6 +146,12 @@ class FirebaseUserRepository(
     }
 
     override suspend fun updateProfile(user: User): Result<User> {
+        // Primeiro verificar se o novo nome de usuário não conflita com outro usuário
+        if (user.username != getUserData(auth.currentUser!!).username &&
+            isUsernameAlreadyTaken(user.username)) {
+            return Result.failure(Exception("Nome de usuário já está em uso"))
+        }
+
         return try {
             usersCollection.document(user.id).set(user).await()
             Result.success(user)

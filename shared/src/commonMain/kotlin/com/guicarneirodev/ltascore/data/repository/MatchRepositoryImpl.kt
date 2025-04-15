@@ -63,7 +63,33 @@ class MatchRepositoryImpl(
 
     override suspend fun getMatchById(matchId: String): Flow<Match?> {
         return flow {
-            emit(localDataSource.getMatchById(matchId))
+            val match = localDataSource.getMatchById(matchId)
+
+            // Se encontrou a partida, verifica se precisamos atualizar os jogadores do Isurus Estral
+            if (match != null && match.teams.any { it.id == "isurus-estral" || it.code == "IE" }) {
+                // Cria uma cópia atualizada da partida com os jogadores corretos
+                val updatedTeams = match.teams.map { team ->
+                    if (team.id == "isurus-estral" || team.code == "IE") {
+                        // Usa o mesmo método para obter os jogadores corretos
+                        val filteredPlayers = playersDataSource.getPlayersByTeamIdAndDate(
+                            "isurus-estral",
+                            match.startTime,
+                            match.blockName
+                        )
+
+                        // Retorna um time atualizado
+                        team.copy(players = filteredPlayers)
+                    } else {
+                        team
+                    }
+                }
+
+                // Emite a partida atualizada
+                emit(match.copy(teams = updatedTeams))
+            } else {
+                // Se não encontrou ou não é Isurus Estral, emite a partida original
+                emit(match)
+            }
         }
     }
 
@@ -109,7 +135,13 @@ class MatchRepositoryImpl(
                 val teams = matchDto.teams.map { teamDto ->
                     // Agora passamos tanto o ID (se disponível) quanto o código do time
                     val internalTeamId = TeamIdMapping.getInternalTeamId(teamDto.id, teamDto.code)
-                    val players = playersDataSource.getPlayersByTeamId(internalTeamId)
+
+                    // MODIFICAÇÃO: Usar o novo método que considera a data e o nome do bloco
+                    val players = playersDataSource.getPlayersByTeamIdAndDate(
+                        internalTeamId,
+                        matchDate,
+                        event.blockName
+                    )
 
                     Team(
                         id = teamDto.id ?: internalTeamId,

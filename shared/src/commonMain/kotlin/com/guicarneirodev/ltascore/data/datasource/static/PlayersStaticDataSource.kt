@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.data.datasource.static
 
 import com.guicarneirodev.ltascore.domain.models.Player
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
+import kotlinx.datetime.Instant
 
 class PlayersStaticDataSource {
 
@@ -18,6 +19,47 @@ class PlayersStaticDataSource {
 
     fun getPlayerById(playerId: String): Player? {
         return allPlayers.find { it.id == playerId }
+    }
+
+    fun getPlayersByTeamIdAndDate(teamId: String, matchDate: Instant, blockName: String): List<Player> {
+        // Obter todos os jogadores do time
+        val allTeamPlayers = playersByTeamId[teamId] ?: emptyList()
+
+        // Caso especial para Isurus Estral - troca entre Burdol e Summit
+        if (teamId == "isurus-estral") {
+            // Verificar pelo nome do bloco se é Semana 1
+            val isWeek1 = blockName.contains("Semana 1", ignoreCase = true) ||
+                    blockName.contains("Week 1", ignoreCase = true)
+
+            // Verificar se é Semana 2 ou posterior
+            val isWeek2OrLater = blockName.contains("Semana 2", ignoreCase = true) ||
+                    blockName.contains("Week 2", ignoreCase = true) ||
+                    blockName.contains("Semana 3", ignoreCase = true) ||
+                    blockName.contains("Week 3", ignoreCase = true) ||
+                    blockName.contains("Semana 4", ignoreCase = true) ||
+                    blockName.contains("Week 4", ignoreCase = true)
+
+            // Data de corte estimada para a Semana 2
+            val week2StartDate = Instant.parse("2025-04-08T00:00:00Z")
+
+            // Determinar se estamos na Semana 1 ou posterior
+            val isSemana1 = isWeek1 || (!isWeek2OrLater && matchDate < week2StartDate)
+
+            println("Partida de ${matchDate}, blockName: $blockName, isSemana1: $isSemana1")
+
+            return if (isSemana1) {
+                // Semana 1: incluir Burdol, excluir Summit
+                println("Retornando time IE com Burdol (Semana 1)")
+                allTeamPlayers.filter { it.id != "player_ie_summit" }
+            } else {
+                // Semana 2 ou posterior: incluir Summit, excluir Burdol
+                println("Retornando time IE com Summit (Semana 2+)")
+                allTeamPlayers.filter { it.id != "player_ie_burdol" }
+            }
+        }
+
+        // Para outros times, retorna todos os jogadores normalmente
+        return allTeamPlayers
     }
 
     companion object {
