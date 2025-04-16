@@ -3,7 +3,6 @@ buildscript {
         google()
         mavenCentral()
     }
-    // Aqui precisamos referenciar o classpath diretamente, não através do libs
     dependencies {
         classpath("com.google.gms:google-services:4.4.2")
     }
@@ -18,4 +17,8 @@ plugins {
     alias(libs.plugins.compose.compiler).apply(false)
     // Você pode adicionar esta linha para poder aplicar o plugin nos submódulos, mas com apply(false)
     alias(libs.plugins.google.services).apply(false)
+}
+
+tasks.register("clean", Delete::class) {
+    delete(rootProject.buildDir)
 }

@@ -29,19 +29,23 @@ kotlin {
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
 
-            // Serialização
+            // Serialization
             implementation(libs.kotlinx.serialization.json)
 
-            // Data e Tempo
+            // Date and Time
             implementation(libs.kotlinx.datetime)
 
-            // Ktor para KMP
+            // Ktor for KMP
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
             // Koin Core
             implementation(libs.koin.core)
+
+            // Firebase Functions
+            implementation("dev.gitlive:firebase-functions:1.8.0")
+            implementation("com.google.code.gson:gson:2.10.1")
         }
 
         commonTest.dependencies {
@@ -50,15 +54,15 @@ kotlin {
         }
 
         androidMain.dependencies {
-            // Ktor para Android
+            // Ktor for Android
             implementation(libs.ktor.client.android)
 
-            // Firebase - adicione firebase diretamente sem usar platform()
-            implementation(libs.firebase.functions)
+            // Firebase
+            implementation("dev.gitlive:firebase-functions:1.8.0")
         }
 
         iosMain.dependencies {
-            // Ktor para iOS
+            // Ktor for iOS
             implementation(libs.ktor.client.ios)
         }
     }
@@ -66,8 +70,7 @@ kotlin {
 
 // Aqui podemos adicionar as dependências de plataforma para o projeto Android
 dependencies {
-    // Isso garante que a plataforma BOM seja aplicada ao projeto quando necessário
-    // mas não é referenciada diretamente do sourceSet do KMP
+    // Firebase BOM to manage versions
     implementation(platform(libs.firebase.bom))
 }
 
