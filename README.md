@@ -20,7 +20,9 @@ Created by fans and for fans, LTA Score does not intend to be an alternative cla
 - **Community Rankings**: See the highest-rated players by fans across various categories
 - **Social Interactions**: Comment and react to other fans' ratings
 
-## 🖼️ Screenshots
+## 🖼️ Screenshots and Videos
+
+https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
 
 <div align="center">
 <img src="https://i.imgur.com/6qNVClO.png" alt="Feed Screen" width="200"/>
