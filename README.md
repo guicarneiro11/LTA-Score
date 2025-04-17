@@ -89,7 +89,7 @@ LTA Score was developed in full compliance with Riot Games' policies for third-p
 1. Clone this repository
 2. Open the project in Android Studio
 3. Sync the project with Gradle files
-4. Configure Firebase following the instructions in `docs/firebase_setup.md`
+4. Configure Firebase
 5. Run the application on an emulator or physical device
 
 ## 📞 Contact
