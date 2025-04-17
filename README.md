@@ -99,6 +99,10 @@ For questions, suggestions, or collaborations, contact:
 - Email: guicarneiro.dev@gmail.com
 - GitHub: [github.com/guicarneiro11](https://github.com/guicarneiro11)
 
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ---
 
 <div align="center">
