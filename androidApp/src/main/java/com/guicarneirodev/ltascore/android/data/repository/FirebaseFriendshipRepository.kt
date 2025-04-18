@@ -3,6 +3,8 @@ package com.guicarneirodev.ltascore.android.data.repository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.guicarneirodev.ltascore.domain.models.FriendRequest
+import com.guicarneirodev.ltascore.domain.models.FriendRequestStatus
 import com.guicarneirodev.ltascore.domain.models.FriendVoteHistoryItem
 import com.guicarneirodev.ltascore.domain.models.Friendship
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
@@ -25,6 +27,7 @@ class FirebaseFriendshipRepository(
 ) : FriendshipRepository {
 
     private val friendsCollection = "user_friends"
+    private val requestsCollection = "friend_requests"
 
     override suspend fun addFriendByUsername(username: String): Result<Friendship> {
         return try {
@@ -399,6 +402,300 @@ class FirebaseFriendshipRepository(
         } catch (e: Exception) {
             println("Erro crítico no feed de amigos: ${e.message}")
             e.printStackTrace()
+            trySend(emptyList())
+            close(e)
+        }
+    }
+
+    override suspend fun sendFriendRequest(username: String): Result<FriendRequest> {
+        return try {
+            // Obter o usuário atual
+            val currentUser = userRepository.getCurrentUser().first()
+                ?: return Result.failure(Exception("Usuário não autenticado"))
+
+            // Verificar se não está tentando adicionar a si mesmo
+            if (currentUser.username == username) {
+                return Result.failure(Exception("Você não pode enviar solicitação para si mesmo"))
+            }
+
+            // Buscar o usuário pelo nome de usuário
+            val friendSnapshot = firestore.collection("users")
+                .whereEqualTo("username", username)
+                .get()
+                .await()
+
+            if (friendSnapshot.isEmpty) {
+                return Result.failure(Exception("Usuário não encontrado"))
+            }
+
+            val friendDoc = friendSnapshot.documents.first()
+            val friendId = friendDoc.id
+            friendDoc.getString("username") ?: ""
+
+            // Verificar se já é amigo
+            val existingFriendship = firestore.collection(friendsCollection)
+                .document(currentUser.id)
+                .collection("friends")
+                .document(friendId)
+                .get()
+                .await()
+
+            if (existingFriendship.exists()) {
+                return Result.failure(Exception("Usuário já é seu amigo"))
+            }
+
+            // Verificar se já existe uma solicitação pendente
+            val existingRequest = firestore.collection(requestsCollection)
+                .whereEqualTo("senderId", currentUser.id)
+                .whereEqualTo("receiverId", friendId)
+                .whereEqualTo("status", "PENDING")
+                .get()
+                .await()
+
+            if (!existingRequest.isEmpty) {
+                return Result.failure(Exception("Solicitação já enviada"))
+            }
+
+            // Criar solicitação
+            val requestId = "${currentUser.id}_${friendId}"
+            val createdAt = Clock.System.now()
+
+            val friendRequest = FriendRequest(
+                id = requestId,
+                senderId = currentUser.id,
+                senderUsername = currentUser.username,
+                receiverId = friendId,
+                status = FriendRequestStatus.PENDING,
+                createdAt = createdAt
+            )
+
+            // Salvar solicitação
+            firestore.collection(requestsCollection)
+                .document(requestId)
+                .set(
+                    mapOf(
+                        "id" to friendRequest.id,
+                        "senderId" to friendRequest.senderId,
+                        "senderUsername" to friendRequest.senderUsername,
+                        "receiverId" to friendRequest.receiverId,
+                        "status" to friendRequest.status.name,
+                        "createdAt" to Date.from(createdAt.toJavaInstant())
+                    )
+                )
+                .await()
+
+            Result.success(friendRequest)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun acceptFriendRequest(requestId: String): Result<Friendship> {
+        return try {
+            // Obter o usuário atual
+            val currentUser = userRepository.getCurrentUser().first()
+                ?: return Result.failure(Exception("Usuário não autenticado"))
+
+            // Buscar a solicitação
+            val requestDoc = firestore.collection(requestsCollection)
+                .document(requestId)
+                .get()
+                .await()
+
+            if (!requestDoc.exists()) {
+                return Result.failure(Exception("Solicitação não encontrada"))
+            }
+
+            val senderId = requestDoc.getString("senderId") ?: ""
+            val senderUsername = requestDoc.getString("senderUsername") ?: ""
+            val receiverId = requestDoc.getString("receiverId") ?: ""
+            val status = requestDoc.getString("status")
+
+            // Verificar se é o destinatário da solicitação
+            if (receiverId != currentUser.id) {
+                return Result.failure(Exception("Solicitação não é para este usuário"))
+            }
+
+            // Verificar status da solicitação
+            if (status != "PENDING") {
+                return Result.failure(Exception("Solicitação já processada"))
+            }
+
+            // Atualizar status da solicitação
+            firestore.collection(requestsCollection)
+                .document(requestId)
+                .update("status", "ACCEPTED")
+                .await()
+
+            // Criar amizade para ambos os usuários
+            val createdAt = Clock.System.now()
+
+            // Amizade para o receptor (usuário atual)
+            val receiverFriendship = Friendship(
+                id = "${currentUser.id}_${senderId}",
+                userId = currentUser.id,
+                friendId = senderId,
+                friendUsername = senderUsername,
+                createdAt = createdAt
+            )
+
+            // Amizade para o remetente
+            val senderFriendship = Friendship(
+                id = "${senderId}_${currentUser.id}",
+                userId = senderId,
+                friendId = currentUser.id,
+                friendUsername = currentUser.username,
+                createdAt = createdAt
+            )
+
+            // Salvar amizade para o receptor
+            firestore.collection(friendsCollection)
+                .document(currentUser.id)
+                .collection("friends")
+                .document(senderId)
+                .set(
+                    mapOf(
+                        "id" to receiverFriendship.id,
+                        "userId" to receiverFriendship.userId,
+                        "friendId" to receiverFriendship.friendId,
+                        "friendUsername" to receiverFriendship.friendUsername,
+                        "createdAt" to Date.from(createdAt.toJavaInstant())
+                    )
+                )
+                .await()
+
+            // Salvar amizade para o remetente
+            firestore.collection(friendsCollection)
+                .document(senderId)
+                .collection("friends")
+                .document(currentUser.id)
+                .set(
+                    mapOf(
+                        "id" to senderFriendship.id,
+                        "userId" to senderFriendship.userId,
+                        "friendId" to senderFriendship.friendId,
+                        "friendUsername" to senderFriendship.friendUsername,
+                        "createdAt" to Date.from(createdAt.toJavaInstant())
+                    )
+                )
+                .await()
+
+            Result.success(receiverFriendship)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun rejectFriendRequest(requestId: String): Result<Unit> {
+        return try {
+            // Obter o usuário atual
+            val currentUser = userRepository.getCurrentUser().first()
+                ?: return Result.failure(Exception("Usuário não autenticado"))
+
+            // Buscar a solicitação
+            val requestDoc = firestore.collection(requestsCollection)
+                .document(requestId)
+                .get()
+                .await()
+
+            if (!requestDoc.exists()) {
+                return Result.failure(Exception("Solicitação não encontrada"))
+            }
+
+            val receiverId = requestDoc.getString("receiverId") ?: ""
+            val status = requestDoc.getString("status")
+
+            // Verificar se é o destinatário da solicitação
+            if (receiverId != currentUser.id) {
+                return Result.failure(Exception("Solicitação não é para este usuário"))
+            }
+
+            // Verificar status da solicitação
+            if (status != "PENDING") {
+                return Result.failure(Exception("Solicitação já processada"))
+            }
+
+            // Atualizar status da solicitação
+            firestore.collection(requestsCollection)
+                .document(requestId)
+                .update("status", "REJECTED")
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun getPendingFriendRequests(): Flow<List<FriendRequest>> = callbackFlow {
+        // Obter o usuário atual
+        try {
+            val currentUser = userRepository.getCurrentUser().first()
+            if (currentUser == null) {
+                trySend(emptyList())
+                close()
+                return@callbackFlow
+            }
+
+            // Configurar o listener para solicitações pendentes
+            val listener = firestore.collection(requestsCollection)
+                .whereEqualTo("receiverId", currentUser.id)
+                .whereEqualTo("status", "PENDING")
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        println("Erro ao buscar solicitações: ${error.message}")
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
+
+                    if (snapshot == null || snapshot.isEmpty) {
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
+
+                    val requests = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            val id = doc.id
+                            val senderId = doc.getString("senderId") ?: return@mapNotNull null
+                            val senderUsername = doc.getString("senderUsername") ?: ""
+                            val receiverId = doc.getString("receiverId") ?: return@mapNotNull null
+                            val statusStr = doc.getString("status") ?: "PENDING"
+                            val createdAtTimestamp = doc.getDate("createdAt")
+
+                            val status = try {
+                                FriendRequestStatus.valueOf(statusStr)
+                            } catch (_: Exception) {
+                                FriendRequestStatus.PENDING
+                            }
+
+                            val createdAt = if (createdAtTimestamp != null) {
+                                Instant.fromEpochMilliseconds(createdAtTimestamp.time)
+                            } else {
+                                Clock.System.now()
+                            }
+
+                            FriendRequest(
+                                id = id,
+                                senderId = senderId,
+                                senderUsername = senderUsername,
+                                receiverId = receiverId,
+                                status = status,
+                                createdAt = createdAt
+                            )
+                        } catch (e: Exception) {
+                            println("Erro ao processar solicitação: ${e.message}")
+                            null
+                        }
+                    }
+
+                    trySend(requests)
+                }
+
+            awaitClose {
+                listener.remove()
+            }
+        } catch (e: Exception) {
+            println("Erro ao buscar solicitações: ${e.message}")
             trySend(emptyList())
             close(e)
         }

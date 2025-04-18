@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -64,6 +66,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.ui.friends.social.FriendRequestsSection
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsManagementUiState
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.domain.models.Friendship
@@ -82,6 +85,7 @@ fun ProfileScreen(
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
     val friendsUiState by friendsViewModel.uiState.collectAsState()
+    val requestsUiState by friendsViewModel.requestsUiState.collectAsState()
 
     // Estado para controlar a visibilidade da seção de amigos
     var showFriendsSection by remember { mutableStateOf(true) }
@@ -126,6 +130,15 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
+            item {
+                FriendRequestsSection(
+                    uiState = requestsUiState,
+                    onAcceptRequest = friendsViewModel::acceptFriendRequest,
+                    onRejectRequest = friendsViewModel::rejectFriendRequest,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
             // Seção de amigos
             item {
                 FriendsSection(
@@ -133,7 +146,7 @@ fun ProfileScreen(
                     showFriendsSection = showFriendsSection,
                     onToggleFriendsSection = { showFriendsSection = !showFriendsSection },
                     onFriendUsernameChange = friendsViewModel::updateFriendUsername,
-                    onAddFriend = friendsViewModel::addFriend,
+                    onAddFriend = friendsViewModel::sendFriendRequest,
                     onRemoveFriend = friendsViewModel::removeFriend,
                     onViewFriendsFeed = onNavigateToFriendsFeed
                 )
@@ -425,7 +438,7 @@ fun AddFriendField(
             value = username,
             onValueChange = onUsernameChange,
             label = { Text("Nome de usuário") },
-            placeholder = { Text("Digite o username do amigo") },
+            placeholder = { Text("Digite o username para enviar solicitação") },
             singleLine = true,
             leadingIcon = {
                 Icon(
@@ -465,8 +478,8 @@ fun AddFriendField(
                 )
             } else {
                 Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Adicionar",
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Enviar solicitação",
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
