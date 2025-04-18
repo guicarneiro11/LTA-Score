@@ -3,6 +3,7 @@ package com.guicarneirodev.ltascore.android.data.repository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.guicarneirodev.ltascore.data.datasource.local.MatchLocalDataSource
 import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.domain.models.MatchState
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
 import com.guicarneirodev.ltascore.domain.models.TimeFrame
@@ -25,8 +26,8 @@ class FirebaseRankingRepository(
 ) : RankingRepository {
 
     private val voteSummariesCollection = firestore.collection("vote_summaries")
-    private val votesCollection = firestore.collection("votes")
     private val teamCache = mutableMapOf<String, TeamInfo>()
+    private val votesCollection = firestore.collection("votes")
 
     // Classe interna para armazenar informações básicas do time
     private data class TeamInfo(
@@ -64,35 +65,77 @@ class FirebaseRankingRepository(
         val result = mutableMapOf<String, PlayerData>()
 
         try {
-            println("Tentando abordagem direta com IDs conhecidos...")
+            println("Calculando ranking com agregação de todas as partidas...")
 
-            // Lista de IDs de partidas que vimos nas suas capturas de tela
-            val knownMatchIds = listOf(
-                "114103277164844275",
-                "114103277165106421",
-                "114103277165106423",
-                "114103277165106431",
-                "114103277165106433",
-                "114103277165106435",
-                "114103277165106439",
-                "114103277165171985",
-                "114103277165171989",
-                "114103277165171991",
-                "114103277165171995",
-                "114103277165171999",
-                "114103277165172001",
-                "114103277165172003",
-                "114103277165172005",
-                "114103277165172009"
-            )
+            // Obtém IDs de partidas do cache local em vez de usar lista hardcoded
+            val matchIds = mutableSetOf<String>()
 
-            println("Processando ${knownMatchIds.size} partidas conhecidas")
+            // Primeiro tenta obter as partidas da LTA Sul
+            val ltaSulMatches = matchLocalDataSource.getMatches("lta_s")
+            val ltaNorteMatches = matchLocalDataSource.getMatches("lta_n")
 
-            // Para cada ID conhecido
+            // Adiciona os IDs de todas as partidas completadas
+            val allMatches = ltaSulMatches + ltaNorteMatches
+            val completedMatches = allMatches.filter { it.state == MatchState.COMPLETED }
+
+            completedMatches.forEach { match ->
+                matchIds.add(match.id)
+            }
+
+            println("📊 Encontradas ${matchIds.size} partidas do cache local")
+
+            // Se não encontrou nenhuma partida, tenta usar a coleção votes
+            if (matchIds.isEmpty()) {
+                try {
+                    println("Buscando partidas da coleção votes...")
+                    val votesSnapshot = votesCollection.get().await()
+
+                    if (votesSnapshot != null && !votesSnapshot.isEmpty) {
+                        for (doc in votesSnapshot.documents) {
+                            matchIds.add(doc.id)
+                        }
+                        println("✅ Encontradas ${matchIds.size} partidas na coleção votes")
+                    } else {
+                        println("⚠️ Nenhuma partida encontrada na coleção votes")
+                    }
+                } catch (e: Exception) {
+                    println("❌ Erro ao acessar coleção votes: ${e.message}")
+                }
+            }
+
+            // Se ainda não encontrou, cria uma lista com partidas potenciais
+            if (matchIds.isEmpty()) {
+                println("⚠️ Nenhuma partida encontrada das fontes primárias. Gerando IDs potenciais...")
+
+                // Cria IDs baseados em uma sequência lógica observada nos IDs existentes
+                // Os IDs parecem seguir um padrão como "114103277164844275" e incrementam
+                val baseIds = listOf(
+                    "114103277164844275", // Base para semana 1
+                    "114103277165106421", // Base para semana 2
+                    "114103277165171985"  // Base para semana 3
+                )
+
+                // Gera variações baseadas nos IDs base
+                baseIds.forEach { baseId ->
+                    matchIds.add(baseId)
+                    // Adiciona algumas variações incrementando o final do ID
+                    for (i in 1..5) {
+                        val lastDigits = baseId.takeLast(4).toInt() + (i * 2)
+                        val newId = baseId.substring(0, baseId.length - 4) + lastDigits.toString().padStart(4, '0')
+                        matchIds.add(newId)
+                    }
+                }
+
+                println("📊 Gerados ${matchIds.size} IDs potenciais de partidas")
+            }
+
+            println("📊 Total de ${matchIds.size} partidas para processar")
+
             var matchesProcessed = 0
             var playersFound = 0
 
-            for (matchId in knownMatchIds) {
+            // Para cada ID de partida encontrado
+            for (matchId in matchIds) {
                 try {
                     val playersRef = voteSummariesCollection
                         .document(matchId)
@@ -100,7 +143,7 @@ class FirebaseRankingRepository(
 
                     val playersSnapshot = playersRef.get().await()
 
-                    if (!playersSnapshot.isEmpty) {
+                    if (playersSnapshot != null && !playersSnapshot.isEmpty) {
                         matchesProcessed++
                         val playerCount = playersSnapshot.size()
                         playersFound += playerCount
