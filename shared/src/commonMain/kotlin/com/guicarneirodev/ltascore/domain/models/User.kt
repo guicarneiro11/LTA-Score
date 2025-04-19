@@ -7,5 +7,6 @@ data class User(
     val email: String = "",
     val username: String = "",
     val profilePictureUrl: String? = null,
-    val createdAt: Instant? = null
+    val createdAt: Instant? = null,
+    val favoriteTeamId: String? = null
 )

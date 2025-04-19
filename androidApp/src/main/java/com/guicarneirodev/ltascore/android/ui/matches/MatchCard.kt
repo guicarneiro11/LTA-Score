@@ -101,7 +101,8 @@ fun MatchCard(
                         LogoImage(
                             imageUrl = match.teams[0].imageUrl,
                             name = match.teams[0].name,
-                            code = match.teams[0].code
+                            code = match.teams[0].code,
+                            modifier = Modifier
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -182,7 +183,8 @@ fun MatchCard(
                         LogoImage(
                             imageUrl = match.teams[1].imageUrl,
                             name = match.teams[1].name,
-                            code = match.teams[1].code
+                            code = match.teams[1].code,
+                            modifier = Modifier
                         )
                     }
                 }

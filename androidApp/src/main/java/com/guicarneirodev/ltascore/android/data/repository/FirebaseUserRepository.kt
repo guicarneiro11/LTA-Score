@@ -257,4 +257,18 @@ class FirebaseUserRepository(
             createdAt = Clock.System.now()
         )
     }
+
+    override suspend fun updateFavoriteTeam(teamId: String): Result<Unit> {
+        return try {
+            val currentUser = auth.currentUser ?: return Result.failure(Exception("Usuário não autenticado"))
+
+            usersCollection.document(currentUser.uid)
+                .update("favoriteTeamId", teamId)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

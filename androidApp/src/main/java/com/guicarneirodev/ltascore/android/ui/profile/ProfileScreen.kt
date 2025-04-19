@@ -6,7 +6,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,16 +26,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,7 +45,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -52,6 +52,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,42 +61,69 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.ui.friends.social.FriendRequestsSection
+import com.guicarneirodev.ltascore.android.ui.matches.LogoImage
+import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsManagementUiState
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.domain.models.Friendship
+import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     friendsViewModel: FriendsViewModel = koinViewModel(),
-    authViewModel: com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel = koinViewModel(),
+    authViewModel: AuthViewModel = koinViewModel(),
     onNavigateToMatchHistory: () -> Unit,
     onNavigateToRanking: () -> Unit,
     onNavigateToFriendsFeed: () -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onLogout: () -> Unit,
-    onBackClick: () -> Unit // Novo parâmetro para voltar à tela de partidas
+    onBackClick: () -> Unit
 ) {
+    val matchRepository: MatchRepository = koinInject()
+
     val currentUser by authViewModel.currentUser.collectAsState()
     val friendsUiState by friendsViewModel.uiState.collectAsState()
     val requestsUiState by friendsViewModel.requestsUiState.collectAsState()
 
-    // Estado para controlar a visibilidade da seção de amigos
     var showFriendsSection by remember { mutableStateOf(true) }
+    var teamLogoUrl by remember { mutableStateOf<String?>(null) }
+
+    val favoriteTeamId = currentUser?.favoriteTeamId
+
+    LaunchedEffect(favoriteTeamId) {
+        favoriteTeamId?.let { teamId ->
+            try {
+                matchRepository.getMatches("lta_s").collect { matches ->
+                    for (match in matches) {
+                        for (team in match.teams) {
+                            if (team.id == teamId) {
+                                teamLogoUrl = team.imageUrl
+                                println("Logo URL encontrada: $teamLogoUrl")
+                                return@collect
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("Erro ao buscar logo: ${e.message}")
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Meu Perfil") },
                 navigationIcon = {
-                    // Adicionando botão de voltar
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -107,8 +135,17 @@ fun ProfileScreen(
                     containerColor = LTAThemeColors.CardBackground,
                     titleContentColor = LTAThemeColors.TextPrimary,
                     navigationIconContentColor = LTAThemeColors.TextPrimary
-                )
-                // Removido o ícone de configurações
+                ),
+                actions = {
+                    // Botão de editar perfil
+                    IconButton(onClick = onNavigateToEditProfile) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar Perfil",
+                            tint = LTAThemeColors.TextPrimary
+                        )
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -119,12 +156,12 @@ fun ProfileScreen(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar e informações do usuário
             item {
                 UserProfileHeader(
                     username = currentUser?.username ?: "Usuário",
-                    email = currentUser?.email ?: ""
-                    // Removido o botão de editar perfil
+                    email = currentUser?.email ?: "",
+                    favoriteTeamId = favoriteTeamId,
+                    teamLogoUrl = teamLogoUrl
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -139,7 +176,6 @@ fun ProfileScreen(
                 )
             }
 
-            // Seção de amigos
             item {
                 FriendsSection(
                     uiState = friendsUiState,
@@ -154,7 +190,6 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Opções do perfil
             item {
                 ProfileOptionsSection(
                     onNavigateToMatchHistory = onNavigateToMatchHistory,
@@ -164,7 +199,6 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Botão de logout
             item {
                 Button(
                     onClick = {
@@ -197,13 +231,14 @@ fun ProfileScreen(
 @Composable
 fun UserProfileHeader(
     username: String,
-    email: String
+    email: String,
+    favoriteTeamId: String?,
+    teamLogoUrl: String?
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Avatar do usuário
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -221,15 +256,57 @@ fun UserProfileHeader(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Nome de usuário
-        Text(
-            text = username,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = LTAThemeColors.TextPrimary
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = username,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = LTAThemeColors.TextPrimary
+            )
 
-        // Email
+            // Logo do time favorito (se existir)
+            if (favoriteTeamId != null) {
+                Spacer(modifier = Modifier.width(8.dp))
+
+                val teamCode = when(favoriteTeamId) {
+                    "loud" -> "LOUD"
+                    "pain-gaming" -> "PAIN"
+                    "isurus-estral" -> "IE"
+                    "leviatan" -> "LEV"
+                    "furia" -> "FUR"
+                    "keyd" -> "VKS"
+                    "red" -> "RED"
+                    "fxw7" -> "FXW7"
+                    else -> favoriteTeamId.take(3).uppercase()
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(
+                            color = LTAThemeColors.CardBackground,
+                            shape = CircleShape
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = LTAThemeColors.PrimaryGold,
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LogoImage(
+                        imageUrl = teamLogoUrl ?: "",
+                        name = teamCode,
+                        code = teamCode,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
         Text(
             text = email,
             style = MaterialTheme.typography.bodyLarge,
@@ -256,7 +333,6 @@ fun ProfileOptionItem(
                 .padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Ícone
             Icon(
                 imageVector = icon,
                 contentDescription = null,
@@ -266,7 +342,6 @@ fun ProfileOptionItem(
                     .padding(end = 16.dp)
             )
 
-            // Textos
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -282,7 +357,6 @@ fun ProfileOptionItem(
                 )
             }
 
-            // Seta
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
@@ -314,7 +388,6 @@ fun FriendsSection(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Título da seção com botão para expandir/colapsar
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -339,14 +412,12 @@ fun FriendsSection(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Ícone para expandir/colapsar
                 Icon(
                     imageVector = if (showFriendsSection) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = if (showFriendsSection) "Esconder amigos" else "Mostrar amigos",
                     tint = LTAThemeColors.TextSecondary
                 )
 
-                // Botão para ver feed de amigos (permanece visível mesmo quando a seção está recolhida)
                 if (uiState.friends.isNotEmpty()) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -361,7 +432,6 @@ fun FriendsSection(
                 }
             }
 
-            // Conteúdo expandível da seção de amigos
             AnimatedVisibility(
                 visible = showFriendsSection,
                 enter = fadeIn() + expandVertically(),
@@ -370,7 +440,6 @@ fun FriendsSection(
                 Column {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Campo para adicionar amigo
                     AddFriendField(
                         username = uiState.friendUsername,
                         onUsernameChange = onFriendUsernameChange,
@@ -378,7 +447,6 @@ fun FriendsSection(
                         isLoading = uiState.isLoading
                     )
 
-                    // Mensagens de erro ou sucesso
                     if (uiState.error != null) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -399,7 +467,6 @@ fun FriendsSection(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Lista de amigos
                     Text(
                         text = "Meus Amigos (${uiState.friends.size})",
                         style = MaterialTheme.typography.bodyMedium,
@@ -549,7 +616,6 @@ fun FriendItem(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar (placeholder circular)
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -567,7 +633,6 @@ fun FriendItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Nome de usuário
             Text(
                 text = friendship.friendUsername,
                 style = MaterialTheme.typography.bodyLarge,
@@ -575,7 +640,6 @@ fun FriendItem(
                 modifier = Modifier.weight(1f)
             )
 
-            // Botão de remover
             IconButton(
                 onClick = onRemove,
                 modifier = Modifier.size(32.dp)
@@ -615,7 +679,6 @@ fun ProfileOptionsSection(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Histórico de votos
             ProfileOptionItem(
                 icon = Icons.Default.Person,
                 title = "Meu Histórico de Votos",
@@ -625,7 +688,6 @@ fun ProfileOptionsSection(
 
             Divider(color = LTAThemeColors.DarkBackground, thickness = 1.dp)
 
-            // Ranking
             ProfileOptionItem(
                 icon = Icons.Default.Leaderboard,
                 title = "Ranking de Jogadores",

@@ -16,6 +16,7 @@ import com.guicarneirodev.ltascore.android.ui.auth.ResetPasswordScreen
 import com.guicarneirodev.ltascore.android.ui.friends.FriendsFeedScreen
 import com.guicarneirodev.ltascore.android.ui.history.VoteHistoryScreen
 import com.guicarneirodev.ltascore.android.ui.matches.MatchesScreen
+import com.guicarneirodev.ltascore.android.ui.profile.EditProfileScreen
 import com.guicarneirodev.ltascore.android.ui.profile.ProfileScreen
 import com.guicarneirodev.ltascore.android.ui.ranking.RankingScreen
 import com.guicarneirodev.ltascore.android.ui.summary.MatchSummaryScreen
@@ -38,8 +39,8 @@ sealed class Screen(val route: String) {
     object Ranking : Screen("ranking")
     object VoteHistory : Screen("vote_history")
     object FriendsFeed : Screen("friends_feed")
+    object EditProfile : Screen("edit_profile")
 
-    // Telas com argumentos
     object Voting : Screen("voting/{matchId}") {
         fun createRoute(matchId: String) = "voting/$matchId"
     }
@@ -74,9 +75,7 @@ fun AppNavigation(
             authViewModel = authViewModel
         )
 
-        // Tela principal de partidas
         composable(Screen.Matches.route) {
-            // Verifica se o usuário está autenticado
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -87,7 +86,6 @@ fun AppNavigation(
 
             MatchesScreen(
                 onMatchClick = { matchId ->
-                    // Decide para qual tela navegar com base no histórico de votos
                     navigateToMatchDetails(
                         navController = navController,
                         matchId = matchId,
@@ -105,9 +103,7 @@ fun AppNavigation(
             )
         }
 
-        // Nova tela de Ranking
         composable(Screen.Ranking.route) {
-            // Verifica se o usuário está autenticado
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -123,9 +119,7 @@ fun AppNavigation(
             )
         }
 
-        // Tela de perfil do usuário
         composable(Screen.Profile.route) {
-            // Verifica se o usuário está autenticado
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -145,6 +139,9 @@ fun AppNavigation(
                 onNavigateToFriendsFeed = {
                     navController.navigate(Screen.FriendsFeed.route)
                 },
+                onNavigateToEditProfile = {
+                    navController.navigate(Screen.EditProfile.route)
+                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Matches.route) { inclusive = true }
@@ -152,16 +149,30 @@ fun AppNavigation(
                 },
                 onBackClick = {
                     navController.navigate(Screen.Matches.route) {
-                        // Configuração para evitar navegação cíclica
                         popUpTo(Screen.Matches.route) { inclusive = true }
                     }
                 }
             )
         }
 
-        // Tela de votação
-        composable(Screen.Voting.route) { backStackEntry ->
+        composable(Screen.EditProfile.route) {
             // Verifica se o usuário está autenticado
+            LaunchedEffect(isLoggedIn) {
+                if (!isLoggedIn) {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.EditProfile.route) { inclusive = true }
+                    }
+                }
+            }
+
+            EditProfileScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.Voting.route) { backStackEntry ->
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -173,15 +184,12 @@ fun AppNavigation(
             val matchId = backStackEntry.arguments?.getString("matchId") ?: ""
             val votingViewModel = koinViewModel<VotingViewModel>()
 
-            // Verifica se o usuário já votou nesta partida
             LaunchedEffect(matchId, isLoggedIn) {
                 if (isLoggedIn) {
                     val currentUser = userRepository.getCurrentUser().first()
                     if (currentUser != null) {
-                        // Verifica no DataStore local
                         val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
                         if (hasVotedLocally) {
-                            // Se já votou, redireciona para a tela de resumo
                             navController.navigate(Screen.MatchSummary.createRoute(matchId)) {
                                 popUpTo(Screen.Voting.route) { inclusive = true }
                             }
@@ -197,9 +205,7 @@ fun AppNavigation(
                     navController.popBackStack()
                 },
                 onVoteSubmitted = {
-                    // Navega para a tela de resumo após o voto
                     navController.navigate(Screen.MatchSummary.createRoute(matchId)) {
-                        // Remove a tela de votação da pilha para o usuário não conseguir voltar
                         popUpTo(Screen.Matches.route) {
                             saveState = true
                         }
@@ -208,9 +214,7 @@ fun AppNavigation(
             )
         }
 
-        // Tela de resumo da partida
         composable(Screen.MatchSummary.route) { backStackEntry ->
-            // Verifica se o usuário está autenticado
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -226,9 +230,7 @@ fun AppNavigation(
                 viewModel = summaryViewModel,
                 matchId = matchId,
                 onBackClick = {
-                    // Navega para a tela principal de partidas
                     navController.navigate(Screen.Matches.route) {
-                        // Configuração para limpar a pilha e evitar múltiplos retornos
                         popUpTo(Screen.Matches.route) { inclusive = true }
                     }
                 }
@@ -236,7 +238,6 @@ fun AppNavigation(
         }
 
         composable(Screen.VoteHistory.route) {
-            // Verifica se o usuário está autenticado
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -254,9 +255,6 @@ fun AppNavigation(
     }
 }
 
-/**
- * Grafo de navegação para telas de autenticação
- */
 private fun NavGraphBuilder.authGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel
@@ -307,10 +305,6 @@ private fun NavGraphBuilder.authGraph(
     }
 }
 
-/**
- * Função para navegar para a tela apropriada de detalhes da partida
- * Verifica se o usuário já votou e redireciona para a tela correta
- */
 private fun navigateToMatchDetails(
     navController: NavHostController,
     matchId: String,
@@ -318,48 +312,37 @@ private fun navigateToMatchDetails(
     voteRepository: VoteRepository,
     userPreferencesRepository: UserPreferencesRepository
 ) {
-    // Lança uma coroutine para verificar o estado de voto
     kotlinx.coroutines.MainScope().launch {
         try {
-            // Obtém o usuário atual
             val currentUser = userRepository.getCurrentUser().first()
 
             if (currentUser != null) {
-                // MODIFICADO: Primeiro verifica no DataStore local (resposta mais rápida)
                 val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
 
                 if (hasVotedLocally) {
-                    // Se já temos registro local, navegamos direto para o resumo
                     navController.navigate(Screen.MatchSummary.createRoute(matchId))
                     return@launch
                 }
 
-                // Se não temos registro local, verificamos no Firestore
                 try {
                     val hasVotedInFirestore = voteRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
 
-                    // Se encontrou voto no Firestore, salva localmente para futuras verificações
                     if (hasVotedInFirestore) {
                         userPreferencesRepository.markMatchVoted(currentUser.id, matchId)
                     }
 
-                    // Navega para a tela apropriada
                     if (hasVotedInFirestore) {
                         navController.navigate(Screen.MatchSummary.createRoute(matchId))
                     } else {
                         navController.navigate(Screen.Voting.createRoute(matchId))
                     }
                 } catch (_: Exception) {
-                    // Em caso de erro na verificação Firestore, confiamos apenas no registro local
-                    // Como não temos registro local, vamos para a tela de votação
                     navController.navigate(Screen.Voting.createRoute(matchId))
                 }
             } else {
-                // Se o usuário não estiver logado, vai para a tela de login
                 navController.navigate(Screen.Login.route)
             }
         } catch (_: Exception) {
-            // Em caso de erro geral, vai para a tela de votação (experiência padrão)
             navController.navigate(Screen.Voting.createRoute(matchId))
         }
     }
@@ -369,9 +352,7 @@ fun NavGraphBuilder.friendshipGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel
 ) {
-    // Tela de feed de amigos
     composable(Screen.FriendsFeed.route) {
-        // Verifica se o usuário está autenticado
         LaunchedEffect(key1 = true) {
             if (!authViewModel.isLoggedIn.first()) {
                 navController.navigate(Screen.Login.route) {

@@ -11,6 +11,7 @@ import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteRepositor
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteSocialRepository
 import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsFeedViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
@@ -83,4 +84,5 @@ val appModule = module {
     viewModel { VoteHistoryViewModel(get()) }
     viewModel { FriendsViewModel(get()) }
     viewModel { FriendsFeedViewModel(get(), get(), get()) }
+    viewModel { EditProfileViewModel(get(), get()) }
 }

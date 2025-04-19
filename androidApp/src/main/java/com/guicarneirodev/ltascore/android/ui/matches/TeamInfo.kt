@@ -52,7 +52,8 @@ fun TeamInfo(
             LogoImage(
                 imageUrl = imageUrl,
                 name = name,
-                code = code
+                code = code,
+                modifier = Modifier
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -107,7 +108,8 @@ fun TeamInfo(
             LogoImage(
                 imageUrl = imageUrl,
                 name = name,
-                code = code
+                code = code,
+                modifier = Modifier
             )
         }
     } else {
@@ -120,7 +122,8 @@ fun TeamInfo(
             LogoImage(
                 imageUrl = imageUrl,
                 name = name,
-                code = code
+                code = code,
+                modifier = Modifier
             )
 
             Spacer(modifier = Modifier.padding(vertical = 4.dp))
@@ -148,7 +151,8 @@ fun TeamInfo(
 fun LogoImage(
     imageUrl: String,
     name: String,
-    code: String
+    code: String,
+    modifier: Modifier
 ) {
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
