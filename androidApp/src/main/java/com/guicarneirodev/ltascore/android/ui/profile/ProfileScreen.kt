@@ -5,10 +5,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -52,7 +51,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,20 +59,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.ui.friends.social.FriendRequestsSection
-import com.guicarneirodev.ltascore.android.ui.matches.LogoImage
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsManagementUiState
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.domain.models.Friendship
-import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,36 +84,24 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    val matchRepository: MatchRepository = koinInject()
-
     val currentUser by authViewModel.currentUser.collectAsState()
     val friendsUiState by friendsViewModel.uiState.collectAsState()
     val requestsUiState by friendsViewModel.requestsUiState.collectAsState()
 
+    // Estado para controlar a visibilidade da seção de amigos
     var showFriendsSection by remember { mutableStateOf(true) }
-    var teamLogoUrl by remember { mutableStateOf<String?>(null) }
 
-    val favoriteTeamId = currentUser?.favoriteTeamId
-
-    LaunchedEffect(favoriteTeamId) {
-        favoriteTeamId?.let { teamId ->
-            try {
-                matchRepository.getMatches("lta_s").collect { matches ->
-                    for (match in matches) {
-                        for (team in match.teams) {
-                            if (team.id == teamId) {
-                                teamLogoUrl = team.imageUrl
-                                println("Logo URL encontrada: $teamLogoUrl")
-                                return@collect
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                println("Erro ao buscar logo: ${e.message}")
-            }
-        }
-    }
+    // Mapeamento de times para cores
+    val teamColors = mapOf(
+        "loud" to Color(0xFF33CC33),     // Verde LOUD
+        "pain-gaming" to Color(0xFFFFD700), // Dourado paiN
+        "isurus-estral" to Color(0xFF0066CC), // Azul IE
+        "leviatan" to Color(0xFFCCCCCC),  // Cinza LEVIATÁN
+        "furia" to Color(0xFF000000),     // Preto FURIA
+        "keyd" to Color(0xFFFFFFFF),      // Branco Keyd
+        "red" to Color(0xFFFF0000),       // Vermelho RED
+        "fxw7" to Color(0xFF9966CC)       // Roxo Fluxo W7M
+    )
 
     Scaffold(
         topBar = {
@@ -156,17 +140,90 @@ fun ProfileScreen(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Item com o cabeçalho do perfil
             item {
-                UserProfileHeader(
-                    username = currentUser?.username ?: "Usuário",
-                    email = currentUser?.email ?: "",
-                    favoriteTeamId = favoriteTeamId,
-                    teamLogoUrl = teamLogoUrl
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Avatar do usuário
+                    Box(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(CircleShape)
+                            .background(LTAThemeColors.CardBackground),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = (currentUser?.username?.take(1) ?: "U").uppercase(),
+                            fontSize = 48.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LTAThemeColors.PrimaryGold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Nome de usuário
+                    Text(
+                        text = currentUser?.username ?: "Usuário",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = LTAThemeColors.TextPrimary
+                    )
+
+                    // NOVA ABORDAGEM: Badge de time favorito
+                    if (currentUser?.favoriteTeamId != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Obter o código e a cor do time
+                        val teamCode = getTeamCode(currentUser?.favoriteTeamId)
+                        val teamColor = teamColors[currentUser?.favoriteTeamId] ?: LTAThemeColors.PrimaryGold
+
+                        // Badge de time favorito
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = LTAThemeColors.CardBackground,
+                            border = BorderStroke(2.dp, teamColor),
+                            modifier = Modifier.clickable(onClick = onNavigateToEditProfile)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                // Círculo colorido representando o time
+                                Box(
+                                    modifier = Modifier
+                                        .size(10.dp)
+                                        .background(teamColor, CircleShape)
+                                )
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                // Nome do time
+                                Text(
+                                    text = "Time: $teamCode",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = LTAThemeColors.TextPrimary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+
+                    // Email
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = currentUser?.email ?: "",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = LTAThemeColors.TextSecondary
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
+            // Resto do conteúdo permanece o mesmo
             item {
                 FriendRequestsSection(
                     uiState = requestsUiState,
@@ -228,90 +285,18 @@ fun ProfileScreen(
     }
 }
 
-@Composable
-fun UserProfileHeader(
-    username: String,
-    email: String,
-    favoriteTeamId: String?,
-    teamLogoUrl: String?
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(LTAThemeColors.CardBackground),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = username.take(1).uppercase(),
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Bold,
-                color = LTAThemeColors.PrimaryGold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = username,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = LTAThemeColors.TextPrimary
-            )
-
-            // Logo do time favorito (se existir)
-            if (favoriteTeamId != null) {
-                Spacer(modifier = Modifier.width(8.dp))
-
-                val teamCode = when(favoriteTeamId) {
-                    "loud" -> "LOUD"
-                    "pain-gaming" -> "PAIN"
-                    "isurus-estral" -> "IE"
-                    "leviatan" -> "LEV"
-                    "furia" -> "FUR"
-                    "keyd" -> "VKS"
-                    "red" -> "RED"
-                    "fxw7" -> "FXW7"
-                    else -> favoriteTeamId.take(3).uppercase()
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(
-                            color = LTAThemeColors.CardBackground,
-                            shape = CircleShape
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = LTAThemeColors.PrimaryGold,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    LogoImage(
-                        imageUrl = teamLogoUrl ?: "",
-                        name = teamCode,
-                        code = teamCode,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
-
-        Text(
-            text = email,
-            style = MaterialTheme.typography.bodyLarge,
-            color = LTAThemeColors.TextSecondary
-        )
+// Função auxiliar para obter o código do time
+private fun getTeamCode(teamId: String?): String {
+    return when(teamId) {
+        "loud" -> "LOUD"
+        "pain-gaming" -> "PAIN"
+        "isurus-estral" -> "IE"
+        "leviatan" -> "LEV"
+        "furia" -> "FUR"
+        "keyd" -> "VKS"
+        "red" -> "RED"
+        "fxw7" -> "FXW7"
+        else -> teamId?.take(3)?.uppercase() ?: ""
     }
 }
 

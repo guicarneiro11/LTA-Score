@@ -2,7 +2,6 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,46 +26,64 @@ class EditProfileViewModel(
     private val _uiState = MutableStateFlow(EditProfileUiState())
     val uiState: StateFlow<EditProfileUiState> = _uiState.asStateFlow()
 
+    // IMPORTANTE: Inicializar com duas etapas específicas
     init {
+        // Primeiro carregamos o perfil para obter o time favorito atual
+        loadCurrentUserProfile()
+    }
+
+    private fun loadCurrentUserProfile() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            loadUserProfile()
-
-            loadAvailableTeams()
-        }
-    }
-
-    private fun loadUserProfile() {
-        viewModelScope.launch {
             try {
                 val currentUser = userRepository.getCurrentUser().first()
-                if (currentUser != null) {
-                    _uiState.value = _uiState.value.copy(
-                        selectedTeamId = currentUser.favoriteTeamId
-                    )
-                    println("Time favorito carregado: ${currentUser.favoriteTeamId}")
-                }
+
+                // Atualizar o estado com o time favorito atual
+                _uiState.value = _uiState.value.copy(
+                    selectedTeamId = currentUser?.favoriteTeamId,
+                    isLoading = false
+                )
+
+                // Depois carregamos as informações de times com imagens
+                loadAvailableTeams()
             } catch (e: Exception) {
-                println("Erro ao carregar perfil: ${e.message}")
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Erro ao carregar perfil: ${e.message}"
+                )
             }
         }
     }
 
     private fun loadAvailableTeams() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-
             try {
+                // Buscar partidas para obter os logos dos times
                 val matches = matchRepository.getMatches("lta_s").first()
 
+                // Mapear times únicos encontrados nas partidas
                 val teamMap = mutableMapOf<String, TeamFilterItem>()
 
+                // Extrair informações de times das partidas
                 matches.forEach { match ->
                     match.teams.forEach { team ->
-                        if (!teamMap.containsKey(team.id)) {
-                            teamMap[team.id] = TeamFilterItem(
-                                id = team.id,
+                        // Mapear ID interno para o formato esperado no modelo de usuário
+                        val internalId = when(team.code) {
+                            "LOUD" -> "loud"
+                            "PAIN" -> "pain-gaming"
+                            "IE" -> "isurus-estral"
+                            "LEV" -> "leviatan"
+                            "FUR" -> "furia"
+                            "VKS" -> "keyd"
+                            "RED" -> "red"
+                            "FXW7" -> "fxw7"
+                            else -> team.id
+                        }
+
+                        if (!teamMap.containsKey(internalId)) {
+                            teamMap[internalId] = TeamFilterItem(
+                                id = internalId, // Usar ID padronizado
                                 name = team.name,
                                 code = team.code,
                                 imageUrl = team.imageUrl
@@ -75,42 +92,30 @@ class EditProfileViewModel(
                     }
                 }
 
+                // Lista final com todos os times da LTA Sul
                 val ltaSulTeams = listOf(
                     teamMap["loud"] ?: TeamFilterItem("loud", "LOUD", "LOUD", ""),
                     teamMap["pain-gaming"] ?: TeamFilterItem("pain-gaming", "paiN Gaming", "PAIN", ""),
                     teamMap["isurus-estral"] ?: TeamFilterItem("isurus-estral", "Isurus Estral", "IE", ""),
                     teamMap["leviatan"] ?: TeamFilterItem("leviatan", "LEVIATÁN", "LEV", ""),
                     teamMap["furia"] ?: TeamFilterItem("furia", "FURIA", "FUR", ""),
-                    teamMap["keyd"] ?: TeamFilterItem("keyd", "Keyd Stars", "VKS", ""),
-                    teamMap["red"] ?: TeamFilterItem("red", "RED Canids", "RED", ""),
+                    teamMap["keyd"] ?: TeamFilterItem("keyd", "Vivo Keyd Stars", "VKS", ""),
+                    teamMap["red"] ?: TeamFilterItem("red", "RED Kalunga", "RED", ""),
                     teamMap["fxw7"] ?: TeamFilterItem("fxw7", "Fluxo W7M", "FXW7", "")
                 )
 
+                // Atualizar o estado com a lista de times
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false,
                     availableTeams = ltaSulTeams
                 )
             } catch (e: Exception) {
-                val ltaSulTeams = listOf(
-                    TeamFilterItem("loud", "LOUD", "LOUD", ""),
-                    TeamFilterItem("pain-gaming", "paiN Gaming", "PAIN", ""),
-                    TeamFilterItem("isurus-estral", "Isurus Estral", "IE", ""),
-                    TeamFilterItem("leviatan", "LEVIATÁN", "LEV", ""),
-                    TeamFilterItem("furia", "FURIA", "FUR", ""),
-                    TeamFilterItem("keyd", "Keyd Stars", "VKS", ""),
-                    TeamFilterItem("red", "RED Canids", "RED", ""),
-                    TeamFilterItem("fxw7", "Fluxo W7M", "FXW7", "")
-                )
-
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    availableTeams = ltaSulTeams,
-                    error = "Não foi possível carregar os logos dos times: ${e.message}"
-                )
+                println("Erro ao carregar times: ${e.message}")
+                // Não falhar completamente, manter times padrão
             }
         }
     }
 
+    // IMPORTANTE: Certificar-se de que a seleção funciona corretamente
     fun selectTeam(teamId: String) {
         _uiState.value = _uiState.value.copy(selectedTeamId = teamId)
     }

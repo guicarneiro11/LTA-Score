@@ -30,7 +30,7 @@ class FirebaseUserRepository(
                     try {
                         val user = getUserData(auth.currentUser!!)
                         trySend(user)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         // Em caso de falha ao buscar dados, emite o usuário básico
                         trySend(createDefaultUser(auth.currentUser!!))
                     }
@@ -49,7 +49,7 @@ class FirebaseUserRepository(
                 try {
                     val user = getUserData(auth.currentUser!!)
                     trySend(user)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     trySend(createDefaultUser(auth.currentUser!!))
                 }
             }
@@ -265,6 +265,8 @@ class FirebaseUserRepository(
             usersCollection.document(currentUser.uid)
                 .update("favoriteTeamId", teamId)
                 .await()
+
+            val updatedUser = getUserData(currentUser)
 
             Result.success(Unit)
         } catch (e: Exception) {
