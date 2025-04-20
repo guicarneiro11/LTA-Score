@@ -7,7 +7,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,10 +62,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.ui.friends.social.FriendRequestsSection
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
@@ -154,6 +160,20 @@ fun ProfileScreen(
                             .background(LTAThemeColors.CardBackground),
                         contentAlignment = Alignment.Center
                     ) {
+                        // Verificar se há um time favorito para adicionar um indicador visual
+                        if (currentUser?.favoriteTeamId != null) {
+                            // Cor do time para o contorno do avatar
+                            val teamColor = teamColors[currentUser!!.favoriteTeamId] ?: LTAThemeColors.PrimaryGold
+
+                            // Criar um contorno colorido para o avatar com a cor do time
+                            Box(
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clip(CircleShape)
+                                    .border(BorderStroke(3.dp, teamColor), CircleShape)
+                            )
+                        }
+
                         Text(
                             text = (currentUser?.username?.take(1) ?: "U").uppercase(),
                             fontSize = 48.sp,
@@ -165,20 +185,39 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Nome de usuário
-                    Text(
-                        text = currentUser?.username ?: "Usuário",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = LTAThemeColors.TextPrimary
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        // Nome de usuário
+                        Text(
+                            text = currentUser?.username ?: "Usuário",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = LTAThemeColors.TextPrimary
+                        )
+
+                        // Logo do time favorito (se disponível)
+                        if (currentUser?.favoriteTeamId != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            TeamLogoImage(
+                                teamId = currentUser!!.favoriteTeamId,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White, CircleShape)
+                                    .padding(2.dp)
+                            )
+                        }
+                    }
 
                     // NOVA ABORDAGEM: Badge de time favorito
                     if (currentUser?.favoriteTeamId != null) {
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Obter o código e a cor do time
-                        val teamCode = getTeamCode(currentUser?.favoriteTeamId)
-                        val teamColor = teamColors[currentUser?.favoriteTeamId] ?: LTAThemeColors.PrimaryGold
+                        val teamCode = getTeamCode(currentUser!!.favoriteTeamId)
+                        val teamColor = teamColors[currentUser!!.favoriteTeamId] ?: LTAThemeColors.PrimaryGold
 
                         // Badge de time favorito
                         Surface(
@@ -191,11 +230,13 @@ fun ProfileScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
-                                // Círculo colorido representando o time
-                                Box(
+                                // Miniatura do logo
+                                TeamLogoImage(
+                                    teamId = currentUser!!.favoriteTeamId,
                                     modifier = Modifier
-                                        .size(10.dp)
-                                        .background(teamColor, CircleShape)
+                                        .size(18.dp)
+                                        .background(Color.White, CircleShape)
+                                        .padding(2.dp)
                                 )
 
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -282,6 +323,39 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+}
+
+@Composable
+fun TeamLogoImage(
+    teamId: String?,
+    modifier: Modifier = Modifier
+) {
+    if (teamId == null) return
+
+    // Mapear os IDs dos times para suas URLs de imagem
+    val teamImageUrl = when(teamId) {
+        "loud" -> "https://static.lolesports.com/teams/1677205962121_1631819715466_loudlogoteams-1.png"
+        "pain-gaming" -> "https://static.lolesports.com/teams/1592590486578_PaiN-2020-Yellow.png"
+        "isurus-estral" -> "https://static.lolesports.com/teams/1702323368603_ISGLogo_LTA_2024_Grayscale.png"
+        "leviatan" -> "https://static.lolesports.com/teams/1673462138550_LVT-2023-1.png"
+        "furia" -> "https://static.lolesports.com/teams/furia.png"
+        "keyd" -> "https://static.lolesports.com/teams/1631819823314_keydstarsteams1.png"
+        "red" -> "https://static.lolesports.com/teams/red-canids-kalunga_-_2021_-_split_2.png"
+        "fxw7" -> "https://static.lolesports.com/teams/1704324649444_FluxoW7M.png"
+        else -> null
+    }
+
+    if (teamImageUrl != null) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(teamImageUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = "Logo do time favorito",
+            modifier = modifier,
+            contentScale = ContentScale.Fit
+        )
     }
 }
 

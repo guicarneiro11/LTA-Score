@@ -232,6 +232,7 @@ class FirebaseUserRepository(
                     email = userData["email"] as? String ?: "",
                     username = userData["username"] as? String ?: "",
                     profilePictureUrl = userData["profilePictureUrl"] as? String,
+                    favoriteTeamId = userData["favoriteTeamId"] as? String, // Adicionado essa linha
                     createdAt = Clock.System.now() // Precisaríamos converter Timestamp para Instant
                 )
             } else {
@@ -254,6 +255,7 @@ class FirebaseUserRepository(
             email = firebaseUser.email ?: "",
             username = firebaseUser.displayName ?: firebaseUser.email?.substringBefore('@') ?: "Usuário",
             profilePictureUrl = firebaseUser.photoUrl?.toString(),
+            favoriteTeamId = null,
             createdAt = Clock.System.now()
         )
     }
