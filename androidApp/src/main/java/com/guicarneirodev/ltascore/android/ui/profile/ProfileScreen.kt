@@ -91,7 +91,6 @@ fun ProfileScreen(
     onNavigateToEditProfile: () -> Unit,
     onLogout: () -> Unit,
     onBackClick: () -> Unit,
-    forcedTeamId: String? = null,
     forceUpdate: Long = System.currentTimeMillis()
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()

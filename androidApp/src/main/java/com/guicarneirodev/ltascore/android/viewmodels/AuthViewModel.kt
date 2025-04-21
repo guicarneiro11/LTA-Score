@@ -65,7 +65,6 @@ class AuthViewModel(
     }
 
     private val _forceUserRefresh = MutableStateFlow(0)
-    val forceUserRefresh: StateFlow<Int> = _forceUserRefresh.asStateFlow()
 
     fun triggerUserRefresh() {
         _forceUserRefresh.value += 1

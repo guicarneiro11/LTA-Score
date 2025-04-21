@@ -153,7 +153,6 @@ fun AppNavigation(
 
             ProfileScreen(
                 authViewModel = authViewModel,
-                forcedTeamId = teamId,
                 onNavigateToMatchHistory = {
                     navController.navigate(Screen.VoteHistory.route)
                 },
