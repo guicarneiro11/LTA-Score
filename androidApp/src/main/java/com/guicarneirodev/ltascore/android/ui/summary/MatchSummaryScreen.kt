@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.summary
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -65,7 +66,6 @@ fun MatchSummaryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Carregar a partida quando o ID mudar e quando a tela for montada
     LaunchedEffect(matchId) {
         viewModel.loadMatch(matchId)
     }
@@ -76,11 +76,10 @@ fun MatchSummaryScreen(
                 title = { Text("Avaliações da Partida") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 },
                 actions = {
-                    // Botão de atualizar
                     IconButton(onClick = { viewModel.loadMatch(matchId) }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Atualizar")
                     }
@@ -88,7 +87,6 @@ fun MatchSummaryScreen(
             )
         }
     ) { innerPadding ->
-        // Estado de carregamento
         if (uiState.isLoading) {
             Box(
                 modifier = Modifier
@@ -110,7 +108,6 @@ fun MatchSummaryScreen(
                 }
             }
         }
-        // Estado de erro
         else if (uiState.error != null || uiState.match == null) {
             Box(
                 modifier = Modifier
@@ -151,14 +148,12 @@ fun MatchSummaryScreen(
                 }
             }
         }
-        // Estado com dados carregados
         else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                // Cabeçalho com informações da partida
                 MatchHeader(
                     team1Name = uiState.match!!.teams[0].name,
                     team1Code = uiState.match!!.teams[0].code,
@@ -170,7 +165,6 @@ fun MatchSummaryScreen(
                     team2Score = uiState.match!!.teams[1].result.gameWins,
                 )
 
-                // Contador de votos totais
                 val totalVotes = uiState.voteSummaries.sumOf { it.totalVotes }
 
                 Box(
@@ -190,12 +184,10 @@ fun MatchSummaryScreen(
 
                 Divider()
 
-                // Lista de jogadores com suas avaliações
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp)
                 ) {
-                    // Time 1
                     item {
                         Text(
                             text = uiState.match!!.teams[0].name,
@@ -214,7 +206,6 @@ fun MatchSummaryScreen(
                         )
                     }
 
-                    // Time 2
                     item {
                         Text(
                             text = uiState.match!!.teams[1].name,
@@ -233,7 +224,6 @@ fun MatchSummaryScreen(
                         )
                     }
 
-                    // Mensagem para votos do usuário
                     item {
                         if (uiState.userHasVoted) {
                             Card(
@@ -263,7 +253,6 @@ fun MatchSummaryScreen(
                                 }
                             }
                         } else {
-                            // Se o usuário não votou ainda, mostramos uma mensagem convidando-o a votar
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -300,6 +289,7 @@ fun MatchSummaryScreen(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun PlayerRatingSummaryItem(
     player: Player,
@@ -307,11 +297,11 @@ fun PlayerRatingSummaryItem(
     totalVotes: Int
 ) {
     val ratingColor = when {
-        averageRating < 3.0 -> Color(0xFFE57373) // Vermelho claro
-        averageRating < 5.0 -> Color(0xFFFFB74D) // Laranja claro
-        averageRating < 7.0 -> Color(0xFFFFD54F) // Amarelo
-        averageRating < 9.0 -> Color(0xFF81C784) // Verde claro
-        else -> Color(0xFF4CAF50) // Verde
+        averageRating < 3.0 -> Color(0xFFE57373)
+        averageRating < 5.0 -> Color(0xFFFFB74D)
+        averageRating < 7.0 -> Color(0xFFFFD54F)
+        averageRating < 9.0 -> Color(0xFF81C784)
+        else -> Color(0xFF4CAF50)
     }
 
     Card(
@@ -329,7 +319,6 @@ fun PlayerRatingSummaryItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Foto do jogador
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(player.imageUrl)
@@ -342,7 +331,6 @@ fun PlayerRatingSummaryItem(
                     .clip(RoundedCornerShape(8.dp))
             )
 
-            // Informações do jogador
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -358,11 +346,10 @@ fun PlayerRatingSummaryItem(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
-                    // Badge de posição
                     PositionBadge(position = player.position)
 
                     Text(
-                        text = "${totalVotes} votos",
+                        text = "$totalVotes votos",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 8.dp)
@@ -370,11 +357,10 @@ fun PlayerRatingSummaryItem(
                 }
             }
 
-            // Nota média
+
             Column(
                 horizontalAlignment = Alignment.End
             ) {
-                // Nota média em destaque
                 Text(
                     text = String.format("%.1f", averageRating),
                     fontSize = 24.sp,
@@ -382,7 +368,6 @@ fun PlayerRatingSummaryItem(
                     color = ratingColor
                 )
 
-                // Barra de rating visual
                 Box(
                     modifier = Modifier
                         .width(60.dp)
@@ -414,7 +399,6 @@ fun PositionBadge(position: PlayerPosition) {
         PlayerPosition.MID -> Color(0xFFe74c3c) to Color.White
         PlayerPosition.ADC -> Color(0xFFf39c12) to Color.White
         PlayerPosition.SUPPORT -> Color(0xFF9b59b6) to Color.White
-        else -> MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.onPrimary
     }
 
     Surface(
@@ -449,7 +433,6 @@ fun MatchHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Time 1
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
@@ -467,7 +450,6 @@ fun MatchHeader(
             )
         }
 
-        // Placar
         Text(
             text = "$team1Score - $team2Score",
             style = MaterialTheme.typography.headlineMedium,
@@ -475,7 +457,6 @@ fun MatchHeader(
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
-        // Time 2
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)

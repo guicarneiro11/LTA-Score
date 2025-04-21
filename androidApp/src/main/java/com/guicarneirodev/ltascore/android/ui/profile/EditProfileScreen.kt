@@ -214,8 +214,7 @@ fun TeamCard(
                 LogoImage(
                     imageUrl = team.imageUrl,
                     name = team.name,
-                    code = team.code,
-                    modifier = Modifier.size(40.dp)
+                    code = team.code
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))

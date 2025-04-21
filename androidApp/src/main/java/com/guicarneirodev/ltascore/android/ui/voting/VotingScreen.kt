@@ -42,10 +42,9 @@ fun VotingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Monitorar o sucesso do envio para chamar o callback
     LaunchedEffect(uiState.submitSuccess) {
         if (uiState.submitSuccess) {
-            onVoteSubmitted() // Chama o callback quando os votos são enviados com sucesso
+            onVoteSubmitted()
         }
     }
 
@@ -89,7 +88,6 @@ fun VotingScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                // Cabeçalho com informações da partida
                 MatchHeader(
                     team1Name = uiState.match!!.teams[0].name,
                     team1Code = uiState.match!!.teams[0].code,
@@ -103,12 +101,10 @@ fun VotingScreen(
 
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                // Lista de jogadores para votar
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp)
                 ) {
-                    // Time 1
                     item {
                         Text(
                             text = uiState.match!!.teams[0].name,
@@ -118,7 +114,6 @@ fun VotingScreen(
                         )
                     }
 
-                    // Debug: exibir quantidade de jogadores encontrados
                     item {
                         Text(
                             text = "Jogadores: ${uiState.match!!.teams[0].players.size}",
@@ -127,7 +122,6 @@ fun VotingScreen(
                         )
                     }
 
-                    // Verificar se existem jogadores antes de tentar exibi-los
                     if (uiState.match!!.teams[0].players.isEmpty()) {
                         item {
                             Text(
@@ -149,7 +143,6 @@ fun VotingScreen(
                         }
                     }
 
-                    // Time 2
                     item {
                         Text(
                             text = uiState.match!!.teams[1].name,
@@ -159,7 +152,6 @@ fun VotingScreen(
                         )
                     }
 
-                    // Debug: exibir quantidade de jogadores encontrados
                     item {
                         Text(
                             text = "Jogadores: ${uiState.match!!.teams[1].players.size}",
@@ -168,7 +160,6 @@ fun VotingScreen(
                         )
                     }
 
-                    // Verificar se existem jogadores antes de tentar exibi-los
                     if (uiState.match!!.teams[1].players.isEmpty()) {
                         item {
                             Text(
@@ -190,9 +181,8 @@ fun VotingScreen(
                         }
                     }
 
-                    // Botão de enviar votos (desabilitado se não houver jogadores)
                     item {
-                        val hasPlayers = uiState.match!!.teams[0].players.isNotEmpty() ||
+                        uiState.match!!.teams[0].players.isNotEmpty() ||
                                 uiState.match!!.teams[1].players.isNotEmpty()
 
                         Button(
@@ -212,7 +202,6 @@ fun VotingScreen(
                             }
                         }
 
-                        // Mensagem de erro
                         if (uiState.error != null) {
                             Text(
                                 text = uiState.error!!,

@@ -75,9 +75,6 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.ui.text.style.TextAlign
 import com.guicarneirodev.ltascore.android.viewmodels.RankingUiState
 
-/**
- * Tela principal de ranking dos jogadores
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RankingScreen(
@@ -106,7 +103,6 @@ fun RankingScreen(
                     actionIconContentColor = Color.White
                 ),
                 actions = {
-                    // Botão de filtro
                     IconButton(onClick = { showFilterMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.FilterList,
@@ -114,7 +110,6 @@ fun RankingScreen(
                         )
                     }
 
-                    // Botão de atualizar
                     IconButton(
                         onClick = { viewModel.refreshRanking() },
                         enabled = !uiState.isLoading
@@ -134,7 +129,6 @@ fun RankingScreen(
                 .padding(innerPadding)
                 .background(LTAThemeColors.DarkBackground)
         ) {
-            // Barra de pesquisa com design compacto
             SearchBar(
                 query = uiState.searchQuery,
                 onQueryChange = viewModel::updateSearchQuery,
@@ -143,7 +137,6 @@ fun RankingScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // Indicador do filtro ativo
             ActiveFilterIndicator(
                 currentFilter = uiState.filterState.currentFilter,
                 selectedTeamId = uiState.filterState.selectedTeamId,
@@ -153,7 +146,6 @@ fun RankingScreen(
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
-            // Mostra seletores de sub-filtros quando necessário
             if (uiState.filterState.currentFilter == RankingFilter.BY_POSITION) {
                 PositionFilterRow(
                     selectedPosition = uiState.filterState.selectedPosition,
@@ -173,14 +165,12 @@ fun RankingScreen(
                 )
             }
 
-            // Conteúdo principal: widget de top jogadores e lista
             RankingContent(
                 uiState = uiState,
                 viewModel = viewModel
             )
         }
 
-        // Menu de filtros como diálogo (exibido quando clicar no botão de filtro)
         if (showFilterMenu) {
             FilterMenuDialog(
                 currentFilter = uiState.filterState.currentFilter,
@@ -295,14 +285,12 @@ fun PositionFilterRow(
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Botão para todas as posições
         PositionFilterChip(
             selected = selectedPosition == null,
             position = null,
             onClick = { onPositionSelected(null) }
         )
 
-        // Botões para cada posição
         PlayerPosition.entries.forEach { position ->
             PositionFilterChip(
                 selected = selectedPosition == position,
@@ -368,7 +356,6 @@ fun FilterMenuDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Filtros principais
                 FilterMenuItem(
                     icon = Icons.Default.FilterNone,
                     text = "Todos",
@@ -504,7 +491,6 @@ fun TeamFilterDropdown(
             onDismissRequest = { expanded = false },
             modifier = Modifier.background(LTAThemeColors.CardBackground)
         ) {
-            // Opção "Todos os Times"
             DropdownMenuItem(
                 text = { Text("Todos os Times") },
                 onClick = {
@@ -519,12 +505,10 @@ fun TeamFilterDropdown(
 
             Divider(color = Color(0xFF333340))
 
-            // Lista de times
             teams.forEach { team ->
                 DropdownMenuItem(
                     text = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // Logo do time (mini)
                             AsyncImage(
                                 model = team.imageUrl.takeIf { it.isNotBlank() },
                                 contentDescription = null,
@@ -573,7 +557,6 @@ fun RankingContent(
         contentAlignment = Alignment.Center
     ) {
         if (uiState.isLoading) {
-            // Estado de carregamento
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -589,7 +572,6 @@ fun RankingContent(
                 )
             }
         } else if (uiState.error != null) {
-            // Estado de erro
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -622,7 +604,6 @@ fun RankingContent(
                 }
             }
         } else if (uiState.filteredPlayers.isEmpty()) {
-            // Estado vazio
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -643,7 +624,6 @@ fun RankingContent(
                 )
             }
         } else {
-            // Lista de jogadores
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
@@ -653,7 +633,6 @@ fun RankingContent(
                     bottom = 16.dp
                 )
             ) {
-                // Top 3 jogadores (apenas para alguns filtros)
                 if (shouldShowTopPlayersWidget(uiState.filterState.currentFilter)) {
                     item {
                         val topPlayers = uiState.filteredPlayers.take(3)
@@ -676,7 +655,6 @@ fun RankingContent(
                     }
                 }
 
-                // Contador de jogadores
                 item {
                     Text(
                         text = "Mostrando ${uiState.filteredPlayers.size} jogadores",
@@ -686,7 +664,6 @@ fun RankingContent(
                     )
                 }
 
-                // Lista de jogadores
                 itemsIndexed(
                     items = uiState.filteredPlayers,
                     key = { _, item -> item.player.id }
@@ -701,7 +678,6 @@ fun RankingContent(
     }
 }
 
-// Função auxiliar para determinar quando mostrar o widget de Top Jogadores
 private fun shouldShowTopPlayersWidget(filter: RankingFilter): Boolean {
     return filter == RankingFilter.ALL ||
             filter == RankingFilter.TOP_RATED ||

@@ -83,7 +83,7 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(
     friendsViewModel: FriendsViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel(),
-    editProfileViewModel: EditProfileViewModel = koinViewModel(), // Adicione esta linha
+    editProfileViewModel: EditProfileViewModel = koinViewModel(),
     onNavigateToMatchHistory: () -> Unit,
     onNavigateToRanking: () -> Unit,
     onNavigateToFriendsFeed: () -> Unit,
@@ -94,42 +94,34 @@ fun ProfileScreen(
     val currentUser by authViewModel.currentUser.collectAsState()
     val friendsUiState by friendsViewModel.uiState.collectAsState()
     val requestsUiState by friendsViewModel.requestsUiState.collectAsState()
-    val editProfileUiState by editProfileViewModel.uiState.collectAsState() // Adicione esta linha
+    val editProfileUiState by editProfileViewModel.uiState.collectAsState()
 
-    // Estado para controlar a visibilidade da seção de amigos
     var showFriendsSection by remember { mutableStateOf(true) }
 
     var updateTrigger by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
-        // Observar eventos de atualização e forçar recomposição
         UserEvents.userUpdated.collect { userId ->
-            // Quando recebemos um evento de atualização, incrementamos um contador
-            // Isso força a recomposição do componente
             updateTrigger++
             println("ProfileScreen recebeu evento de atualização, trigger: $updateTrigger")
         }
     }
 
-    // Forçar carregamentos quando o updateTrigger mudar
     LaunchedEffect(updateTrigger) {
-        // Carregar teams para garantir que temos todos disponíveis
         editProfileViewModel.loadTeams()
 
-        // Este efeito é acionado toda vez que updateTrigger mudar
         println("ProfileScreen atualizando interface após evento, trigger: $updateTrigger")
     }
 
-    // Mapeamento de times para cores
     val teamColors = mapOf(
-        "loud" to Color(0xFF33CC33),     // Verde LOUD
-        "pain-gaming" to Color(0xFFFFD700), // Dourado paiN
-        "isurus-estral" to Color(0xFF0066CC), // Azul IE
-        "leviatan" to Color(0xFFCCCCCC),  // Cinza LEVIATÁN
-        "furia" to Color(0xFF000000),     // Preto FURIA
-        "keyd" to Color(0xFFFFFFFF),      // Branco Keyd
-        "red" to Color(0xFFFF0000),       // Vermelho RED
-        "fxw7" to Color(0xFF9966CC)       // Roxo Fluxo W7M
+        "loud" to Color(0xFF33CC33),
+        "pain-gaming" to Color(0xFFFFD700),
+        "isurus-estral" to Color(0xFF0066CC),
+        "leviatan" to Color(0xFFCCCCCC),
+        "furia" to Color(0xFF000000),
+        "keyd" to Color(0xFFFFFFFF),
+        "red" to Color(0xFFFF0000),
+        "fxw7" to Color(0xFF9966CC)
     )
 
     Scaffold(
@@ -150,7 +142,6 @@ fun ProfileScreen(
                     navigationIconContentColor = LTAThemeColors.TextPrimary
                 ),
                 actions = {
-                    // Botão de editar perfil
                     IconButton(onClick = onNavigateToEditProfile) {
                         Icon(
                             imageVector = Icons.Default.Edit,
@@ -169,13 +160,11 @@ fun ProfileScreen(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Item com o cabeçalho do perfil
             item {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Avatar do usuário
                     Box(
                         modifier = Modifier
                             .size(120.dp)
@@ -193,7 +182,6 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Nome de usuário
                     Text(
                         text = currentUser?.username ?: "Usuário",
                         style = MaterialTheme.typography.headlineMedium,
@@ -203,18 +191,14 @@ fun ProfileScreen(
 
                     val effectiveTeamId = currentUser?.favoriteTeamId ?: FavoriteTeamCache.getFavoriteTeam()
 
-                    // Badge de time favorito
                     if (effectiveTeamId != null) {
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Buscar o time completo com a URL da imagem da lista de times disponíveis
                         val teamItem = editProfileUiState.availableTeams.find { it.id == effectiveTeamId }
 
                         if (teamItem != null) {
-                            // Obter a cor do time
                             val teamColor = teamColors[effectiveTeamId] ?: LTAThemeColors.PrimaryGold
 
-                            // Badge de time favorito com a mesma abordagem do EditProfileScreen
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
                                 color = LTAThemeColors.CardBackground,
@@ -225,17 +209,14 @@ fun ProfileScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    // Usar o mesmo componente LogoImage do EditProfileScreen
                                     LogoImage(
                                         imageUrl = teamItem.imageUrl,
                                         name = teamItem.name,
-                                        code = teamItem.code,
-                                        modifier = Modifier.size(24.dp)
+                                        code = teamItem.code
                                     )
 
                                     Spacer(modifier = Modifier.width(8.dp))
 
-                                    // Nome do time
                                     Text(
                                         text = "Time: ${teamItem.code}",
                                         style = MaterialTheme.typography.labelMedium,
@@ -247,7 +228,6 @@ fun ProfileScreen(
                         }
                     }
 
-                    // Email
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = currentUser?.email ?: "",
@@ -259,7 +239,6 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Resto do conteúdo permanece o mesmo
             item {
                 FriendRequestsSection(
                     uiState = requestsUiState,

@@ -53,7 +53,6 @@ fun MatchCard(
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header with week and time information
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -78,7 +77,6 @@ fun MatchCard(
                 color = Color(0xFF333340)
             )
 
-            // Centered match score with consistent layout
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -86,10 +84,9 @@ fun MatchCard(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Team 1 Container with fixed width and centered content
                 Box(
                     modifier = Modifier
-                        .width(120.dp)  // Fixed width to ensure consistency
+                        .width(120.dp)
                         .padding(end = 8.dp),
                     contentAlignment = Alignment.CenterEnd
                 ) {
@@ -97,20 +94,17 @@ fun MatchCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.End
                     ) {
-                        // Logo
                         LogoImage(
                             imageUrl = match.teams[0].imageUrl,
                             name = match.teams[0].name,
-                            code = match.teams[0].code,
-                            modifier = Modifier
+                            code = match.teams[0].code
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        // Team code and score with fixed width
                         Column(
                             horizontalAlignment = Alignment.End,
-                            modifier = Modifier.width(50.dp)  // Fixed width for team code and score
+                            modifier = Modifier.width(50.dp)
                         ) {
                             Text(
                                 text = match.teams[0].code,
@@ -131,7 +125,6 @@ fun MatchCard(
                     }
                 }
 
-                // VS in the center
                 Box(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     contentAlignment = Alignment.Center
@@ -144,10 +137,9 @@ fun MatchCard(
                     )
                 }
 
-                // Team 2 Container with fixed width and centered content
                 Box(
                     modifier = Modifier
-                        .width(120.dp)  // Fixed width to ensure consistency
+                        .width(120.dp)
                         .padding(start = 8.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
@@ -155,10 +147,9 @@ fun MatchCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start
                     ) {
-                        // Team code and score with fixed width
                         Column(
                             horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.width(50.dp)  // Fixed width for team code and score
+                            modifier = Modifier.width(50.dp)
                         ) {
                             Text(
                                 text = match.teams[1].code,
@@ -179,12 +170,10 @@ fun MatchCard(
 
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        // Logo
                         LogoImage(
                             imageUrl = match.teams[1].imageUrl,
                             name = match.teams[1].name,
-                            code = match.teams[1].code,
-                            modifier = Modifier
+                            code = match.teams[1].code
                         )
                     }
                 }

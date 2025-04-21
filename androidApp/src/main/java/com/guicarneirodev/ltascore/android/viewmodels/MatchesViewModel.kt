@@ -33,7 +33,7 @@ data class MatchesUiState(
 
 class MatchesViewModel(
     private val getMatchesUseCase: GetMatchesUseCase,
-    private val loLEsportsApi: LoLEsportsApi // Adicionando a API diretamente
+    private val loLEsportsApi: LoLEsportsApi
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MatchesUiState())
@@ -50,13 +50,11 @@ class MatchesViewModel(
                 val response = loLEsportsApi.getLeagues()
                 val crossLeague = response.data?.leagues?.find { it.slug == "lta_cross" }
                 crossLeague?.let { league ->
-                    // Substituir http por https para evitar erros de segurança
                     val secureImageUrl = league.image.replace("http://", "https://")
                     _uiState.value = _uiState.value.copy(ltaCrossLogo = secureImageUrl)
                 }
             } catch (e: Exception) {
                 println("Erro ao carregar logo LTA Cross: ${e.message}")
-                // Não exibimos erro para não afetar a experiência principal
             }
         }
     }

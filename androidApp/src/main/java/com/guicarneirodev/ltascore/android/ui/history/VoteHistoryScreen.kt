@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.history
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -124,13 +125,11 @@ fun VoteHistoryScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Para cada grupo (partida + data)
                     uiState.groupedHistory.forEach { (groupKey, votes) ->
                         val parts = groupKey.split("|")
-                        val matchId = parts[0]
+                        parts[0]
                         val dateStr = if (parts.size > 1) parts[1] else ""
 
-                        // Cabeçalho da partida
                         item(key = "header_$groupKey") {
                             MatchHeader(
                                 date = dateStr,
@@ -139,12 +138,10 @@ fun VoteHistoryScreen(
                             )
                         }
 
-                        // Itens de voto para esta partida
                         items(votes, key = { it.id }) { vote ->
                             VoteHistoryItem(vote = vote)
                         }
 
-                        // Separador entre partidas
                         item(key = "divider_$groupKey") {
                             Divider(
                                 color = Color(0xFF333340),
@@ -181,17 +178,18 @@ fun MatchHeader(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun VoteHistoryItem(
     vote: UserVoteHistoryItem,
     modifier: Modifier = Modifier
 ) {
     val ratingColor = when {
-        vote.rating < 3.0f -> Color(0xFFE57373) // Vermelho claro
-        vote.rating < 5.0f -> Color(0xFFFFB74D) // Laranja claro
-        vote.rating < 7.0f -> Color(0xFFFFD54F) // Amarelo
-        vote.rating < 9.0f -> Color(0xFF81C784) // Verde claro
-        else -> Color(0xFF4CAF50) // Verde
+        vote.rating < 3.0f -> Color(0xFFE57373)
+        vote.rating < 5.0f -> Color(0xFFFFB74D)
+        vote.rating < 7.0f -> Color(0xFFFFD54F)
+        vote.rating < 9.0f -> Color(0xFF81C784)
+        else -> Color(0xFF4CAF50)
     }
 
     Card(
@@ -207,7 +205,6 @@ fun VoteHistoryItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Foto do jogador
             AsyncImage(
                 model = vote.playerImage,
                 contentDescription = vote.playerNickname,
@@ -217,7 +214,6 @@ fun VoteHistoryItem(
                     .clip(RoundedCornerShape(8.dp))
             )
 
-            // Informações do jogador
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -234,12 +230,10 @@ fun VoteHistoryItem(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
-                    // Badge de posição
                     PositionBadge(position = vote.playerPosition)
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // Hora do voto
                     Text(
                         text = formatTime(vote.timestamp),
                         style = MaterialTheme.typography.bodySmall,
@@ -248,7 +242,6 @@ fun VoteHistoryItem(
                 }
             }
 
-            // Nota dada
             Text(
                 text = String.format("%.1f", vote.rating),
                 style = MaterialTheme.typography.headlineMedium,

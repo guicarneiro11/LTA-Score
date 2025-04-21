@@ -36,7 +36,6 @@ class VoteHistoryViewModel(
 
             try {
                 getUserVoteHistoryUseCase().collect { historyItems ->
-                    // Agrupar votos por matchId para melhor visualização
                     val groupedItems = historyItems.groupBy {
                         "${it.matchId}|${formatDateForGrouping(it.matchDate)}"
                     }
@@ -57,7 +56,6 @@ class VoteHistoryViewModel(
     }
 
     private fun formatDateForGrouping(date: Instant): String {
-        // Formatar data para agrupar por dia
         val localDate = date.toLocalDateTime(TimeZone.currentSystemDefault()).date
         return "${localDate.dayOfMonth}/${localDate.monthNumber}/${localDate.year}"
     }

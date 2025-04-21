@@ -35,22 +35,19 @@ import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
 
-/**
- * Item da lista de ranking que exibe as informações de um jogador
- */
 @SuppressLint("DefaultLocale")
 @Composable
 fun PlayerRankingListItem(
     item: PlayerRankingItem,
-    position: Int, // Posição no ranking (1º, 2º, etc.)
+    position: Int,
     modifier: Modifier = Modifier
 ) {
     val ratingColor = when {
-        item.averageRating < 3.0 -> Color(0xFFE57373) // Vermelho claro
-        item.averageRating < 5.0 -> Color(0xFFFFB74D) // Laranja claro
-        item.averageRating < 7.0 -> Color(0xFFFFD54F) // Amarelo
-        item.averageRating < 9.0 -> Color(0xFF81C784) // Verde claro
-        else -> Color(0xFF4CAF50) // Verde
+        item.averageRating < 3.0 -> Color(0xFFE57373)
+        item.averageRating < 5.0 -> Color(0xFFFFB74D)
+        item.averageRating < 7.0 -> Color(0xFFFFD54F)
+        item.averageRating < 9.0 -> Color(0xFF81C784)
+        else -> Color(0xFF4CAF50)
     }
 
     Card(
@@ -68,21 +65,19 @@ fun PlayerRankingListItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Posição no ranking
             Text(
                 text = "$position",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = when (position) {
-                    1 -> Color(0xFFFFD700) // Ouro
-                    2 -> Color(0xFFC0C0C0) // Prata
-                    3 -> Color(0xFFCD7F32) // Bronze
+                    1 -> Color(0xFFFFD700)
+                    2 -> Color(0xFFC0C0C0)
+                    3 -> Color(0xFFCD7F32)
                     else -> LTAThemeColors.TextSecondary
                 },
                 modifier = Modifier.width(30.dp)
             )
 
-            // Foto do jogador
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(item.player.imageUrl)
@@ -95,7 +90,6 @@ fun PlayerRankingListItem(
                     .clip(RoundedCornerShape(8.dp))
             )
 
-            // Informações do jogador
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -111,12 +105,10 @@ fun PlayerRankingListItem(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
-                    // Badge de posição
                     PositionBadge(position = item.position)
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // Nome do time
                     Text(
                         text = item.teamCode,
                         style = MaterialTheme.typography.bodySmall,
@@ -126,7 +118,6 @@ fun PlayerRankingListItem(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // Total de votos
                     Text(
                         text = "${item.totalVotes} votos",
                         style = MaterialTheme.typography.bodySmall,
@@ -135,11 +126,9 @@ fun PlayerRankingListItem(
                 }
             }
 
-            // Nota média
             Column(
                 horizontalAlignment = Alignment.End
             ) {
-                // Nota média em destaque
                 Text(
                     text = String.format("%.1f", item.averageRating),
                     fontSize = 24.sp,
@@ -147,7 +136,6 @@ fun PlayerRankingListItem(
                     color = ratingColor
                 )
 
-                // Barra de rating visual
                 Box(
                     modifier = Modifier
                         .width(60.dp)

@@ -34,7 +34,6 @@ fun MatchHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Time 1
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
@@ -52,7 +51,6 @@ fun MatchHeader(
             )
         }
 
-        // Placar
         Text(
             text = "$team1Score - $team2Score",
             style = MaterialTheme.typography.headlineMedium,
@@ -60,7 +58,6 @@ fun MatchHeader(
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
-        // Time 2
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)

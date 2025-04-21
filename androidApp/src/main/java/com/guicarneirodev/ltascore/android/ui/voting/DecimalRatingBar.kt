@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.voting
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,18 +28,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun DecimalRatingBar(
     rating: Float,
     onRatingChanged: (Float) -> Unit,
     modifier: Modifier = Modifier,
     maxRating: Float = 10f,
-    steps: Int = 100 // 100 steps para precisão de 0.1
+    steps: Int = 100
 ) {
-    val animatedRating by animateFloatAsState(
-        targetValue = rating,
-        label = "rating"
-    )
 
     val formattedRating = String.format("%.1f", rating)
     val ratingColor = when {
@@ -71,13 +69,10 @@ fun DecimalRatingBar(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Barra de progresso visual
         Column(modifier = Modifier.weight(1f)) {
-            // Slider com valores decimais
             Slider(
                 value = rating,
                 onValueChange = {
-                    // Arredonda para uma casa decimal (ex: 7.54 -> 7.5)
                     val roundedValue = (it * 10).roundToInt() / 10f
                     onRatingChanged(roundedValue)
                 },
@@ -90,7 +85,6 @@ fun DecimalRatingBar(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Indicadores visuais das notas
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()

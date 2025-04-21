@@ -38,10 +38,6 @@ import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
 
-/**
- * Widget que exibe os três jogadores com as melhores avaliações
- * Este componente pode ser usado na tela de ranking ou em outras partes do app
- */
 @Composable
 fun TopPlayersWidget(
     modifier: Modifier = Modifier,
@@ -62,7 +58,6 @@ fun TopPlayersWidget(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Título
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
@@ -72,12 +67,10 @@ fun TopPlayersWidget(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Top 3 jogadores
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // Player 1 (centro e maior)
                 if (topPlayers.isNotEmpty()) {
                     val firstPlayer = topPlayers[0]
                     TopPlayerItem(
@@ -85,14 +78,12 @@ fun TopPlayersWidget(
                         position = 1,
                         modifier = Modifier.weight(1.2f),
                         size = 100.dp,
-                        medalColor = Color(0xFFFFD700) // Ouro
+                        medalColor = Color(0xFFFFD700)
                     )
                 }
 
-                // Espaço entre os jogadores
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Player 2 (esquerda)
                 if (topPlayers.size >= 2) {
                     val secondPlayer = topPlayers[1]
                     TopPlayerItem(
@@ -100,14 +91,12 @@ fun TopPlayersWidget(
                         position = 2,
                         modifier = Modifier.weight(1f),
                         size = 80.dp,
-                        medalColor = Color(0xFFC0C0C0) // Prata
+                        medalColor = Color(0xFFC0C0C0)
                     )
                 }
 
-                // Espaço entre os jogadores
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Player 3 (direita)
                 if (topPlayers.size >= 3) {
                     val thirdPlayer = topPlayers[2]
                     TopPlayerItem(
@@ -115,17 +104,13 @@ fun TopPlayersWidget(
                         position = 3,
                         modifier = Modifier.weight(1f),
                         size = 80.dp,
-                        medalColor = Color(0xFFCD7F32) // Bronze
+                        medalColor = Color(0xFFCD7F32)
                     )
                 }
             }
         }
     }
 }
-
-/**
- * Item individual de um jogador no pódio do top 3
- */
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -137,18 +122,17 @@ fun TopPlayerItem(
     medalColor: Color
 ) {
     val ratingColor = when {
-        player.averageRating < 3.0 -> Color(0xFFE57373) // Vermelho claro
-        player.averageRating < 5.0 -> Color(0xFFFFB74D) // Laranja claro
-        player.averageRating < 7.0 -> Color(0xFFFFD54F) // Amarelo
-        player.averageRating < 9.0 -> Color(0xFF81C784) // Verde claro
-        else -> Color(0xFF4CAF50) // Verde
+        player.averageRating < 3.0 -> Color(0xFFE57373)
+        player.averageRating < 5.0 -> Color(0xFFFFB74D)
+        player.averageRating < 7.0 -> Color(0xFFFFD54F)
+        player.averageRating < 9.0 -> Color(0xFF81C784)
+        else -> Color(0xFF4CAF50)
     }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
-        // Posição (1º, 2º ou 3º)
         Surface(
             shape = CircleShape,
             color = medalColor,
@@ -165,7 +149,6 @@ fun TopPlayerItem(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Foto do jogador
         Box(
             modifier = Modifier
                 .size(size)
@@ -182,7 +165,6 @@ fun TopPlayerItem(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Badge do time no canto inferior direito
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -204,7 +186,6 @@ fun TopPlayerItem(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Nome do jogador
         Text(
             text = player.player.nickname,
             style = MaterialTheme.typography.bodyLarge,
@@ -214,7 +195,6 @@ fun TopPlayerItem(
             maxLines = 1
         )
 
-        // Nota
         Text(
             text = String.format("%.1f", player.averageRating),
             fontSize = 18.sp,
@@ -223,7 +203,6 @@ fun TopPlayerItem(
             textAlign = TextAlign.Center
         )
 
-        // Barra de rating visual
         Box(
             modifier = Modifier
                 .padding(top = 2.dp)

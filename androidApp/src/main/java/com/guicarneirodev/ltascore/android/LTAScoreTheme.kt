@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 object LTAThemeColors {
-    // Cores principais
     val DarkBackground = Color(0xFF1A1A1F)
     val CardBackground = Color(0xFF2A2A30)
     val TopBarMatches = Color(0xFF111111)
@@ -22,16 +21,13 @@ object LTAThemeColors {
     val SecondaryRed = Color(0xFFFF4550)
     val TertiaryGold = Color(0xFFD9B151)
 
-    // Cores de texto
     val TextPrimary = Color(0xFFEEEEEE)
     val TextSecondary = Color(0xFFAAAAAA)
     val TextDisabled = Color(0xFF666666)
 
-    // Cores para times
     val TeamBlue = Color(0xFF0099FF)
     val TeamRed = Color(0xFFFF4550)
 
-    // Cores de estados
     val Success = Color(0xFF00CD4D)
     val Warning = Color(0xFFFFAA00)
     val LiveRed = Color(0xFFFF4550)

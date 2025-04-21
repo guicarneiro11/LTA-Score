@@ -7,7 +7,6 @@ import com.guicarneirodev.ltascore.domain.models.Match
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.usecases.GetMatchByIdUseCase
 import com.guicarneirodev.ltascore.domain.usecases.SubmitPlayerVoteUseCase
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,14 +40,12 @@ class VotingViewModel(
             try {
                 val match = getMatchByIdUseCase(matchId).first()
                 if (match != null) {
-                    // Log para depuração
                     if (match.teams.any { it.code == "IE" }) {
                         val ieTeam = match.teams.first { it.code == "IE" }
                         println("DEBUG VotingViewModel: Time IE carregado para partida ${match.blockName}")
                         println("DEBUG VotingViewModel: Jogadores do IE: ${ieTeam.players.map { it.nickname }}")
                     }
 
-                    // Inicializa as avaliações com zero
                     val initialRatings = mutableMapOf<String, Float>()
                     match.teams.forEach { team ->
                         team.players.forEach { player ->
@@ -80,7 +77,6 @@ class VotingViewModel(
         val updatedRatings = _uiState.value.ratings.toMutableMap()
         updatedRatings[playerId] = rating
 
-        // Verifica se todos os jogadores têm avaliação maior que zero
         val allRated = updatedRatings.all { (_, value) -> value > 0f }
 
         _uiState.value = _uiState.value.copy(
@@ -98,12 +94,10 @@ class VotingViewModel(
                 val currentUser = userRepository.getCurrentUser().first()
 
                 if (match != null && currentUser != null) {
-                    // Usa o ID real do usuário autenticado
                     val userId = currentUser.id
                     var successCount = 0
-                    var totalToSubmit = _uiState.value.ratings.size
+                    _uiState.value.ratings.size
 
-                    // Envia cada avaliação
                     _uiState.value.ratings.forEach { (playerId, rating) ->
                         try {
                             submitPlayerVoteUseCase(
@@ -113,17 +107,12 @@ class VotingViewModel(
                                 rating = rating
                             )
 
-                            // FALTANDO: Adicionar o voto ao histórico do usuário
-
                             successCount++
-                        } catch (e: Exception) {
-                            // Continua em caso de erro em um jogador específico
+                        } catch (_: Exception) {
                         }
                     }
 
-                    // MODIFICAÇÃO NECESSÁRIA: Marcar partida como votada no histórico
                     if (successCount > 0) {
-                        // Marca no DataStore que o usuário votou nesta partida
                         userPreferencesRepository.markMatchVoted(userId, match.id)
 
                         _uiState.value = _uiState.value.copy(

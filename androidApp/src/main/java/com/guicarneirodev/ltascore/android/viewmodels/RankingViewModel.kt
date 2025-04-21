@@ -14,9 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-/**
- * Estado da UI da tela de Ranking
- */
 data class RankingUiState(
     val isLoading: Boolean = false,
     val players: List<PlayerRankingItem> = emptyList(),
@@ -27,9 +24,6 @@ data class RankingUiState(
     val searchQuery: String = ""
 )
 
-/**
- * Item para seleção de time nos filtros
- */
 data class TeamFilterItem(
     val id: String,
     val name: String,
@@ -37,9 +31,6 @@ data class TeamFilterItem(
     val imageUrl: String
 )
 
-/**
- * ViewModel para a tela de ranking de jogadores
- */
 class RankingViewModel(
     private val getPlayerRankingUseCase: GetPlayerRankingUseCase,
     private val playersDataSource: PlayersStaticDataSource
@@ -53,29 +44,22 @@ class RankingViewModel(
         loadRanking()
     }
 
-    /**
-     * Carrega a lista de times disponíveis para filtro
-     */
     private fun loadTeamFilters() {
         viewModelScope.launch {
-            // Obter todos os jogadores
             val allPlayers = playersDataSource.getAllPlayers()
 
-            // Extrair informações únicas dos times
             val teams = allPlayers
                 .groupBy { it.teamId }
                 .map { (teamId, players) ->
-                    // Pegar o primeiro jogador para obter informações do time
                     players.first()
 
-                    // Inferir código do time do ID (temporário, idealmente viria da API)
                     val teamCode = teamId.split("-").last().uppercase().take(3)
 
                     TeamFilterItem(
                         id = teamId,
                         name = teamId.split("-").joinToString(" ") { it.capitalize(Locale.ROOT) },
                         code = teamCode,
-                        imageUrl = "" // Idealmente, buscar da API
+                        imageUrl = ""
                     )
                 }
                 .sortedBy { it.name }
@@ -86,9 +70,6 @@ class RankingViewModel(
         }
     }
 
-    /**
-     * Carrega o ranking de jogadores com base no filtro atual
-     */
     fun loadRanking() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -110,9 +91,6 @@ class RankingViewModel(
         }
     }
 
-    /**
-     * Atualiza o tipo de filtro
-     */
     fun setFilterType(filter: RankingFilter) {
         if (filter != _uiState.value.filterState.currentFilter) {
             _uiState.value = _uiState.value.copy(
@@ -124,9 +102,6 @@ class RankingViewModel(
         }
     }
 
-    /**
-     * Seleciona um time para filtrar
-     */
     fun selectTeam(teamId: String?) {
         if (teamId != _uiState.value.filterState.selectedTeamId) {
             _uiState.value = _uiState.value.copy(
@@ -139,9 +114,6 @@ class RankingViewModel(
         }
     }
 
-    /**
-     * Seleciona uma posição para filtrar
-     */
     fun selectPosition(position: PlayerPosition?) {
         if (position != _uiState.value.filterState.selectedPosition) {
             _uiState.value = _uiState.value.copy(
@@ -154,9 +126,6 @@ class RankingViewModel(
         }
     }
 
-    /**
-     * Atualiza a busca por nome de jogador
-     */
     fun updateSearchQuery(query: String) {
         _uiState.value = _uiState.value.copy(
             searchQuery = query,
@@ -164,23 +133,17 @@ class RankingViewModel(
         )
     }
 
-    /**
-     * Força uma atualização dos dados do ranking
-     */
     fun refreshRanking() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
-                // Forçar atualização dos dados do ranking
                 getPlayerRankingUseCase.refreshRanking()
 
-                // Carregar dados com um intervalo maior para garantir melhor cobertura
                 val largeLimitForRefresh = 100
 
                 getPlayerRankingUseCase(_uiState.value.filterState, largeLimitForRefresh).collect { players ->
                     if (players.isEmpty()) {
-                        // Se não há jogadores mesmo com limite maior, provavelmente há um problema
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
                             error = "Não foi possível carregar dados do ranking. Tente novamente."
@@ -202,9 +165,6 @@ class RankingViewModel(
         }
     }
 
-    /**
-     * Função auxiliar para aplicar filtro de busca
-     */
     private fun applySearch(players: List<PlayerRankingItem>, query: String): List<PlayerRankingItem> {
         if (query.isBlank()) return players
 

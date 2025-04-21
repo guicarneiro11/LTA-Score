@@ -78,13 +78,11 @@ fun MatchesScreen(
             .fillMaxSize()
             .background(LTAThemeColors.DarkBackground)
     ) {
-        // Cabeçalho com título e botão de perfil
         TopAppBar(
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Logo da LTA Cross Conference
                     uiState.ltaCrossLogo?.let { logoUrl ->
                         SubcomposeAsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
@@ -93,9 +91,8 @@ fun MatchesScreen(
                                 .build(),
                             contentDescription = "LTA Cross Logo",
                             contentScale = ContentScale.Fit,
-                            colorFilter = ColorFilter.tint(Color.White), // Pintando o logo de branco
+                            colorFilter = ColorFilter.tint(Color.White),
                             loading = {
-                                // Placeholder vazio enquanto carrega
                                 Spacer(modifier = Modifier.size(40.dp))
                             },
                             modifier = Modifier.size(40.dp)
@@ -116,7 +113,6 @@ fun MatchesScreen(
                 titleContentColor = Color.White
             ),
             actions = {
-                // Botão de ranking
                 IconButton(onClick = onRankingClick) {
                     Icon(
                         imageVector = Icons.Default.Leaderboard,
@@ -125,7 +121,6 @@ fun MatchesScreen(
                     )
                 }
 
-                // Botão de perfil
                 IconButton(onClick = onProfileClick) {
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
@@ -136,13 +131,12 @@ fun MatchesScreen(
             }
         )
 
-        // Tabs para alternar entre ligas
         TabRow(
             selectedTabIndex = uiState.selectedLeagueIndex,
             containerColor = Color(0xFF2A2A30),
             contentColor = Color.White,
             indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
+                TabRowDefaults.SecondaryIndicator(
                     modifier = Modifier.tabIndicatorOffset(tabPositions[uiState.selectedLeagueIndex]),
                     height = 3.dp,
                     color = LTAThemeColors.PrimaryGold
@@ -163,7 +157,6 @@ fun MatchesScreen(
             }
         }
 
-        // Subtítulo que indica claramente Split 2
         Text(
             text = "Split 2 - 2025",
             style = MaterialTheme.typography.titleMedium,
@@ -175,7 +168,6 @@ fun MatchesScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         )
 
-        // Filtros de estado das partidas
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -232,7 +224,6 @@ fun MatchesScreen(
             )
         }
 
-        // Status da requisição e contagens
         if (uiState.matches.isNotEmpty() || uiState.isLoading) {
             Row(
                 modifier = Modifier
@@ -262,13 +253,11 @@ fun MatchesScreen(
             }
         }
 
-        // Linha separadora
         Divider(
             modifier = Modifier.padding(horizontal = 16.dp),
             color = Color(0xFF333340)
         )
 
-        // Lista de partidas ou estados de erro/carregamento
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -287,7 +276,6 @@ fun MatchesScreen(
                     )
                 }
             } else if (uiState.error != null) {
-                // Exibe o erro de forma mais visível
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(16.dp)
@@ -340,21 +328,17 @@ fun MatchesScreen(
                     )
                 }
             } else {
-                // Lista de partidas quando tudo estiver ok
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Agrupe as partidas por dia
                     val matchesByDay = uiState.filteredMatches.groupBy { match ->
-                        // Formato: "DD/MM"
                         val dateTime = match.startTime.toLocalDateTime(TimeZone.currentSystemDefault())
                         "${dateTime.date.dayOfMonth.toString().padStart(2, '0')}/${dateTime.date.monthNumber.toString().padStart(2, '0')}"
                     }
 
                     matchesByDay.forEach { (day, matchesOnDay) ->
-                        // Cabeçalho do dia
                         item {
                             Text(
                                 text = day,
@@ -365,7 +349,6 @@ fun MatchesScreen(
                             )
                         }
 
-                        // Partidas do dia
                         items(matchesOnDay) { match ->
                             MatchCard(
                                 match = match,

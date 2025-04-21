@@ -16,13 +16,10 @@ class LTAScore : Application() {
 
         Log.d("LOLVotingApp", "Iniciando aplicação")
 
-        // Inicializar Firebase antes do Koin
         FirebaseApp.initializeApp(this)
 
-        // Configurar região para Firebase Functions, se necessário
         FirebaseFunctions.getInstance("us-central1")
 
-        // Inicializa o Koin
         startKoin {
             androidLogger(Level.ERROR)
             androidContext(this@LTAScore)

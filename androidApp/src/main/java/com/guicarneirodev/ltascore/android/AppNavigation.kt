@@ -156,7 +156,6 @@ fun AppNavigation(
         }
 
         composable(Screen.EditProfile.route) {
-            // Verifica se o usuário está autenticado
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {

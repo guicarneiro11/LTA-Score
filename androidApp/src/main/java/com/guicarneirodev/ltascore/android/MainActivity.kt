@@ -17,8 +17,6 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
-
-    // Injetar repositórios para o AppNavigation
     private val userRepository: UserRepository by inject()
     private val voteRepository: VoteRepository by inject()
     private val userPreferencesRepository: UserPreferencesRepository by inject()
@@ -28,12 +26,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LTAScoreTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // O AppNavigation recebe os repositórios necessários
                     AppNavigation(
                         userRepository = userRepository,
                         voteRepository = voteRepository,

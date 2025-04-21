@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// Estado existente
 data class FriendsManagementUiState(
     val isLoading: Boolean = false,
     val friendUsername: String = "",
@@ -19,7 +18,6 @@ data class FriendsManagementUiState(
     val success: String? = null
 )
 
-// Novo estado para solicitações
 data class FriendRequestsUiState(
     val isLoading: Boolean = false,
     val requests: List<FriendRequest> = emptyList(),
@@ -34,7 +32,6 @@ class FriendsViewModel(
     private val _uiState = MutableStateFlow(FriendsManagementUiState())
     val uiState: StateFlow<FriendsManagementUiState> = _uiState.asStateFlow()
 
-    // Novo estado para solicitações
     private val _requestsUiState = MutableStateFlow(FriendRequestsUiState())
     val requestsUiState: StateFlow<FriendRequestsUiState> = _requestsUiState.asStateFlow()
 
@@ -51,12 +48,6 @@ class FriendsViewModel(
         )
     }
 
-    // Modificar método existente para enviar solicitação em vez de adicionar diretamente
-    fun addFriend() {
-        sendFriendRequest()
-    }
-
-    // Novo método para enviar solicitações
     fun sendFriendRequest() {
         val username = _uiState.value.friendUsername.trim()
 
@@ -81,7 +72,7 @@ class FriendsViewModel(
                     onSuccess = {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            friendUsername = "", // Limpa o campo
+                            friendUsername = "",
                             success = "Solicitação enviada para $username"
                         )
                     },
@@ -118,7 +109,6 @@ class FriendsViewModel(
                             isLoading = false,
                             success = "${friendship.friendUsername} removido(a) da sua lista de amigos"
                         )
-                        // Recarregar a lista de amigos
                         loadFriends()
                     },
                     onFailure = { e ->
@@ -160,8 +150,6 @@ class FriendsViewModel(
         }
     }
 
-    // Novos métodos para gerenciar solicitações
-
     fun loadFriendRequests() {
         viewModelScope.launch {
             _requestsUiState.value = _requestsUiState.value.copy(
@@ -202,7 +190,6 @@ class FriendsViewModel(
                             isLoading = false,
                             success = "Solicitação aceita"
                         )
-                        // Recarregar amigos e solicitações
                         loadFriends()
                         loadFriendRequests()
                     },
@@ -239,7 +226,6 @@ class FriendsViewModel(
                             isLoading = false,
                             success = "Solicitação recusada"
                         )
-                        // Recarregar solicitações
                         loadFriendRequests()
                     },
                     onFailure = { e ->
