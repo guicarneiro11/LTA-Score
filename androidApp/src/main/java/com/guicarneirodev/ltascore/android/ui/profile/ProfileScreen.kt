@@ -54,6 +54,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,7 +90,9 @@ fun ProfileScreen(
     onNavigateToFriendsFeed: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onLogout: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    forcedTeamId: String? = null,
+    forceUpdate: Long = System.currentTimeMillis()
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
     val friendsUiState by friendsViewModel.uiState.collectAsState()
@@ -100,6 +103,18 @@ fun ProfileScreen(
 
     var updateTrigger by remember { mutableIntStateOf(0) }
 
+    LaunchedEffect(currentUser, updateTrigger) {
+        println("ProfileScreen detectou alteração: favoriteTeamId=${currentUser?.favoriteTeamId}, cacheValue=${FavoriteTeamCache.getFavoriteTeam()}, trigger=$updateTrigger")
+
+        val cacheTeamId = FavoriteTeamCache.getFavoriteTeam()
+        if (cacheTeamId != null && cacheTeamId != currentUser?.favoriteTeamId) {
+            println("Usando valor do cache: $cacheTeamId (diferente de ${currentUser?.favoriteTeamId})")
+            editProfileViewModel.selectTeam(cacheTeamId)
+        }
+
+        editProfileViewModel.loadTeams()
+    }
+
     LaunchedEffect(Unit) {
         UserEvents.userUpdated.collect { userId ->
             updateTrigger++
@@ -107,10 +122,8 @@ fun ProfileScreen(
         }
     }
 
-    LaunchedEffect(updateTrigger) {
-        editProfileViewModel.loadTeams()
-
-        println("ProfileScreen atualizando interface após evento, trigger: $updateTrigger")
+    LaunchedEffect(key1 = Unit) {
+        authViewModel.refreshCurrentUser()
     }
 
     val teamColors = mapOf(
@@ -192,37 +205,45 @@ fun ProfileScreen(
                     val effectiveTeamId = currentUser?.favoriteTeamId ?: FavoriteTeamCache.getFavoriteTeam()
 
                     if (effectiveTeamId != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        val teamItem =
+                            editProfileUiState.availableTeams.find { it.id == effectiveTeamId }
 
-                        val teamItem = editProfileUiState.availableTeams.find { it.id == effectiveTeamId }
+                        key(effectiveTeamId + forceUpdate) {
+                            if (teamItem != null) {
+                                val teamColor =
+                                    teamColors[effectiveTeamId] ?: LTAThemeColors.PrimaryGold
 
-                        if (teamItem != null) {
-                            val teamColor = teamColors[effectiveTeamId] ?: LTAThemeColors.PrimaryGold
-
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = LTAThemeColors.CardBackground,
-                                border = BorderStroke(2.dp, teamColor),
-                                modifier = Modifier.clickable(onClick = onNavigateToEditProfile)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                Surface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = LTAThemeColors.CardBackground,
+                                    border = BorderStroke(2.dp, teamColor),
+                                    modifier = Modifier.clickable(onClick = onNavigateToEditProfile)
                                 ) {
-                                    LogoImage(
-                                        imageUrl = teamItem.imageUrl,
-                                        name = teamItem.name,
-                                        code = teamItem.code
+                                    println(
+                                        "RENDERIZANDO TIME: ${teamItem.code} (ID: $effectiveTeamId)"
                                     )
 
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(
+                                            horizontal = 12.dp, vertical = 6.dp
+                                        )
+                                    ) {
+                                        LogoImage(
+                                            imageUrl = teamItem.imageUrl,
+                                            name = teamItem.name,
+                                            code = teamItem.code
+                                        )
 
-                                    Text(
-                                        text = "Time: ${teamItem.code}",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = LTAThemeColors.TextPrimary,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
+                                        Spacer(modifier = Modifier.width(8.dp))
+
+                                        Text(
+                                            text = "Time: ${teamItem.code}",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = LTAThemeColors.TextPrimary,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
                                 }
                             }
                         }

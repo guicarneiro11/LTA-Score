@@ -2,9 +2,11 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
 import com.guicarneirodev.ltascore.android.data.cache.UserEvents
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -128,16 +130,25 @@ class EditProfileViewModel(
 
                     result.fold(
                         onSuccess = {
-                            val currentUser = userRepository.getCurrentUser().first()
-                            if (currentUser != null) {
-                                UserEvents.notifyUserUpdated(currentUser.id)
-                                println("Evento de atualização enviado após salvar time: $teamId")
-                            }
+                            FavoriteTeamCache.updateFavoriteTeam(teamId)
 
-                            _uiState.value = _uiState.value.copy(
-                                isLoading = false,
-                                success = "Time favorito atualizado com sucesso"
-                            )
+                            userRepository.refreshCurrentUser()
+
+                            viewModelScope.launch {
+                                delay(200)
+                                val userId = try {
+                                    userRepository.getCurrentUser().first()?.id ?: ""
+                                } catch (_: Exception) {
+                                    ""
+                                }
+
+                                UserEvents.notifyUserUpdated(userId)
+
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    success = "Time favorito atualizado com sucesso"
+                                )
+                            }
                         },
                         onFailure = { e ->
                             _uiState.value = _uiState.value.copy(
@@ -158,6 +169,16 @@ class EditProfileViewModel(
                     error = "Erro ao salvar perfil: ${e.message}"
                 )
             }
+        }
+    }
+
+    fun finishSaving(teamId: String, onComplete: (String) -> Unit) {
+        viewModelScope.launch {
+            FavoriteTeamCache.updateFavoriteTeam(teamId)
+
+            delay(100)
+
+            onComplete(teamId)
         }
     }
 }

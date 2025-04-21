@@ -3,6 +3,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import com.guicarneirodev.ltascore.android.data.cache.UserEvents
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.domain.models.User
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
@@ -63,7 +64,31 @@ class AuthViewModel(
         object Checking : UsernameCheckState()
     }
 
+    private val _forceUserRefresh = MutableStateFlow(0)
+    val forceUserRefresh: StateFlow<Int> = _forceUserRefresh.asStateFlow()
+
+    fun triggerUserRefresh() {
+        _forceUserRefresh.value += 1
+        println("Triggered force refresh: ${_forceUserRefresh.value}")
+    }
+
+    fun refreshCurrentUser() {
+        viewModelScope.launch {
+            userRepository.refreshCurrentUser()
+            _forceUserRefresh.value += 1
+            println("AuthViewModel forced refresh triggered")
+        }
+    }
+
     init {
+        viewModelScope.launch {
+            UserEvents.userUpdated.collect { userId ->
+                userRepository.refreshCurrentUser()
+                triggerUserRefresh()
+                println("AuthViewModel recebeu evento de atualização e forçou refresh")
+            }
+        }
+
         viewModelScope.launch {
             userRepository.isUserLoggedIn().collect { isLoggedIn ->
                 _isLoggedIn.value = isLoggedIn

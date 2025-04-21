@@ -4,11 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
 import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.android.ui.auth.LoginScreen
 import com.guicarneirodev.ltascore.android.ui.auth.RegisterScreen
@@ -35,7 +39,11 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object ResetPassword : Screen("reset_password")
     object Matches : Screen("matches")
-    object Profile : Screen("profile")
+    object Profile : Screen("profile?teamId={teamId}") {
+        fun createRoute(teamId: String? = null): String {
+            return if (teamId != null) "profile?teamId=$teamId" else "profile"
+        }
+    }
     object Ranking : Screen("ranking")
     object VoteHistory : Screen("vote_history")
     object FriendsFeed : Screen("friends_feed")
@@ -119,7 +127,16 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Profile.route) {
+        composable(
+            route = Screen.Profile.route,
+            arguments = listOf(
+                navArgument("teamId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -128,8 +145,15 @@ fun AppNavigation(
                 }
             }
 
+            val teamId = backStackEntry.arguments?.getString("teamId")
+
+            if (teamId != null) {
+                FavoriteTeamCache.updateFavoriteTeam(teamId)
+            }
+
             ProfileScreen(
                 authViewModel = authViewModel,
+                forcedTeamId = teamId,
                 onNavigateToMatchHistory = {
                     navController.navigate(Screen.VoteHistory.route)
                 },
@@ -156,17 +180,20 @@ fun AppNavigation(
         }
 
         composable(Screen.EditProfile.route) {
-            LaunchedEffect(isLoggedIn) {
-                if (!isLoggedIn) {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.EditProfile.route) { inclusive = true }
-                    }
-                }
-            }
-
             EditProfileScreen(
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onSaveComplete = { teamId ->
+                    navController.navigate(
+                        Screen.Profile.createRoute(teamId)
+                    ) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = false
+                        }
+                        launchSingleTop = true
+                        restoreState = false
+                    }
                 }
             )
         }

@@ -44,7 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
 import com.guicarneirodev.ltascore.android.ui.matches.LogoImage
+import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.TeamFilterItem
 import kotlinx.coroutines.delay
@@ -54,11 +56,13 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun EditProfileScreen(
     viewModel: EditProfileViewModel = koinViewModel(),
-    onBackClick: () -> Unit
+    authViewModel: AuthViewModel = koinViewModel(),
+    onBackClick: () -> Unit,
+    onSaveComplete: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
     val context = LocalContext.current
+
     LaunchedEffect(key1 = uiState.success) {
         if (uiState.success != null) {
             Toast.makeText(context, uiState.success, Toast.LENGTH_SHORT).show()
@@ -68,12 +72,20 @@ fun EditProfileScreen(
         }
     }
 
+    val actualOnBackClick = {
+        // Força refresh antes de voltar
+        FavoriteTeamCache.getFavoriteTeam()?.let { teamId ->
+            authViewModel.triggerUserRefresh()
+        }
+        onBackClick()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Editar Perfil") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = actualOnBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar"
@@ -131,7 +143,16 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = { viewModel.saveProfile() },
+                    onClick = {
+                        if (uiState.isLoading) return@Button
+
+                        uiState.selectedTeamId?.let { teamId ->
+                            viewModel.saveProfile()
+                            viewModel.finishSaving(teamId) { updatedTeamId ->
+                                onSaveComplete(updatedTeamId)
+                            }
+                        }
+                    },
                     enabled = !uiState.isLoading && uiState.selectedTeamId != null,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = LTAThemeColors.PrimaryGold,

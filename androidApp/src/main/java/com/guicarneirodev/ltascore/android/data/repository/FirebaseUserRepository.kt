@@ -3,6 +3,8 @@ package com.guicarneirodev.ltascore.android.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
+import com.guicarneirodev.ltascore.android.data.cache.UserEvents
 import com.guicarneirodev.ltascore.domain.models.User
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import kotlinx.coroutines.CoroutineScope
@@ -25,25 +27,30 @@ class FirebaseUserRepository(
     override fun getCurrentUser(): Flow<User?> = callbackFlow {
         var lastEmittedUserId: String? = null
 
+        var lastUser: User? = null
+
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
             coroutineScope.launch {
                 if (auth.currentUser != null) {
                     try {
                         val user = getUserData(auth.currentUser!!)
 
-                        if (lastEmittedUserId != user.id || user.favoriteTeamId != null) {
-                            lastEmittedUserId = user.id
+                        val shouldUpdate = lastUser == null ||
+                                lastUser?.id != user.id ||
+                                lastUser?.favoriteTeamId != user.favoriteTeamId
+
+                        if (shouldUpdate) {
+                            lastUser = user
+                            println("Emitindo usuário com novo estado: id=${user.id}, time=${user.favoriteTeamId}")
                             trySend(user)
-                            println("Emitido usuário atualizado: ${user.id}, time: ${user.favoriteTeamId}")
                         }
                     } catch (e: Exception) {
                         println("Erro ao buscar dados do usuário: ${e.message}")
                         trySend(createDefaultUser(auth.currentUser!!))
                     }
                 } else {
-                    lastEmittedUserId = null
+                    lastUser = null
                     trySend(null)
-                    println("Emitido usuário null (deslogado)")
                 }
             }
         }
@@ -235,9 +242,20 @@ class FirebaseUserRepository(
         val firebaseUser = auth.currentUser
         if (firebaseUser != null) {
             try {
-                val updatedUser = getUserData(firebaseUser)
+                val updatedUserDoc = usersCollection.document(firebaseUser.uid)
+                    .get(com.google.firebase.firestore.Source.SERVER)
+                    .await()
 
-                println("Dados do usuário recarregados com sucesso: ${updatedUser.favoriteTeamId}")
+                if (updatedUserDoc.exists()) {
+                    val userData = updatedUserDoc.data
+                    if (userData != null) {
+                        val favoriteTeamId = userData["favoriteTeamId"] as? String
+
+                        FavoriteTeamCache.updateFavoriteTeam(favoriteTeamId)
+
+                        println("Dados do usuário recarregados com sucesso: $favoriteTeamId")
+                    }
+                }
             } catch (e: Exception) {
                 println("Erro ao recarregar dados do usuário: ${e.message}")
             }
@@ -252,29 +270,27 @@ class FirebaseUserRepository(
                 .update("favoriteTeamId", teamId)
                 .await()
 
-            val updatedUserDoc = usersCollection.document(currentUser.uid).get().await()
+            FavoriteTeamCache.updateFavoriteTeam(teamId)
+
+            val updatedUserDoc = usersCollection.document(currentUser.uid)
+                .get()
+                .await()
 
             if (updatedUserDoc.exists()) {
-                val userData = updatedUserDoc.data
-                if (userData != null) {
-                    User(
-                        id = currentUser.uid,
-                        email = userData["email"] as? String ?: "",
-                        username = userData["username"] as? String ?: "",
-                        profilePictureUrl = userData["profilePictureUrl"] as? String,
-                        favoriteTeamId = userData["favoriteTeamId"] as? String,
-                        createdAt = Clock.System.now()
-                    )
-
-                    coroutineScope.launch(Dispatchers.Main) {
-                        try {
-                            auth.updateCurrentUser(auth.currentUser!!).await()
-
-                            println("Forçada atualização do listener de autenticação")
-                            println("Time favorito atualizado para: $teamId")
-                        } catch (e: Exception) {
-                            println("Erro ao forçar atualização: ${e.message}")
+                coroutineScope.launch(Dispatchers.Main) {
+                    try {
+                        auth.currentUser?.let { firebaseUser ->
+                            try {
+                                auth.updateCurrentUser(firebaseUser).await()
+                            } catch (e: Exception) {
+                                println("Erro ao forçar atualização: ${e.message}")
+                            }
                         }
+
+                        UserEvents.notifyUserUpdated(currentUser.uid)
+                        println("Time favorito atualizado para: $teamId")
+                    } catch (e: Exception) {
+                        println("Erro ao notificar atualização: ${e.message}")
                     }
                 }
             }
