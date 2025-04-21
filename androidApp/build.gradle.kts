@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
-    // Remova esta linha: id("com.google.gms.google-services")
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.google.services)
@@ -92,7 +91,6 @@ dependencies {
     implementation(libs.material.icons.extended)
 }
 
-// Configuração para testes Kotest
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }

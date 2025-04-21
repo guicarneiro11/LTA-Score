@@ -22,22 +22,20 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
         )
 
         val result = functions
-            .getHttpsCallable("getLeagues") // Mantendo getHttpsCallable em vez de httpsCallable
+            .getHttpsCallable("getLeagues")
             .call(data)
             .await()
 
-        val resultData = result.data // Acessando data como propriedade
+        val resultData = result.data
 
-        // Converter o resultado para string JSON
         val jsonString = convertToJsonString(resultData)
         return json.decodeFromString(jsonString)
     }
 
     actual override suspend fun getSchedule(leagueSlug: String, language: String): ScheduleResponse {
-        // Convertendo slug para ID conforme necessário
         val leagueId = when (leagueSlug) {
-            "lta_s" -> "113475181634818701" // LTA Sul
-            "lta_n" -> "113475181634818702" // LTA Norte
+            "lta_s" -> "113475181634818701"
+            "lta_n" -> "113475181634818702"
             else -> throw IllegalArgumentException("Liga não suportada: $leagueSlug")
         }
 
@@ -53,7 +51,6 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
 
         val resultData = result.data
 
-        // Converter o resultado para string JSON
         val jsonString = convertToJsonString(resultData)
         return json.decodeFromString(jsonString)
     }
@@ -71,12 +68,10 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
 
         val resultData = result.data
 
-        // Converter o resultado para string JSON
         val jsonString = convertToJsonString(resultData)
         return json.decodeFromString(jsonString)
     }
 
-    // Função auxiliar para converter o resultado em string JSON
     private fun convertToJsonString(data: Any?): String {
         return when (data) {
             is String -> data

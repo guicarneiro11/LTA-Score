@@ -54,7 +54,6 @@ kotlin {
         }
 
         androidMain.dependencies {
-            // Ktor for Android
             implementation(libs.ktor.client.android)
 
             // Firebase
@@ -68,9 +67,7 @@ kotlin {
     }
 }
 
-// Aqui podemos adicionar as dependências de plataforma para o projeto Android
 dependencies {
-    // Firebase BOM to manage versions
     implementation(platform(libs.firebase.bom))
 }
 
