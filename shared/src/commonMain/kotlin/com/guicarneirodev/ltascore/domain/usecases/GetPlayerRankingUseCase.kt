@@ -8,19 +8,9 @@ import com.guicarneirodev.ltascore.domain.repository.RankingRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 
-/**
- * Caso de uso para obter dados de ranking dos jogadores
- */
 class GetPlayerRankingUseCase(
     private val rankingRepository: RankingRepository
 ) {
-    /**
-     * Obtém o ranking de jogadores com base nos filtros aplicados
-     *
-     * @param filterState Estado atual do filtro
-     * @param limit Número máximo de jogadores a retornar
-     * @return Flow com a lista de jogadores de acordo com o filtro
-     */
     suspend operator fun invoke(
         filterState: RankingFilterState,
         limit: Int = 50
@@ -47,9 +37,6 @@ class GetPlayerRankingUseCase(
         }
     }
 
-    /**
-     * Atualiza o cache de dados de ranking
-     */
     suspend fun refreshRanking() {
         rankingRepository.refreshRankingData()
     }

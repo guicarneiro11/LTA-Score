@@ -11,13 +11,11 @@ class GetUserVoteHistoryUseCase(
     private val voteRepository: VoteRepository,
     private val userRepository: UserRepository
 ) {
-    suspend operator fun invoke(): Flow<List<UserVoteHistoryItem>> = flow {
+    operator fun invoke(): Flow<List<UserVoteHistoryItem>> = flow {
         try {
-            // Obter o usuário atual
             val currentUser = userRepository.getCurrentUser().first()
 
             if (currentUser != null) {
-                // Buscar histórico de votos do usuário atual
                 voteRepository.getUserVoteHistory(currentUser.id).collect { historyItems ->
                     emit(historyItems)
                 }

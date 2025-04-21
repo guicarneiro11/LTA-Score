@@ -2,32 +2,27 @@ package com.guicarneirodev.ltascore.domain.models
 
 import kotlinx.datetime.Instant
 
-/**
- * Representa um item no ranking de jogadores
- */
+
 data class PlayerRankingItem(
-    val player: Player,             // Informações do jogador
-    val averageRating: Double,      // Média de avaliações
-    val totalVotes: Int,            // Total de votos recebidos
-    val teamId: String,             // ID do time atual
-    val teamName: String,           // Nome do time atual
-    val teamCode: String,           // Código/sigla do time
-    val teamImage: String,          // Logo do time
-    val position: PlayerPosition,   // Posição do jogador
-    val lastMatchDate: Instant?     // Data da última partida avaliada
+    val player: Player,
+    val averageRating: Double,
+    val totalVotes: Int,
+    val teamId: String,
+    val teamName: String,
+    val teamCode: String,
+    val teamImage: String,
+    val position: PlayerPosition,
+    val lastMatchDate: Instant?
 )
 
-/**
- * Enumeração para os diferentes tipos de filtros de ranking
- */
 enum class RankingFilter {
-    ALL,            // Todos os jogadores
-    BY_TEAM,        // Filtrar por time
-    BY_POSITION,    // Filtrar por posição
-    BY_WEEK,        // Melhores da semana
-    BY_MONTH,       // Melhores do mês
-    TOP_RATED,      // Melhor avaliados (todos os tempos)
-    MOST_VOTED      // Mais votados (todos os tempos)
+    ALL,
+    BY_TEAM,
+    BY_POSITION,
+    BY_WEEK,
+    BY_MONTH,
+    TOP_RATED,
+    MOST_VOTED
 }
 
 data class RankingFilterState(
@@ -37,9 +32,6 @@ data class RankingFilterState(
     val selectedTimeFrame: TimeFrame = TimeFrame.ALL_TIME
 )
 
-/**
- * Período de tempo para filtrar
- */
 enum class TimeFrame {
     CURRENT_WEEK,
     CURRENT_MONTH,

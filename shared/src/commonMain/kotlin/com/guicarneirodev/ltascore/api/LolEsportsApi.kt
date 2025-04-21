@@ -4,13 +4,9 @@ import com.guicarneirodev.ltascore.api.models.LeaguesResponse
 import com.guicarneirodev.ltascore.api.models.ScheduleResponse
 
 class LoLEsportsApi {
-    // Substitua o acesso direto à API por acesso via Firebase Functions
     private val service: LoLEsportsService = LoLEsportsFirebaseService()
     private val logger = LoLEsportsApiLogger()
 
-    /**
-     * Obtém informações sobre todas as ligas disponíveis
-     */
     suspend fun getLeagues(): LeaguesResponse {
         logger.log("Buscando informações das ligas")
 
@@ -24,9 +20,6 @@ class LoLEsportsApi {
         }
     }
 
-    /**
-     * Obtém o cronograma de partidas para uma liga específica
-     */
     suspend fun getSchedule(leagueSlug: String): ScheduleResponse {
         logger.log("Buscando calendário para liga: $leagueSlug")
 
@@ -36,17 +29,6 @@ class LoLEsportsApi {
             return response
         } catch (e: Exception) {
             logger.log("Erro na chamada API: ${e.message}")
-            throw e
-        }
-    }
-
-    suspend fun getMatch(matchId: String): ScheduleResponse {
-        logger.log("Buscando detalhes para partida: $matchId")
-
-        try {
-            return service.getMatch(matchId)
-        } catch (e: Exception) {
-            logger.log("Erro na chamada API getMatch: ${e.message}")
             throw e
         }
     }

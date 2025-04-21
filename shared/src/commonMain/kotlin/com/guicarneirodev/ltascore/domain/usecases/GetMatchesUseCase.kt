@@ -9,7 +9,6 @@ class GetMatchesUseCase(
     private val matchRepository: MatchRepository
 ) {
     suspend operator fun invoke(leagueSlug: String): Flow<List<Match>> {
-        // Forçar uma atualização dos dados antes de retornar
         matchRepository.refreshMatches(leagueSlug)
 
         return matchRepository.getMatches(leagueSlug)
