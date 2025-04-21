@@ -76,5 +76,5 @@ val appModule = module {
     viewModel { VoteHistoryViewModel(get()) }
     viewModel { FriendsViewModel(get()) }
     viewModel { FriendsFeedViewModel(get(), get(), get()) }
-    viewModel { EditProfileViewModel(get(), get()) }
+    viewModel { EditProfileViewModel(get(), get(), get()) }
 }

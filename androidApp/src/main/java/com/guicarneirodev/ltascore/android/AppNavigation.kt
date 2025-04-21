@@ -147,11 +147,15 @@ fun AppNavigation(
 
             val teamId = backStackEntry.arguments?.getString("teamId")
 
-            if (teamId != null) {
-                FavoriteTeamCache.updateFavoriteTeam(teamId)
+            LaunchedEffect(teamId) {
+                if (teamId != null) {
+                    FavoriteTeamCache.updateFavoriteTeam(teamId)
+                    authViewModel.triggerUserRefresh()
+                }
             }
 
             ProfileScreen(
+                forceUpdate = System.currentTimeMillis(),
                 authViewModel = authViewModel,
                 onNavigateToMatchHistory = {
                     navController.navigate(Screen.VoteHistory.route)

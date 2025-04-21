@@ -23,7 +23,8 @@ data class EditProfileUiState(
 
 class EditProfileViewModel(
     private val userRepository: UserRepository,
-    private val matchRepository: MatchRepository
+    private val matchRepository: MatchRepository,
+    private val authViewModel: AuthViewModel
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
@@ -59,10 +60,28 @@ class EditProfileViewModel(
         }
     }
 
-    private fun loadAvailableTeams() {
+    internal fun loadAvailableTeams() {
         viewModelScope.launch {
+            if (_uiState.value.availableTeams.isNotEmpty()) {
+                return@launch
+            }
+
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
             try {
-                val matches = matchRepository.getMatches("lta_s").first()
+                val hardcodedTeams = listOf(
+                    TeamFilterItem("loud", "LOUD", "LOUD", ""),
+                    TeamFilterItem("pain-gaming", "paiN Gaming", "PAIN", ""),
+                    TeamFilterItem("isurus-estral", "Isurus Estral", "IE", ""),
+                    TeamFilterItem("leviatan", "LEVIATÁN", "LEV", ""),
+                    TeamFilterItem("furia", "FURIA", "FUR", ""),
+                    TeamFilterItem("keyd", "Vivo Keyd Stars", "VKS", ""),
+                    TeamFilterItem("red", "RED Kalunga", "RED", ""),
+                    TeamFilterItem("fxw7", "Fluxo W7M", "FXW7", "")
+                )
+
+                try {
+                    val matches = matchRepository.getMatches("lta_s").first()
 
                 val teamMap = mutableMapOf<String, TeamFilterItem>()
 
@@ -102,11 +121,20 @@ class EditProfileViewModel(
                     teamMap["fxw7"] ?: TeamFilterItem("fxw7", "Fluxo W7M", "FXW7", "")
                 )
 
-                _uiState.value = _uiState.value.copy(
-                    availableTeams = ltaSulTeams
-                )
+                    _uiState.value = _uiState.value.copy(
+                        availableTeams = ltaSulTeams,
+                        isLoading = false
+                    )
+                } catch (e: Exception) {
+                    println("Erro ao carregar times do repositório: ${e.message}")
+                    _uiState.value = _uiState.value.copy(
+                        availableTeams = hardcodedTeams,
+                        isLoading = false
+                    )
+                }
             } catch (e: Exception) {
                 println("Erro ao carregar times: ${e.message}")
+                _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }
     }
@@ -175,6 +203,13 @@ class EditProfileViewModel(
     fun finishSaving(teamId: String, onComplete: (String) -> Unit) {
         viewModelScope.launch {
             FavoriteTeamCache.updateFavoriteTeam(teamId)
+
+            authViewModel.refreshCurrentUser()
+
+            delay(300)
+
+            val userId = userRepository.getCurrentUser().first()?.id ?: ""
+            UserEvents.notifyUserUpdated(userId)
 
             delay(100)
 

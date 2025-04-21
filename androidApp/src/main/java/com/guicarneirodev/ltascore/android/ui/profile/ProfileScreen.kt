@@ -76,6 +76,7 @@ import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsManagementUiState
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.TeamFilterItem
 import com.guicarneirodev.ltascore.domain.models.Friendship
 import org.koin.androidx.compose.koinViewModel
 
@@ -112,6 +113,12 @@ fun ProfileScreen(
         }
 
         editProfileViewModel.loadTeams()
+    }
+
+    LaunchedEffect(Unit) {
+        editProfileViewModel.loadAvailableTeams()
+
+        authViewModel.refreshCurrentUser()
     }
 
     LaunchedEffect(Unit) {
@@ -201,49 +208,45 @@ fun ProfileScreen(
                         color = LTAThemeColors.TextPrimary
                     )
 
-                    val effectiveTeamId = currentUser?.favoriteTeamId ?: FavoriteTeamCache.getFavoriteTeam()
+                    val effectiveTeamId = FavoriteTeamCache.getFavoriteTeam() ?: currentUser?.favoriteTeamId
 
                     if (effectiveTeamId != null) {
-                        val teamItem =
-                            editProfileUiState.availableTeams.find { it.id == effectiveTeamId }
+                        val teamItem = editProfileUiState.availableTeams.find { it.id == effectiveTeamId }
+
+                        val displayTeam = teamItem ?: createTemporaryTeamItem(effectiveTeamId)
 
                         key(effectiveTeamId + forceUpdate) {
-                            if (teamItem != null) {
-                                val teamColor =
-                                    teamColors[effectiveTeamId] ?: LTAThemeColors.PrimaryGold
-
-                                Surface(
-                                    shape = RoundedCornerShape(16.dp),
-                                    color = LTAThemeColors.CardBackground,
-                                    border = BorderStroke(2.dp, teamColor),
-                                    modifier = Modifier.clickable(onClick = onNavigateToEditProfile)
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = LTAThemeColors.CardBackground,
+                                border = BorderStroke(2.dp, teamColors[effectiveTeamId] ?: LTAThemeColors.PrimaryGold),
+                                modifier = Modifier.clickable(onClick = onNavigateToEditProfile)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    println(
-                                        "RENDERIZANDO TIME: ${teamItem.code} (ID: $effectiveTeamId)"
+                                    LogoImage(
+                                        imageUrl = displayTeam.imageUrl,
+                                        name = displayTeam.name,
+                                        code = displayTeam.code
                                     )
 
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.padding(
-                                            horizontal = 12.dp, vertical = 6.dp
-                                        )
-                                    ) {
-                                        LogoImage(
-                                            imageUrl = teamItem.imageUrl,
-                                            name = teamItem.name,
-                                            code = teamItem.code
-                                        )
+                                    Spacer(modifier = Modifier.width(8.dp))
 
-                                        Spacer(modifier = Modifier.width(8.dp))
-
-                                        Text(
-                                            text = "Time: ${teamItem.code}",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = LTAThemeColors.TextPrimary,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                    }
+                                    Text(
+                                        text = "Time: ${displayTeam.code}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = LTAThemeColors.TextPrimary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 }
+                            }
+                        }
+
+                        LaunchedEffect(effectiveTeamId) {
+                            if (editProfileUiState.availableTeams.isEmpty()) {
+                                editProfileViewModel.loadAvailableTeams()
                             }
                         }
                     }
@@ -318,6 +321,27 @@ fun ProfileScreen(
             }
         }
     }
+}
+
+private fun createTemporaryTeamItem(teamId: String): TeamFilterItem {
+    val code = when (teamId) {
+        "loud" -> "LOUD"
+        "pain-gaming" -> "PAIN"
+        "isurus-estral" -> "IE"
+        "leviatan" -> "LEV"
+        "furia" -> "FUR"
+        "keyd" -> "VKS"
+        "red" -> "RED"
+        "fxw7" -> "FXW7"
+        else -> teamId.take(3).uppercase()
+    }
+
+    return TeamFilterItem(
+        id = teamId,
+        name = teamId.split("-").joinToString(" ") { it.capitalize() },
+        code = code,
+        imageUrl = ""
+    )
 }
 
 @Composable
