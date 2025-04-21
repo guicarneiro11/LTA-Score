@@ -29,7 +29,6 @@ class FirebaseRankingRepository(
     private val teamCache = mutableMapOf<String, TeamInfo>()
     private val votesCollection = firestore.collection("votes")
 
-    // Classe interna para armazenar informações básicas do time
     private data class TeamInfo(
         val id: String,
         val name: String,
@@ -38,15 +37,12 @@ class FirebaseRankingRepository(
     )
 
     init {
-        // Inicializar o cache de times com base nos dados de partidas locais
         initTeamCache()
     }
 
     private fun initTeamCache() {
-        // Liga Sul
         val allMatches = matchLocalDataSource.getMatches("lta_s")
 
-        // Extrair informações de times de todas as partidas disponíveis
         allMatches.forEach { match ->
             match.teams.forEach { team ->
                 if (!teamCache.containsKey(team.id)) {
@@ -67,14 +63,11 @@ class FirebaseRankingRepository(
         try {
             println("Calculando ranking com agregação de todas as partidas...")
 
-            // Obtém IDs de partidas do cache local em vez de usar lista hardcoded
             val matchIds = mutableSetOf<String>()
 
-            // Primeiro tenta obter as partidas da LTA Sul
             val ltaSulMatches = matchLocalDataSource.getMatches("lta_s")
             val ltaNorteMatches = matchLocalDataSource.getMatches("lta_n")
 
-            // Adiciona os IDs de todas as partidas completadas
             val allMatches = ltaSulMatches + ltaNorteMatches
             val completedMatches = allMatches.filter { it.state == MatchState.COMPLETED }
 
@@ -84,7 +77,6 @@ class FirebaseRankingRepository(
 
             println("📊 Encontradas ${matchIds.size} partidas do cache local")
 
-            // Se não encontrou nenhuma partida, tenta usar a coleção votes
             if (matchIds.isEmpty()) {
                 try {
                     println("Buscando partidas da coleção votes...")
@@ -103,22 +95,17 @@ class FirebaseRankingRepository(
                 }
             }
 
-            // Se ainda não encontrou, cria uma lista com partidas potenciais
             if (matchIds.isEmpty()) {
                 println("⚠️ Nenhuma partida encontrada das fontes primárias. Gerando IDs potenciais...")
 
-                // Cria IDs baseados em uma sequência lógica observada nos IDs existentes
-                // Os IDs parecem seguir um padrão como "114103277164844275" e incrementam
                 val baseIds = listOf(
-                    "114103277164844275", // Base para semana 1
-                    "114103277165106421", // Base para semana 2
-                    "114103277165171985"  // Base para semana 3
+                    "114103277164844275",
+                    "114103277165106421",
+                    "114103277165171985"
                 )
 
-                // Gera variações baseadas nos IDs base
                 baseIds.forEach { baseId ->
                     matchIds.add(baseId)
-                    // Adiciona algumas variações incrementando o final do ID
                     for (i in 1..5) {
                         val lastDigits = baseId.takeLast(4).toInt() + (i * 2)
                         val newId = baseId.substring(0, baseId.length - 4) + lastDigits.toString().padStart(4, '0')
@@ -134,7 +121,6 @@ class FirebaseRankingRepository(
             var matchesProcessed = 0
             var playersFound = 0
 
-            // Para cada ID de partida encontrado
             for (matchId in matchIds) {
                 try {
                     val playersRef = voteSummariesCollection
@@ -149,7 +135,6 @@ class FirebaseRankingRepository(
                         playersFound += playerCount
                         println("✅ Partida $matchId: encontrados $playerCount jogadores")
 
-                        // Processar cada jogador
                         for (playerDoc in playersSnapshot.documents) {
                             val playerId = playerDoc.id
                             val averageRating = playerDoc.getDouble("averageRating") ?: 0.0
@@ -159,7 +144,6 @@ class FirebaseRankingRepository(
                             if (totalVotes > 0) {
                                 println("🎮 Jogador $playerId: rating $averageRating, $totalVotes votos")
 
-                                // Agregar os dados do jogador
                                 val playerData = result.getOrPut(playerId) {
                                     PlayerData(
                                         totalRating = 0.0,
@@ -169,12 +153,10 @@ class FirebaseRankingRepository(
                                     )
                                 }
 
-                                // Atualizar dados para média ponderada
                                 playerData.totalRating += averageRating * totalVotes
                                 playerData.totalVotesAcrossMatches += totalVotes
                                 playerData.totalMatches++
 
-                                // Atualizar data da última partida
                                 if (lastUpdated != null) {
                                     val instant = Instant.fromEpochMilliseconds(lastUpdated.time)
                                     if (playerData.lastMatchDate == null || instant > playerData.lastMatchDate!!) {
@@ -193,7 +175,6 @@ class FirebaseRankingRepository(
 
             println("📊 Resumo: Processadas $matchesProcessed partidas, encontrados $playersFound jogadores totais")
 
-            // Calcular médias finais
             result.forEach { (playerId, data) ->
                 if (data.totalVotesAcrossMatches > 0) {
                     data.averageRating = data.totalRating / data.totalVotesAcrossMatches
@@ -215,20 +196,16 @@ class FirebaseRankingRepository(
         try {
             println("Calculando ranking com agregação de todas as partidas...")
 
-            // Usar o novo método para buscar e agregar dados de todas as partidas
             val playerSummaries = getAllMatchPlayerSummaries()
 
-            // Converter para o modelo de domínio
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
                 createRankingItemFromSummary(playerId, data)
             }
 
             println("Ranking gerado: ${rankingItems.size} jogadores com todos os votos agregados")
 
-            // Ordenar por avaliação média ponderada (decrescente)
             val sortedItems = rankingItems.sortedByDescending { it.averageRating }
 
-            // Aplicar limite após ordenação
             emit(sortedItems.take(limit))
         } catch (e: Exception) {
             println("Erro ao calcular ranking: ${e.message}")
@@ -241,19 +218,15 @@ class FirebaseRankingRepository(
         try {
             println("Calculando ranking por time: $teamId")
 
-            // Usar o mesmo método que está funcionando para getAllMatchPlayerSummaries
             val playerSummaries = getAllMatchPlayerSummaries()
 
-            // Converter para o modelo de domínio e filtrar por time
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
                 val item = createRankingItemFromSummary(playerId, data)
-                // Filtrar apenas os jogadores do time solicitado
                 if (item?.teamId == teamId) item else null
             }
 
             println("Ranking por time $teamId: ${rankingItems.size} jogadores")
 
-            // Ordenar por avaliação média (decrescente)
             emit(rankingItems.sortedByDescending { it.averageRating })
         } catch (e: Exception) {
             println("Erro ao buscar ranking por time: ${e.message}")
@@ -266,19 +239,15 @@ class FirebaseRankingRepository(
         try {
             println("Calculando ranking por posição: $position")
 
-            // Usar o mesmo método que está funcionando
             val playerSummaries = getAllMatchPlayerSummaries()
 
-            // Converter para o modelo de domínio e filtrar por posição
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
                 val item = createRankingItemFromSummary(playerId, data)
-                // Filtrar apenas os jogadores da posição solicitada
                 if (item?.position == position) item else null
             }
 
             println("Ranking por posição $position: ${rankingItems.size} jogadores")
 
-            // Ordenar por avaliação média (decrescente)
             emit(rankingItems.sortedByDescending { it.averageRating })
         } catch (e: Exception) {
             println("Erro ao buscar ranking por posição: ${e.message}")
@@ -292,26 +261,21 @@ class FirebaseRankingRepository(
             println("Calculando ranking por período: $timeFrame")
             val cutoffDate = getCutoffDateForTimeFrame(timeFrame)
 
-            // Usar o mesmo método que está funcionando, mas filtrar por data depois
             val allPlayerSummaries = getAllMatchPlayerSummaries()
 
-            // Filtrar jogadores com partidas dentro do período solicitado
             val filteredSummaries = allPlayerSummaries.filter { (_, data) ->
-                // Se o jogador tem data da última partida e está dentro do período
                 data.lastMatchDate?.let { lastDate ->
                     val lastMatchDate = Date(lastDate.toEpochMilliseconds())
                     lastMatchDate.after(cutoffDate) || lastMatchDate == cutoffDate
                 } == true
             }
 
-            // Converter para o modelo de domínio
             val rankingItems = filteredSummaries.mapNotNull { (playerId, data) ->
                 createRankingItemFromSummary(playerId, data)
             }
 
             println("Ranking por período $timeFrame: ${rankingItems.size} jogadores")
 
-            // Ordenar por avaliação média (decrescente)
             emit(rankingItems.sortedByDescending { it.averageRating })
         } catch (e: Exception) {
             println("Erro ao buscar ranking por período: ${e.message}")
@@ -324,17 +288,14 @@ class FirebaseRankingRepository(
         try {
             println("Calculando ranking por mais votados (limit=$limit)")
 
-            // Usar o mesmo método que está funcionando
             val playerSummaries = getAllMatchPlayerSummaries()
 
-            // Converter para o modelo de domínio
             val rankingItems = playerSummaries.mapNotNull { (playerId, data) ->
                 createRankingItemFromSummary(playerId, data)
             }
 
             println("Ranking por votos: ${rankingItems.size} jogadores")
 
-            // Ordenar por total de votos (decrescente) e limitar
             emit(rankingItems.sortedByDescending { it.totalVotes }.take(limit))
         } catch (e: Exception) {
             println("Erro ao buscar ranking de mais votados: ${e.message}")
@@ -344,36 +305,28 @@ class FirebaseRankingRepository(
     }
 
     override suspend fun refreshRankingData() {
-        // Atualizar o cache de times
         initTeamCache()
 
-        // Forçar atualização de toda a coleção vote_summaries
         try {
-            // Buscar as partidas mais recentes (último mês)
             getCutoffDateForTimeFrame(TimeFrame.CURRENT_MONTH)
 
-            // Buscar todas as partidas com votos
             val recentMatches = votesCollection
                 .get()
                 .await()
                 .documents
                 .map { it.id }
 
-            // Atualizar cada partida
             var updatedCount = 0
             for (matchId in recentMatches) {
                 try {
-                    // Obter jogadores para esta partida
                     val playerIds = getPlayerIdsForMatch(matchId)
 
-                    // Atualizar resumo para cada jogador
                     for (playerId in playerIds) {
                         updateVoteSummary(matchId, playerId)
                         updatedCount++
                     }
                 } catch (e: Exception) {
                     println("Erro ao atualizar resumos para partida $matchId: ${e.message}")
-                    // Continua para a próxima partida
                 }
             }
 
@@ -383,7 +336,6 @@ class FirebaseRankingRepository(
         }
     }
 
-    // Classe auxiliar para armazenar dados agregados de jogadores
     private data class PlayerData(
         var totalRating: Double,
         var totalVotesAcrossMatches: Int,
@@ -392,12 +344,9 @@ class FirebaseRankingRepository(
         var averageRating: Double = 0.0
     )
 
-    // Função auxiliar para criar um item de ranking a partir dos dados agregados
     private fun createRankingItemFromSummary(playerId: String, data: PlayerData): PlayerRankingItem? {
-        // Buscar dados do jogador da fonte estática
         val player = playersDataSource.getPlayerById(playerId) ?: return null
 
-        // Buscar dados do time do cache
         val teamId = player.teamId
         val teamInfo = teamCache[teamId] ?: return null
 
@@ -414,24 +363,26 @@ class FirebaseRankingRepository(
         )
     }
 
-    // Função auxiliar para obter a data de corte com base no período
     private fun getCutoffDateForTimeFrame(timeFrame: TimeFrame): Date {
         val now = Clock.System.now()
 
         val cutoffInstant = when (timeFrame) {
-            TimeFrame.CURRENT_WEEK -> now.minus(7, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
-            TimeFrame.CURRENT_MONTH -> now.minus(30, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
-            TimeFrame.ALL_TIME -> Instant.fromEpochMilliseconds(0) // Início dos tempos
+            TimeFrame.CURRENT_WEEK -> now.minus(
+                7, DateTimeUnit.DAY, TimeZone.currentSystemDefault()
+            )
+
+            TimeFrame.CURRENT_MONTH -> now.minus(
+                30, DateTimeUnit.DAY, TimeZone.currentSystemDefault()
+            )
+
+            TimeFrame.ALL_TIME -> Instant.fromEpochMilliseconds(0)
         }
 
-        // Converter de kotlinx.datetime.Instant para java.util.Date
         return Date(cutoffInstant.toEpochMilliseconds())
     }
 
-    // Função auxiliar para obter IDs de jogadores de uma partida
     private suspend fun getPlayerIdsForMatch(matchId: String): List<String> {
         try {
-            // Buscar as coleções de jogadores para esta partida
             val playersSnapshot = votesCollection
                 .document(matchId)
                 .collection("players")
@@ -440,7 +391,6 @@ class FirebaseRankingRepository(
 
             return playersSnapshot.documents.map { it.id }
         } catch (_: Exception) {
-            // Se não conseguir buscar da collections, tenta uma lista padrão
             val standardPlayers = listOf(
                 "player_ie_burdol", "player_ie_josedeodo", "player_ie_mireu",
                 "player_ie_snaker", "player_ie_ackerman", "player_pain_wizer",
@@ -452,10 +402,8 @@ class FirebaseRankingRepository(
         }
     }
 
-    // Função para atualizar resumo de votos
     private suspend fun updateVoteSummary(matchId: String, playerId: String) {
         try {
-            // Obter todos os votos para este jogador nesta partida
             val querySnapshot = votesCollection
                 .document(matchId)
                 .collection("players")
@@ -469,11 +417,9 @@ class FirebaseRankingRepository(
                     doc.getDouble("rating")?.toFloat()
                 }
 
-                // Calcular média
                 val average = votes.average()
                 val total = votes.size
 
-                // Atualizar ou criar o documento de resumo
                 val summaryRef = voteSummariesCollection
                     .document(matchId)
                     .collection("players")

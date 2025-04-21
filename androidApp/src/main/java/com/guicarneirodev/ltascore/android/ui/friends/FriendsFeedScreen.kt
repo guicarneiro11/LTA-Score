@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.friends
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -78,10 +79,8 @@ fun FriendsFeedScreen(
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Manter os listeners ativos mesmo quando a tela não estiver em foco
     DisposableEffect(Unit) {
         onDispose {
-            // Não fazemos nada na disposição, deixando os listeners ativos
             println("FriendsFeedScreen sendo disposta, mas mantendo listeners ativos")
         }
     }
@@ -93,7 +92,7 @@ fun FriendsFeedScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar"
                         )
                     }
@@ -106,7 +105,6 @@ fun FriendsFeedScreen(
                 actions = {
                     IconButton(onClick = {
                         coroutineScope.launch {
-                            // Uso de coroutineScope para manter a operação ativa
                             viewModel.loadFeed()
                         }
                     }) {
@@ -245,15 +243,12 @@ fun FriendsFeedContent(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Para cada grupo (amigo + partida)
         groupedFeed.forEach { (groupKey, votes) ->
-            // Extrair informações do grupo
             val parts = groupKey.split(":")
             val friendName = parts[0].trim()
             val matchInfo = parts.getOrNull(1)?.trim()?.split("|") ?: listOf("", "")
             val dateStr = matchInfo.getOrNull(1) ?: ""
 
-            // Cabeçalho do grupo
             item(key = "header_$groupKey") {
                 FeedGroupHeader(
                     friendName = friendName,
@@ -264,16 +259,12 @@ fun FriendsFeedContent(
                 )
             }
 
-            // Itens de voto deste grupo
             items(votes, key = { it.id }) { vote ->
-                // Obter reações e comentários para este voto
                 val reactionsState = voteReactions[vote.id] ?: com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState()
                 val commentsList = voteComments[vote.id] ?: emptyList()
 
-                // Remover comentários duplicados
                 val uniqueComments = commentsList.distinctBy { it.id }
 
-                // Debug log para verificar
                 LaunchedEffect(vote.id) {
                     println("Renderizando voto ${vote.id}: ${reactionsState.reactions.size} reações, ${uniqueComments.size} comentários únicos")
                 }
@@ -292,7 +283,6 @@ fun FriendsFeedContent(
                 )
             }
 
-            // Separador entre grupos
             item(key = "divider_$groupKey") {
                 Divider(
                     color = Color(0xFF333340),
@@ -305,18 +295,16 @@ fun FriendsFeedContent(
 
 @Composable
 fun FeedGroupHeader(
+    modifier: Modifier = Modifier,
     friendName: String,
     date: String,
     teams: String,
-    isCurrentUser: Boolean = false,
-    modifier: Modifier = Modifier
+    isCurrentUser: Boolean = false
 ) {
     Column(modifier = modifier) {
-        // Nome do amigo
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar do amigo (simplificado)
             Box(
                 modifier = Modifier
                     .size(24.dp)
@@ -347,14 +335,12 @@ fun FeedGroupHeader(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Data da partida
         Text(
             text = date,
             style = MaterialTheme.typography.labelMedium,
             color = LTAThemeColors.TextSecondary
         )
 
-        // Times da partida
         Text(
             text = teams,
             style = MaterialTheme.typography.titleMedium,
@@ -364,8 +350,10 @@ fun FeedGroupHeader(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun FriendVoteItem(
+    modifier: Modifier = Modifier,
     vote: FriendVoteHistoryItem,
     reactions: List<VoteReaction>,
     userReaction: VoteReaction?,
@@ -375,15 +363,14 @@ fun FriendVoteItem(
     onAddReaction: (String) -> Unit,
     onRemoveReaction: () -> Unit,
     onAddComment: (String) -> Unit,
-    onDeleteComment: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onDeleteComment: (String) -> Unit
 ) {
     val ratingColor = when {
-        vote.rating < 3.0f -> Color(0xFFE57373) // Vermelho claro
-        vote.rating < 5.0f -> Color(0xFFFFB74D) // Laranja claro
-        vote.rating < 7.0f -> Color(0xFFFFD54F) // Amarelo
-        vote.rating < 9.0f -> Color(0xFF81C784) // Verde claro
-        else -> Color(0xFF4CAF50) // Verde
+        vote.rating < 3.0f -> Color(0xFFE57373)
+        vote.rating < 5.0f -> Color(0xFFFFB74D)
+        vote.rating < 7.0f -> Color(0xFFFFD54F)
+        vote.rating < 9.0f -> Color(0xFF81C784)
+        else -> Color(0xFF4CAF50)
     }
 
     Card(
@@ -404,14 +391,12 @@ fun FriendVoteItem(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Conteúdo do voto
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Foto do jogador
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(vote.playerImage)
@@ -424,7 +409,6 @@ fun FriendVoteItem(
                         .clip(RoundedCornerShape(8.dp))
                 )
 
-                // Informações do jogador
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -441,16 +425,13 @@ fun FriendVoteItem(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(top = 4.dp)
                     ) {
-                        // Badge de posição
                         PositionBadge(position = vote.playerPosition)
                     }
                 }
 
-                // Nota média
                 Column(
                     horizontalAlignment = Alignment.End
                 ) {
-                    // Nota média em destaque
                     Text(
                         text = String.format("%.1f", vote.rating),
                         fontSize = 24.sp,
@@ -458,7 +439,6 @@ fun FriendVoteItem(
                         color = ratingColor
                     )
 
-                    // Barra de rating visual
                     Box(
                         modifier = Modifier
                             .width(60.dp)
@@ -480,7 +460,6 @@ fun FriendVoteItem(
                 }
             }
 
-            // Indicador visual se o voto for do usuário atual
             if (isCurrentUser) {
                 Box(
                     modifier = Modifier
@@ -490,7 +469,6 @@ fun FriendVoteItem(
                 )
             }
 
-            // Barra de reações
             ReactionBar(
                 voteId = vote.id,
                 reactions = reactions,
@@ -499,7 +477,6 @@ fun FriendVoteItem(
                 onReactionRemoved = onRemoveReaction
             )
 
-            // Separador sutil
             Spacer(modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
@@ -507,7 +484,6 @@ fun FriendVoteItem(
                 .background(LTAThemeColors.DarkBackground)
             )
 
-            // Seção de comentários
             CommentSection(
                 voteId = vote.id,
                 comments = comments,

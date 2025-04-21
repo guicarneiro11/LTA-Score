@@ -31,16 +31,13 @@ class FirebaseFriendshipRepository(
 
     override suspend fun addFriendByUsername(username: String): Result<Friendship> {
         return try {
-            // Obter o usuário atual
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
-            // Verificar se não está tentando adicionar a si mesmo
             if (currentUser.username == username) {
                 return Result.failure(Exception("Você não pode adicionar a si mesmo como amigo"))
             }
 
-            // Buscar o usuário pelo nome de usuário
             val friendSnapshot = firestore.collection("users")
                 .whereEqualTo("username", username)
                 .get()
@@ -54,7 +51,6 @@ class FirebaseFriendshipRepository(
             val friendId = friendDoc.id
             val friendUsername = friendDoc.getString("username") ?: ""
 
-            // Verificar se já é amigo
             val existingFriendship = firestore.collection(friendsCollection)
                 .document(currentUser.id)
                 .collection("friends")
@@ -66,7 +62,6 @@ class FirebaseFriendshipRepository(
                 return Result.failure(Exception("Usuário já é seu amigo"))
             }
 
-            // Criar a amizade
             val friendship = Friendship(
                 id = "${currentUser.id}_${friendId}",
                 userId = currentUser.id,
@@ -75,7 +70,6 @@ class FirebaseFriendshipRepository(
                 createdAt = Clock.System.now()
             )
 
-            // Salvar nos dois lados (usuário -> amigo e amigo -> usuário)
             firestore.collection(friendsCollection)
                 .document(currentUser.id)
                 .collection("friends")
@@ -91,7 +85,6 @@ class FirebaseFriendshipRepository(
                 )
                 .await()
 
-            // Versão espelhada da amizade (para o outro usuário)
             val reverseFriendship = Friendship(
                 id = "${friendId}_${currentUser.id}",
                 userId = friendId,
@@ -123,11 +116,9 @@ class FirebaseFriendshipRepository(
 
     override suspend fun removeFriend(friendId: String): Result<Unit> {
         return try {
-            // Obter o usuário atual
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
-            // Remover dos dois lados
             firestore.collection(friendsCollection)
                 .document(currentUser.id)
                 .collection("friends")
@@ -149,7 +140,6 @@ class FirebaseFriendshipRepository(
     }
 
     override fun getUserFriends(): Flow<List<Friendship>> = callbackFlow {
-        // Obter o usuário atual
         try {
             val currentUser = userRepository.getCurrentUser().first()
             if (currentUser == null) {
@@ -158,7 +148,6 @@ class FirebaseFriendshipRepository(
                 return@callbackFlow
             }
 
-            // Configurar o listener para a coleção de amigos
             val listener = firestore.collection(friendsCollection)
                 .document(currentUser.id)
                 .collection("friends")
@@ -251,21 +240,16 @@ class FirebaseFriendshipRepository(
 
             println("Buscando histórico de votos dos amigos para usuário: ${currentUser.id}")
 
-            // Lista para armazenar todos os listeners que criaremos
             val listeners = mutableListOf<ListenerRegistration>()
 
-            // Mapa para manter o estado atual dos votos dos amigos
             val allFriendsVotes = mutableMapOf<String, List<FriendVoteHistoryItem>>()
 
-            // Função auxiliar para atualizar o feed combinado
-            // IMPORTANTE: Declarar a função antes de usá-la!
             fun updateFeed() {
                 val combinedFeed = allFriendsVotes.values.flatten()
                     .sortedByDescending { it.timestamp }
                 trySend(combinedFeed)
             }
 
-            // Listener principal para a lista de amigos
             val friendsListener = firestore.collection("user_friends")
                 .document(currentUser.id)
                 .collection("friends")
@@ -281,24 +265,21 @@ class FirebaseFriendshipRepository(
                         return@addSnapshotListener
                     }
 
-                    // Remover listeners antigos quando a lista de amigos muda
                     listeners.forEach { it.remove() }
                     listeners.clear()
                     allFriendsVotes.clear()
 
-                    // Para cada amigo, criar um listener para seu histórico de votos
                     friendsSnapshot.documents.forEach { friendDoc ->
                         val friendId = friendDoc.getString("friendId") ?: return@forEach
                         val friendUsername = friendDoc.getString("friendUsername") ?: "Amigo"
 
                         println("Configurando listener para votos do amigo: $friendUsername")
 
-                        // Listener para o histórico de votos deste amigo
                         val votesListener = firestore.collection("user_vote_history")
                             .document(friendId)
                             .collection("votes")
                             .orderBy("timestamp", Query.Direction.DESCENDING)
-                            .limit(15) // Limitando para performance
+                            .limit(15)
                             .addSnapshotListener { votesSnapshot, votesError ->
                                 if (votesError != null) {
                                     println("Erro ao observar votos do amigo $friendUsername: ${votesError.message}")
@@ -312,7 +293,6 @@ class FirebaseFriendshipRepository(
                                     return@addSnapshotListener
                                 }
 
-                                // Processar votos deste amigo
                                 val friendVotes = votesSnapshot.documents.mapNotNull { doc ->
                                     try {
                                         val matchId = doc.getString("matchId") ?: return@mapNotNull null
@@ -348,7 +328,6 @@ class FirebaseFriendshipRepository(
                                             Clock.System.now()
                                         }
 
-                                        // Criar o voto base
                                         val baseVote = UserVoteHistoryItem(
                                             id = doc.id,
                                             matchId = matchId,
@@ -367,7 +346,6 @@ class FirebaseFriendshipRepository(
                                             timestamp = timestamp
                                         )
 
-                                        // Criar o item do feed de amigos
                                         FriendVoteHistoryItem(
                                             baseVote = baseVote,
                                             friendId = friendId,
@@ -379,22 +357,17 @@ class FirebaseFriendshipRepository(
                                     }
                                 }
 
-                                // Atualizar o mapa de votos dos amigos
                                 allFriendsVotes[friendId] = friendVotes
 
-                                // Combinar todos os votos de todos os amigos e enviar para o fluxo
                                 updateFeed()
                             }
 
-                        // Manter referência ao listener para poder removê-lo depois
                         listeners.add(votesListener)
                     }
                 }
 
-            // Adicionar o listener principal à lista
             listeners.add(friendsListener)
 
-            // Crucial: fechar todos os listeners quando o flow for cancelado
             awaitClose {
                 println("Fechando listeners do feed de amigos")
                 listeners.forEach { it.remove() }
@@ -409,16 +382,13 @@ class FirebaseFriendshipRepository(
 
     override suspend fun sendFriendRequest(username: String): Result<FriendRequest> {
         return try {
-            // Obter o usuário atual
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
-            // Verificar se não está tentando adicionar a si mesmo
             if (currentUser.username == username) {
                 return Result.failure(Exception("Você não pode enviar solicitação para si mesmo"))
             }
 
-            // Buscar o usuário pelo nome de usuário
             val friendSnapshot = firestore.collection("users")
                 .whereEqualTo("username", username)
                 .get()
@@ -432,7 +402,6 @@ class FirebaseFriendshipRepository(
             val friendId = friendDoc.id
             friendDoc.getString("username") ?: ""
 
-            // Verificar se já é amigo
             val existingFriendship = firestore.collection(friendsCollection)
                 .document(currentUser.id)
                 .collection("friends")
@@ -444,7 +413,6 @@ class FirebaseFriendshipRepository(
                 return Result.failure(Exception("Usuário já é seu amigo"))
             }
 
-            // Verificar se já existe uma solicitação pendente
             val existingRequest = firestore.collection(requestsCollection)
                 .whereEqualTo("senderId", currentUser.id)
                 .whereEqualTo("receiverId", friendId)
@@ -456,7 +424,6 @@ class FirebaseFriendshipRepository(
                 return Result.failure(Exception("Solicitação já enviada"))
             }
 
-            // Criar solicitação
             val requestId = "${currentUser.id}_${friendId}"
             val createdAt = Clock.System.now()
 
@@ -469,7 +436,6 @@ class FirebaseFriendshipRepository(
                 createdAt = createdAt
             )
 
-            // Salvar solicitação
             firestore.collection(requestsCollection)
                 .document(requestId)
                 .set(
@@ -492,11 +458,9 @@ class FirebaseFriendshipRepository(
 
     override suspend fun acceptFriendRequest(requestId: String): Result<Friendship> {
         return try {
-            // Obter o usuário atual
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
-            // Buscar a solicitação
             val requestDoc = firestore.collection(requestsCollection)
                 .document(requestId)
                 .get()
@@ -511,26 +475,21 @@ class FirebaseFriendshipRepository(
             val receiverId = requestDoc.getString("receiverId") ?: ""
             val status = requestDoc.getString("status")
 
-            // Verificar se é o destinatário da solicitação
             if (receiverId != currentUser.id) {
                 return Result.failure(Exception("Solicitação não é para este usuário"))
             }
 
-            // Verificar status da solicitação
             if (status != "PENDING") {
                 return Result.failure(Exception("Solicitação já processada"))
             }
 
-            // Atualizar status da solicitação
             firestore.collection(requestsCollection)
                 .document(requestId)
                 .update("status", "ACCEPTED")
                 .await()
 
-            // Criar amizade para ambos os usuários
             val createdAt = Clock.System.now()
 
-            // Amizade para o receptor (usuário atual)
             val receiverFriendship = Friendship(
                 id = "${currentUser.id}_${senderId}",
                 userId = currentUser.id,
@@ -539,7 +498,6 @@ class FirebaseFriendshipRepository(
                 createdAt = createdAt
             )
 
-            // Amizade para o remetente
             val senderFriendship = Friendship(
                 id = "${senderId}_${currentUser.id}",
                 userId = senderId,
@@ -548,7 +506,6 @@ class FirebaseFriendshipRepository(
                 createdAt = createdAt
             )
 
-            // Salvar amizade para o receptor
             firestore.collection(friendsCollection)
                 .document(currentUser.id)
                 .collection("friends")
@@ -564,7 +521,6 @@ class FirebaseFriendshipRepository(
                 )
                 .await()
 
-            // Salvar amizade para o remetente
             firestore.collection(friendsCollection)
                 .document(senderId)
                 .collection("friends")
@@ -588,11 +544,9 @@ class FirebaseFriendshipRepository(
 
     override suspend fun rejectFriendRequest(requestId: String): Result<Unit> {
         return try {
-            // Obter o usuário atual
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
-            // Buscar a solicitação
             val requestDoc = firestore.collection(requestsCollection)
                 .document(requestId)
                 .get()
@@ -605,17 +559,14 @@ class FirebaseFriendshipRepository(
             val receiverId = requestDoc.getString("receiverId") ?: ""
             val status = requestDoc.getString("status")
 
-            // Verificar se é o destinatário da solicitação
             if (receiverId != currentUser.id) {
                 return Result.failure(Exception("Solicitação não é para este usuário"))
             }
 
-            // Verificar status da solicitação
             if (status != "PENDING") {
                 return Result.failure(Exception("Solicitação já processada"))
             }
 
-            // Atualizar status da solicitação
             firestore.collection(requestsCollection)
                 .document(requestId)
                 .update("status", "REJECTED")
@@ -628,7 +579,6 @@ class FirebaseFriendshipRepository(
     }
 
     override fun getPendingFriendRequests(): Flow<List<FriendRequest>> = callbackFlow {
-        // Obter o usuário atual
         try {
             val currentUser = userRepository.getCurrentUser().first()
             if (currentUser == null) {
@@ -637,7 +587,6 @@ class FirebaseFriendshipRepository(
                 return@callbackFlow
             }
 
-            // Configurar o listener para solicitações pendentes
             val listener = firestore.collection(requestsCollection)
                 .whereEqualTo("receiverId", currentUser.id)
                 .whereEqualTo("status", "PENDING")

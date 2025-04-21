@@ -37,30 +37,24 @@ class AuthViewModel(
     private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
-    // Estado da tela de login
     private val _loginUiState = MutableStateFlow(LoginUiState())
     val loginUiState: StateFlow<LoginUiState> = _loginUiState.asStateFlow()
 
-    // Estado da tela de registro
     private val _registerUiState = MutableStateFlow(RegisterUiState())
     val registerUiState: StateFlow<RegisterUiState> = _registerUiState.asStateFlow()
 
-    // Estado da tela de reset de senha
     private val _resetPasswordUiState = MutableStateFlow(ResetPasswordUiState())
     val resetPasswordUiState: StateFlow<ResetPasswordUiState> = _resetPasswordUiState.asStateFlow()
 
-    // Estado geral de autenticação do usuário
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
-    // Verifica se o usuário está logado
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
     private val _usernameAvailabilityState = MutableStateFlow<UsernameCheckState>(UsernameCheckState.Initial)
     val usernameAvailabilityState: StateFlow<UsernameCheckState> = _usernameAvailabilityState.asStateFlow()
 
-    // Enum para estados de verificação de username
     sealed class UsernameCheckState {
         object Initial : UsernameCheckState()
         object Available : UsernameCheckState()
@@ -70,43 +64,36 @@ class AuthViewModel(
     }
 
     init {
-        // Observa o estado de autenticação
         viewModelScope.launch {
             userRepository.isUserLoggedIn().collect { isLoggedIn ->
                 _isLoggedIn.value = isLoggedIn
 
-                // Atualiza os estados de UI
                 _loginUiState.value = _loginUiState.value.copy(isLoggedIn = isLoggedIn)
                 _registerUiState.value = _registerUiState.value.copy(isLoggedIn = isLoggedIn)
             }
         }
 
-        // Observa o usuário atual
         viewModelScope.launch {
             userRepository.getCurrentUser().collect { user ->
                 _currentUser.value = user
             }
         }
 
-        // Carregar o logo se a API estiver disponível
         loadLtaCrossLogo()
     }
 
     private fun loadLtaCrossLogo() {
-        // Apenas carregar se a API for fornecida
         loLEsportsApi?.let { api ->
             viewModelScope.launch {
                 try {
                     val response = api.getLeagues()
                     val crossLeague = response.data?.leagues?.find { it.slug == "lta_cross" }
                     crossLeague?.let { league ->
-                        // Substituir http por https para evitar erros de segurança
                         val secureImageUrl = league.image.replace("http://", "https://")
                         _loginUiState.value = _loginUiState.value.copy(ltaCrossLogo = secureImageUrl)
                     }
                 } catch (e: Exception) {
                     println("Erro ao carregar logo LTA Cross: ${e.message}")
-                    // Não exibimos erro para não afetar a experiência principal
                 }
             }
         }
@@ -119,7 +106,6 @@ class AuthViewModel(
             try {
                 val lowercaseUsername = username.lowercase()
 
-                // Validações locais primeiro
                 if (username.length < 3 || username.length > 20) {
                     _usernameAvailabilityState.value = UsernameCheckState.Unavailable(
                         "Nome de usuário deve ter entre 3 e 20 caracteres"
@@ -135,7 +121,6 @@ class AuthViewModel(
                     return@launch
                 }
 
-                // Verificação direta no Firestore
                 val snapshot = firestore
                     .collection("usernames")
                     .document(lowercaseUsername)
@@ -259,7 +244,6 @@ class AuthViewModel(
         }
     }
 
-    // Mapeia erros do Firebase Auth para mensagens amigáveis
     private fun mapFirebaseAuthError(e: Throwable): String {
         return when {
             e.message?.contains("Nome de usuário já está em uso") == true -> "Nome de usuário já está em uso"

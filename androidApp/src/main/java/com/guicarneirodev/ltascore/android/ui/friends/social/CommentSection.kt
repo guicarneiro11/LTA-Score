@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,7 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,13 +64,10 @@ fun CommentSection(
     var commentText by remember { mutableStateOf("") }
     var showComments by remember { mutableStateOf(false) }
 
-    // Certifica-se de que comentários duplicados são removidos
-    // Usamos distinctBy com id para garantir que cada comentário seja único
     val uniqueComments = remember(comments) {
         comments.distinctBy { it.id }
     }
 
-    // MELHORIA: Adicionar log para debug
     LaunchedEffect(comments) {
         println("CommentSection: Recebidos ${comments.size} comentários, ${uniqueComments.size} únicos para voto $voteId")
     }
@@ -83,19 +77,16 @@ fun CommentSection(
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        // Cabeçalho dos comentários
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    // MELHORIA: Adicionar log de debug
                     println("Alterando visibilidade dos comentários: ${!showComments}")
                     showComments = !showComments
                 }
                 .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Mostrar o contador de comentários com a contagem real de comentários únicos
             Text(
                 text = if (uniqueComments.isEmpty()) "Comentários" else "Comentários (${uniqueComments.size})",
                 color = LTAThemeColors.TextSecondary,
@@ -106,14 +97,13 @@ fun CommentSection(
             Spacer(modifier = Modifier.weight(1f))
 
             Icon(
-                imageVector = if (showComments) Icons.Default.Close else Icons.Default.Send,
+                imageVector = if (showComments) Icons.Default.Close else Icons.AutoMirrored.Filled.Send,
                 contentDescription = if (showComments) "Esconder comentários" else "Mostrar comentários",
                 tint = LTAThemeColors.TextSecondary,
                 modifier = Modifier.size(16.dp)
             )
         }
 
-        // Lista de comentários
         AnimatedVisibility(
             visible = showComments,
             enter = fadeIn() + expandVertically(),
@@ -121,14 +111,12 @@ fun CommentSection(
         ) {
             Column {
                 if (uniqueComments.isNotEmpty()) {
-                    // MELHORIA: Adicionar log para debug
                     println("Renderizando ${uniqueComments.size} comentários únicos")
 
-                    // CORREÇÃO: Usar Column em vez de LazyColumn com items
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 200.dp) // Limitar altura máxima
+                            .heightIn(max = 200.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
                         uniqueComments.forEach { comment ->
@@ -145,7 +133,6 @@ fun CommentSection(
                         color = LTAThemeColors.DarkBackground
                     )
                 } else {
-                    // Mostrar mensagem quando não há comentários
                     Text(
                         text = "Nenhum comentário ainda. Seja o primeiro a comentar!",
                         style = MaterialTheme.typography.bodySmall,
@@ -157,7 +144,6 @@ fun CommentSection(
                     )
                 }
 
-                // Campo para adicionar comentário
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -182,16 +168,15 @@ fun CommentSection(
                     IconButton(
                         onClick = {
                             if (commentText.isNotEmpty()) {
-                                // MELHORIA: Adicionar log de debug
                                 println("Enviando comentário: $commentText")
                                 onAddComment(commentText)
-                                commentText = "" // Limpa o campo de texto após enviar
+                                commentText = ""
                             }
                         },
                         enabled = commentText.isNotEmpty()
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Send,
+                            imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Enviar",
                             tint = if (commentText.isNotEmpty()) LTAThemeColors.PrimaryGold else LTAThemeColors.TextSecondary
                         )
@@ -214,7 +199,6 @@ fun CommentItem(
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.Top
     ) {
-        // Avatar do usuário
         Box(
             modifier = Modifier
                 .size(24.dp)
@@ -235,7 +219,6 @@ fun CommentItem(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Conteúdo do comentário
         Column(
             modifier = Modifier.weight(1f)
         ) {

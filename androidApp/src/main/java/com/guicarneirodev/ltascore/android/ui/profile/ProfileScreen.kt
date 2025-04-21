@@ -7,9 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,8 +51,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,17 +62,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
+import com.guicarneirodev.ltascore.android.data.cache.UserEvents
 import com.guicarneirodev.ltascore.android.ui.friends.social.FriendRequestsSection
+import com.guicarneirodev.ltascore.android.ui.matches.LogoImage
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsManagementUiState
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.domain.models.Friendship
@@ -83,6 +83,7 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(
     friendsViewModel: FriendsViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel(),
+    editProfileViewModel: EditProfileViewModel = koinViewModel(), // Adicione esta linha
     onNavigateToMatchHistory: () -> Unit,
     onNavigateToRanking: () -> Unit,
     onNavigateToFriendsFeed: () -> Unit,
@@ -93,9 +94,31 @@ fun ProfileScreen(
     val currentUser by authViewModel.currentUser.collectAsState()
     val friendsUiState by friendsViewModel.uiState.collectAsState()
     val requestsUiState by friendsViewModel.requestsUiState.collectAsState()
+    val editProfileUiState by editProfileViewModel.uiState.collectAsState() // Adicione esta linha
 
     // Estado para controlar a visibilidade da seção de amigos
     var showFriendsSection by remember { mutableStateOf(true) }
+
+    var updateTrigger by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        // Observar eventos de atualização e forçar recomposição
+        UserEvents.userUpdated.collect { userId ->
+            // Quando recebemos um evento de atualização, incrementamos um contador
+            // Isso força a recomposição do componente
+            updateTrigger++
+            println("ProfileScreen recebeu evento de atualização, trigger: $updateTrigger")
+        }
+    }
+
+    // Forçar carregamentos quando o updateTrigger mudar
+    LaunchedEffect(updateTrigger) {
+        // Carregar teams para garantir que temos todos disponíveis
+        editProfileViewModel.loadTeams()
+
+        // Este efeito é acionado toda vez que updateTrigger mudar
+        println("ProfileScreen atualizando interface após evento, trigger: $updateTrigger")
+    }
 
     // Mapeamento de times para cores
     val teamColors = mapOf(
@@ -160,20 +183,6 @@ fun ProfileScreen(
                             .background(LTAThemeColors.CardBackground),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Verificar se há um time favorito para adicionar um indicador visual
-                        if (currentUser?.favoriteTeamId != null) {
-                            // Cor do time para o contorno do avatar
-                            val teamColor = teamColors[currentUser!!.favoriteTeamId] ?: LTAThemeColors.PrimaryGold
-
-                            // Criar um contorno colorido para o avatar com a cor do time
-                            Box(
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(CircleShape)
-                                    .border(BorderStroke(3.dp, teamColor), CircleShape)
-                            )
-                        }
-
                         Text(
                             text = (currentUser?.username?.take(1) ?: "U").uppercase(),
                             fontSize = 48.sp,
@@ -185,69 +194,55 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Nome de usuário
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        // Nome de usuário
-                        Text(
-                            text = currentUser?.username ?: "Usuário",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = LTAThemeColors.TextPrimary
-                        )
+                    Text(
+                        text = currentUser?.username ?: "Usuário",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = LTAThemeColors.TextPrimary
+                    )
 
-                        // Logo do time favorito (se disponível)
-                        if (currentUser?.favoriteTeamId != null) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            TeamLogoImage(
-                                teamId = currentUser!!.favoriteTeamId,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White, CircleShape)
-                                    .padding(2.dp)
-                            )
-                        }
-                    }
+                    val effectiveTeamId = currentUser?.favoriteTeamId ?: FavoriteTeamCache.getFavoriteTeam()
 
-                    // NOVA ABORDAGEM: Badge de time favorito
-                    if (currentUser?.favoriteTeamId != null) {
+                    // Badge de time favorito
+                    if (effectiveTeamId != null) {
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Obter o código e a cor do time
-                        val teamCode = getTeamCode(currentUser!!.favoriteTeamId)
-                        val teamColor = teamColors[currentUser!!.favoriteTeamId] ?: LTAThemeColors.PrimaryGold
+                        // Buscar o time completo com a URL da imagem da lista de times disponíveis
+                        val teamItem = editProfileUiState.availableTeams.find { it.id == effectiveTeamId }
 
-                        // Badge de time favorito
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = LTAThemeColors.CardBackground,
-                            border = BorderStroke(2.dp, teamColor),
-                            modifier = Modifier.clickable(onClick = onNavigateToEditProfile)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        if (teamItem != null) {
+                            // Obter a cor do time
+                            val teamColor = teamColors[effectiveTeamId] ?: LTAThemeColors.PrimaryGold
+
+                            // Badge de time favorito com a mesma abordagem do EditProfileScreen
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = LTAThemeColors.CardBackground,
+                                border = BorderStroke(2.dp, teamColor),
+                                modifier = Modifier.clickable(onClick = onNavigateToEditProfile)
                             ) {
-                                // Miniatura do logo
-                                TeamLogoImage(
-                                    teamId = currentUser!!.favoriteTeamId,
-                                    modifier = Modifier
-                                        .size(18.dp)
-                                        .background(Color.White, CircleShape)
-                                        .padding(2.dp)
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    // Usar o mesmo componente LogoImage do EditProfileScreen
+                                    LogoImage(
+                                        imageUrl = teamItem.imageUrl,
+                                        name = teamItem.name,
+                                        code = teamItem.code,
+                                        modifier = Modifier.size(24.dp)
+                                    )
 
-                                Spacer(modifier = Modifier.width(8.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
 
-                                // Nome do time
-                                Text(
-                                    text = "Time: $teamCode",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = LTAThemeColors.TextPrimary,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                    // Nome do time
+                                    Text(
+                                        text = "Time: ${teamItem.code}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = LTAThemeColors.TextPrimary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
                             }
                         }
                     }
@@ -323,54 +318,6 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-    }
-}
-
-@Composable
-fun TeamLogoImage(
-    teamId: String?,
-    modifier: Modifier = Modifier
-) {
-    if (teamId == null) return
-
-    // Mapear os IDs dos times para suas URLs de imagem
-    val teamImageUrl = when(teamId) {
-        "loud" -> "https://static.lolesports.com/teams/1677205962121_1631819715466_loudlogoteams-1.png"
-        "pain-gaming" -> "https://static.lolesports.com/teams/1592590486578_PaiN-2020-Yellow.png"
-        "isurus-estral" -> "https://static.lolesports.com/teams/1702323368603_ISGLogo_LTA_2024_Grayscale.png"
-        "leviatan" -> "https://static.lolesports.com/teams/1673462138550_LVT-2023-1.png"
-        "furia" -> "https://static.lolesports.com/teams/furia.png"
-        "keyd" -> "https://static.lolesports.com/teams/1631819823314_keydstarsteams1.png"
-        "red" -> "https://static.lolesports.com/teams/red-canids-kalunga_-_2021_-_split_2.png"
-        "fxw7" -> "https://static.lolesports.com/teams/1704324649444_FluxoW7M.png"
-        else -> null
-    }
-
-    if (teamImageUrl != null) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(teamImageUrl)
-                .crossfade(true)
-                .build(),
-            contentDescription = "Logo do time favorito",
-            modifier = modifier,
-            contentScale = ContentScale.Fit
-        )
-    }
-}
-
-// Função auxiliar para obter o código do time
-private fun getTeamCode(teamId: String?): String {
-    return when(teamId) {
-        "loud" -> "LOUD"
-        "pain-gaming" -> "PAIN"
-        "isurus-estral" -> "IE"
-        "leviatan" -> "LEV"
-        "furia" -> "FUR"
-        "keyd" -> "VKS"
-        "red" -> "RED"
-        "fxw7" -> "FXW7"
-        else -> teamId?.take(3)?.uppercase() ?: ""
     }
 }
 

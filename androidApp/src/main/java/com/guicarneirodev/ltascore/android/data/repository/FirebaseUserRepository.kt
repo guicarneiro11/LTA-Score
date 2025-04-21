@@ -20,36 +20,45 @@ class FirebaseUserRepository(
 ) : UserRepository {
 
     private val usersCollection = firestore.collection("users")
-    private val coroutineScope = CoroutineScope(Dispatchers.IO) // Escopo de coroutine para operações de IO
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     override fun getCurrentUser(): Flow<User?> = callbackFlow {
+        var lastEmittedUserId: String? = null
+
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
-            if (auth.currentUser != null) {
-                // Se o usuário está logado, busca os dados completos em uma coroutine
-                coroutineScope.launch {
+            coroutineScope.launch {
+                if (auth.currentUser != null) {
                     try {
                         val user = getUserData(auth.currentUser!!)
-                        trySend(user)
-                    } catch (_: Exception) {
-                        // Em caso de falha ao buscar dados, emite o usuário básico
+
+                        if (lastEmittedUserId != user.id || user.favoriteTeamId != null) {
+                            lastEmittedUserId = user.id
+                            trySend(user)
+                            println("Emitido usuário atualizado: ${user.id}, time: ${user.favoriteTeamId}")
+                        }
+                    } catch (e: Exception) {
+                        println("Erro ao buscar dados do usuário: ${e.message}")
                         trySend(createDefaultUser(auth.currentUser!!))
                     }
+                } else {
+                    lastEmittedUserId = null
+                    trySend(null)
+                    println("Emitido usuário null (deslogado)")
                 }
-            } else {
-                // Se não está logado, emite null
-                trySend(null)
             }
         }
 
         auth.addAuthStateListener(authStateListener)
 
-        // Emite o estado atual imediatamente
         if (auth.currentUser != null) {
             coroutineScope.launch {
                 try {
                     val user = getUserData(auth.currentUser!!)
+                    lastEmittedUserId = user.id
                     trySend(user)
-                } catch (_: Exception) {
+                    println("Emissão inicial de usuário: ${user.id}, time: ${user.favoriteTeamId}")
+                } catch (e: Exception) {
+                    println("Erro na emissão inicial: ${e.message}")
                     trySend(createDefaultUser(auth.currentUser!!))
                 }
             }
@@ -69,7 +78,6 @@ class FirebaseUserRepository(
 
         auth.addAuthStateListener(authStateListener)
 
-        // Emite o estado atual imediatamente
         trySend(auth.currentUser != null)
 
         awaitClose {
@@ -87,44 +95,33 @@ class FirebaseUserRepository(
         }
     }
 
-    /**
-     * Verifica se um nome de usuário já está em uso
-     * @return true se o nome de usuário já existe, false caso contrário
-     */
     private suspend fun isUsernameAlreadyTaken(username: String): Boolean {
         try {
             println("Verificando se o username '$username' já existe...")
 
-            // Abordagem alternativa usando get() diretamente
-            // Verificamos os primeiros 10 usuários para evitar problemas de ordenação
             val querySnapshot = usersCollection
                 .whereEqualTo("username", username)
-                .limit(1)  // Limitamos a apenas 1 resultado
-                .get(com.google.firebase.firestore.Source.SERVER)  // Forçamos busca no servidor
+                .limit(1)
+                .get(com.google.firebase.firestore.Source.SERVER)
                 .await()
 
             val usernameExists = !querySnapshot.isEmpty
             println("Username '$username' ${if (usernameExists) "já existe" else "disponível"}")
             return usernameExists
         } catch (e: Exception) {
-            // Log detalhado do erro para depuração
             println("Erro ao verificar username: ${e.message}")
 
-            // Mostrar mais detalhes técnicos para depuração
             println("Detalhes técnicos do erro:")
             e.printStackTrace()
 
-            // Em caso de erro na consulta, assumimos que o username está em uso (por segurança)
             return true
         }
     }
 
     override suspend fun signUp(email: String, password: String, username: String): Result<User> {
         try {
-            // Primeiro, verificar disponibilidade do username
             val lowercaseUsername = username.lowercase()
 
-            // Verificação direta sem autenticação
             val usernameDoc = firestore
                 .collection("usernames")
                 .document(lowercaseUsername)
@@ -135,7 +132,6 @@ class FirebaseUserRepository(
                 return Result.failure(Exception("Nome de usuário já está em uso"))
             }
 
-            // Validações adicionais de username
             if (username.length < 3 || username.length > 20) {
                 return Result.failure(Exception("Nome de usuário deve ter entre 3 e 20 caracteres"))
             }
@@ -145,11 +141,9 @@ class FirebaseUserRepository(
                 return Result.failure(Exception("Nome de usuário inválido. Use apenas letras, números e _"))
             }
 
-            // Continua processo de criação de conta
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user!!
 
-            // Criar documento do usuário
             val user = User(
                 id = firebaseUser.uid,
                 email = email,
@@ -157,10 +151,8 @@ class FirebaseUserRepository(
                 createdAt = Clock.System.now()
             )
 
-            // Salvar usuário
             usersCollection.document(user.id).set(user).await()
 
-            // Reservar username
             firestore.collection("usernames")
                 .document(lowercaseUsername)
                 .set(mapOf(
@@ -175,24 +167,7 @@ class FirebaseUserRepository(
         }
     }
 
-    suspend fun isUsernameTaken(username: String): Boolean {
-        return try {
-            val lowercaseUsername = username.lowercase()
-            val snapshot = firestore
-                .collection("usernames")
-                .document(lowercaseUsername)
-                .get()
-                .await()
-
-            snapshot.exists()
-        } catch (e: Exception) {
-            // Em caso de erro, assume que o username está indisponível
-            true
-        }
-    }
-
     override suspend fun updateProfile(user: User): Result<User> {
-        // Primeiro verificar se o novo nome de usuário não conflita com outro usuário
         if (user.username != getUserData(auth.currentUser!!).username &&
             isUsernameAlreadyTaken(user.username)) {
             return Result.failure(Exception("Nome de usuário já está em uso"))
@@ -220,10 +195,8 @@ class FirebaseUserRepository(
     }
 
     private suspend fun getUserData(firebaseUser: FirebaseUser): User {
-        // Tenta buscar dados do usuário no Firestore
         val documentSnapshot = usersCollection.document(firebaseUser.uid).get().await()
 
-        // Se o documento existe, converte para User
         return if (documentSnapshot.exists()) {
             val userData = documentSnapshot.data
             if (userData != null) {
@@ -232,17 +205,15 @@ class FirebaseUserRepository(
                     email = userData["email"] as? String ?: "",
                     username = userData["username"] as? String ?: "",
                     profilePictureUrl = userData["profilePictureUrl"] as? String,
-                    favoriteTeamId = userData["favoriteTeamId"] as? String, // Adicionado essa linha
-                    createdAt = Clock.System.now() // Precisaríamos converter Timestamp para Instant
+                    favoriteTeamId = userData["favoriteTeamId"] as? String,
+                    createdAt = Clock.System.now()
                 )
             } else {
                 createDefaultUser(firebaseUser)
             }
         } else {
-            // Se não existe, cria um User básico
             val defaultUser = createDefaultUser(firebaseUser)
 
-            // Salva o usuário padrão no Firestore para futuras consultas
             usersCollection.document(firebaseUser.uid).set(defaultUser).await()
 
             defaultUser
@@ -260,6 +231,19 @@ class FirebaseUserRepository(
         )
     }
 
+    override suspend fun refreshCurrentUser() {
+        val firebaseUser = auth.currentUser
+        if (firebaseUser != null) {
+            try {
+                val updatedUser = getUserData(firebaseUser)
+
+                println("Dados do usuário recarregados com sucesso: ${updatedUser.favoriteTeamId}")
+            } catch (e: Exception) {
+                println("Erro ao recarregar dados do usuário: ${e.message}")
+            }
+        }
+    }
+
     override suspend fun updateFavoriteTeam(teamId: String): Result<Unit> {
         return try {
             val currentUser = auth.currentUser ?: return Result.failure(Exception("Usuário não autenticado"))
@@ -268,7 +252,32 @@ class FirebaseUserRepository(
                 .update("favoriteTeamId", teamId)
                 .await()
 
-            val updatedUser = getUserData(currentUser)
+            val updatedUserDoc = usersCollection.document(currentUser.uid).get().await()
+
+            if (updatedUserDoc.exists()) {
+                val userData = updatedUserDoc.data
+                if (userData != null) {
+                    User(
+                        id = currentUser.uid,
+                        email = userData["email"] as? String ?: "",
+                        username = userData["username"] as? String ?: "",
+                        profilePictureUrl = userData["profilePictureUrl"] as? String,
+                        favoriteTeamId = userData["favoriteTeamId"] as? String,
+                        createdAt = Clock.System.now()
+                    )
+
+                    coroutineScope.launch(Dispatchers.Main) {
+                        try {
+                            auth.updateCurrentUser(auth.currentUser!!).await()
+
+                            println("Forçada atualização do listener de autenticação")
+                            println("Time favorito atualizado para: $teamId")
+                        } catch (e: Exception) {
+                            println("Erro ao forçar atualização: ${e.message}")
+                        }
+                    }
+                }
+            }
 
             Result.success(Unit)
         } catch (e: Exception) {

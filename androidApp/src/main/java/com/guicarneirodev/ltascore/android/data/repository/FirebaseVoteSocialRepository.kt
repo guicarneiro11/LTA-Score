@@ -27,7 +27,6 @@ class FirebaseVoteSocialRepository(
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
-            // Verificar se o usuário já tem uma reação para este voto
             val existingReactionQuery = firestore
                 .collection("vote_reactions")
                 .whereEqualTo("voteId", voteId)
@@ -35,7 +34,6 @@ class FirebaseVoteSocialRepository(
                 .get()
                 .await()
 
-            // Se já existe, remover a reação anterior
             if (!existingReactionQuery.isEmpty) {
                 val existingDoc = existingReactionQuery.documents.first()
                 firestore.collection("vote_reactions")
@@ -44,7 +42,6 @@ class FirebaseVoteSocialRepository(
                     .await()
             }
 
-            // Criar nova reação
             val reactionId = UUID.randomUUID().toString()
             val timestamp = Clock.System.now()
 
@@ -57,7 +54,6 @@ class FirebaseVoteSocialRepository(
                 timestamp = timestamp
             )
 
-            // Salvar no Firestore
             firestore.collection("vote_reactions")
                 .document(reactionId)
                 .set(mapOf(
@@ -81,7 +77,6 @@ class FirebaseVoteSocialRepository(
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
-            // Buscar a reação do usuário para este voto
             val reactionQuery = firestore
                 .collection("vote_reactions")
                 .whereEqualTo("voteId", voteId)
@@ -93,7 +88,6 @@ class FirebaseVoteSocialRepository(
                 return Result.failure(Exception("Reação não encontrada"))
             }
 
-            // Remover a reação
             val reactionDoc = reactionQuery.documents.first()
             firestore.collection("vote_reactions")
                 .document(reactionDoc.id)
@@ -112,14 +106,12 @@ class FirebaseVoteSocialRepository(
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    // PROBLEMA 1: A mensagem de erro não está sendo logada
                     println("Erro ao buscar reações: ${error.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null || snapshot.isEmpty) {
-                    // PROBLEMA 2: Não estamos logando quando não há reações
                     println("Nenhuma reação encontrada para o voto $voteId")
                     trySend(emptyList())
                     return@addSnapshotListener
@@ -148,13 +140,11 @@ class FirebaseVoteSocialRepository(
                             timestamp = timestamp
                         )
                     } catch (e: Exception) {
-                        // PROBLEMA 3: Exceções durante o processamento de documentos não são logadas
                         println("Erro ao processar documento de reação: ${e.message}")
                         null
                     }
                 }
 
-                // MELHORIA: Adicionar log para confirmar que encontramos reações
                 println("Encontradas ${reactions.size} reações para o voto $voteId")
                 trySend(reactions)
             }
@@ -212,7 +202,7 @@ class FirebaseVoteSocialRepository(
                         )
 
                         trySend(voteReaction)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         trySend(null)
                     }
                 }
@@ -243,7 +233,6 @@ class FirebaseVoteSocialRepository(
                 timestamp = timestamp
             )
 
-            // Salvar no Firestore
             firestore.collection("vote_comments")
                 .document(commentId)
                 .set(mapOf(
@@ -267,7 +256,6 @@ class FirebaseVoteSocialRepository(
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
-            // Verificar se o comentário pertence ao usuário
             val commentDoc = firestore.collection("vote_comments")
                 .document(commentId)
                 .get()
@@ -282,7 +270,6 @@ class FirebaseVoteSocialRepository(
                 return Result.failure(Exception("Você não pode remover comentários de outros usuários"))
             }
 
-            // Remover o comentário
             firestore.collection("vote_comments")
                 .document(commentId)
                 .delete()
@@ -300,14 +287,12 @@ class FirebaseVoteSocialRepository(
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    // PROBLEMA 1: A mensagem de erro não está sendo logada
                     println("Erro ao buscar comentários: ${error.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
 
                 if (snapshot == null || snapshot.isEmpty) {
-                    // PROBLEMA 2: Não estamos logando quando não há comentários
                     println("Nenhum comentário encontrado para o voto $voteId")
                     trySend(emptyList())
                     return@addSnapshotListener
@@ -336,13 +321,11 @@ class FirebaseVoteSocialRepository(
                             timestamp = timestamp
                         )
                     } catch (e: Exception) {
-                        // PROBLEMA 3: Exceções durante o processamento de documentos não são logadas
                         println("Erro ao processar documento de comentário: ${e.message}")
                         null
                     }
                 }
 
-                // MELHORIA: Adicionar log para confirmar que encontramos comentários
                 println("Encontrados ${comments.size} comentários para o voto $voteId")
                 trySend(comments)
             }

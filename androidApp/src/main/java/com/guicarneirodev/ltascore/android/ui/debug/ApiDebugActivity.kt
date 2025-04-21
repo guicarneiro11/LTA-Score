@@ -17,10 +17,6 @@ import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
-/**
- * Atividade de depuração para testar diretamente a API
- * Adicione esta atividade ao AndroidManifest.xml para uso temporário durante o desenvolvimento
- */
 class ApiDebugActivity : ComponentActivity() {
 
     private val api: LoLEsportsApi by inject()
@@ -42,10 +38,9 @@ class ApiDebugActivity : ComponentActivity() {
     private fun testApi(leagueSlug: String) {
         lifecycleScope.launch {
             try {
-                // Esta chamada vai usar o código modificado que imprime a resposta bruta
                 api.getSchedule(leagueSlug)
             } catch (_: Exception) {
-                // Os logs já serão impressos pela implementação da API
+
             }
         }
     }
@@ -76,7 +71,6 @@ fun ApiDebugScreen(
             Text("Liga:")
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Dropdown simples para selecionar a liga
             DropdownMenu(
                 expanded = false,
                 onDismissRequest = { },
@@ -107,7 +101,6 @@ fun ApiDebugScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Área de log
         Surface(
             modifier = Modifier
                 .fillMaxWidth()

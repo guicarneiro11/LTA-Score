@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -72,7 +71,6 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Logo LTA Cross acima do título
         uiState.ltaCrossLogo?.let { logoUrl ->
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -81,9 +79,8 @@ fun LoginScreen(
                     .build(),
                 contentDescription = "LTA Cross Logo",
                 contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(LTAThemeColors.PrimaryGold), // Logo dourado
+                colorFilter = ColorFilter.tint(LTAThemeColors.PrimaryGold),
                 loading = {
-                    // Placeholder enquanto carrega
                     Spacer(modifier = Modifier.size(80.dp))
                 },
                 modifier = Modifier.size(80.dp)
@@ -92,7 +89,6 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // Logo ou título do app
         Text(
             text = "LTA Score",
             style = MaterialTheme.typography.headlineLarge,
@@ -107,7 +103,6 @@ fun LoginScreen(
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Campos de login
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -143,7 +138,6 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Link para recuperação de senha
         TextButton(
             onClick = onNavigateToResetPassword,
             modifier = Modifier.align(Alignment.End)
@@ -153,7 +147,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Botão de login
         Button(
             onClick = { viewModel.login(email, password) },
             enabled = email.isNotEmpty() && password.isNotEmpty() && !uiState.isLoading,
@@ -171,7 +164,6 @@ fun LoginScreen(
             }
         }
 
-        // Erro de login
         if (uiState.error != null) {
             Text(
                 text = uiState.error!!,
@@ -183,7 +175,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Link para criar conta
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,

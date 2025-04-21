@@ -2,8 +2,6 @@ package com.guicarneirodev.ltascore.android.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.Transaction
 import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.UserVoteHistoryItem
@@ -13,7 +11,6 @@ import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
@@ -31,27 +28,19 @@ class FirebaseVoteRepository(
 
     private val votesCollection = firestore.collection("votes")
     private val voteSummariesCollection = firestore.collection("vote_summaries")
-    private val userVoteHistoryCollection = firestore.collection("user_vote_history")
 
-
-
-    // Escopo de IO para operações em background
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
     override suspend fun getUserVotes(userId: String): Flow<List<Vote>> = callbackFlow {
-        // Encontrar os votos usando a coleção específica em vez de collectionGroup
-        // Isso requer buscar match por match, o que não é ideal, mas evita erros de permissão
         val listener = votesCollection
-            .limit(50) // Limitamos para evitar consultas muito grandes
+            .limit(50)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    trySend(emptyList<Vote>()) // Em caso de erro, enviamos uma lista vazia
+                    trySend(emptyList<Vote>())
                     return@addSnapshotListener
                 }
 
                 if (snapshot != null) {
-                    // Aqui nós emitimos uma lista vazia temporariamente
-                    // Em uma implementação completa, buscaríamos votos para cada match
                     trySend(emptyList<Vote>())
                 }
             }
@@ -62,7 +51,6 @@ class FirebaseVoteRepository(
     }
 
     override suspend fun getUserVoteForPlayer(userId: String, matchId: String, playerId: String): Flow<Vote?> = callbackFlow {
-        // Buscar o voto específico
         val listener = votesCollection
             .document(matchId)
             .collection("players")
@@ -90,7 +78,7 @@ class FirebaseVoteRepository(
                         )
 
                         trySend(vote)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         trySend(null)
                     }
                 } else {
@@ -104,22 +92,17 @@ class FirebaseVoteRepository(
     }
 
     override suspend fun getMatchVoteSummary(matchId: String): Flow<List<VoteSummary>> = callbackFlow {
-        // Primeiro tentamos buscar os resumos pré-calculados
         val summariesListener = voteSummariesCollection
             .document(matchId)
             .collection("players")
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null || snapshot.isEmpty) {
-                    // Em caso de erro ou ausência de dados, emitimos uma lista vazia
-                    // e lançamos uma coroutine para calcular em tempo real
                     trySend(emptyList())
 
-                    // Usamos um escopo de coroutine para chamar a função suspensa
                     ioScope.launch {
                         try {
                             val calculatedSummaries = calculateRealTimeSummary(matchId)
 
-                            // Tenta atualizar os resumos no Firestore para uso futuro do ranking
                             calculatedSummaries.forEach { summary ->
                                 try {
                                     val summaryRef = voteSummariesCollection
@@ -141,14 +124,12 @@ class FirebaseVoteRepository(
 
                             trySend(calculatedSummaries)
                         } catch (e: Exception) {
-                            // Em caso de erro no cálculo, já emitimos lista vazia acima
                             println("Erro ao calcular resumos em tempo real: ${e.message}")
                         }
                     }
                     return@addSnapshotListener
                 }
 
-                // Se temos resumos, usamos eles
                 val summaries = snapshot.documents.mapNotNull { doc ->
                     try {
                         val playerId = doc.id
@@ -161,7 +142,7 @@ class FirebaseVoteRepository(
                             averageRating = averageRating,
                             totalVotes = totalVotes
                         )
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 }
@@ -174,15 +155,12 @@ class FirebaseVoteRepository(
         }
     }
 
-    // Função auxiliar para calcular resumos em tempo real
     private suspend fun calculateRealTimeSummary(matchId: String): List<VoteSummary> {
         val summaries = mutableListOf<VoteSummary>()
 
         try {
-            // Obtemos IDs de jogadores para essa partida
             val playerIds = getPlayerIdsForMatch(matchId)
 
-            // Para cada jogador, calculamos o resumo com base nos votos individuais
             for (playerId in playerIds) {
                 val querySnapshot = votesCollection
                     .document(matchId)
@@ -219,15 +197,10 @@ class FirebaseVoteRepository(
 
     override suspend fun hasUserVotedForMatch(userId: String, matchId: String): Flow<Boolean> = flow {
         try {
-            // Abordagem alternativa para verificar se o usuário votou
-            // Verificamos um jogador específico por vez para evitar consultas collectionGroup
-
-            // Obtemos a lista de jogadores usando os metadados da partida
             val playerIds = getPlayerIdsForMatch(matchId)
 
             var hasVoted = false
 
-            // Verificamos se o usuário votou em qualquer um dos jogadores
             for (playerId in playerIds) {
                 val voteRef = votesCollection
                     .document(matchId)
@@ -245,16 +218,13 @@ class FirebaseVoteRepository(
 
             emit(hasVoted)
         } catch (e: Exception) {
-            // Em caso de erro, assumimos que o usuário não votou
             println("Erro ao verificar votos do usuário: ${e.message}")
             emit(false)
         }
     }
 
-    // Função auxiliar para obter IDs de jogadores de uma partida
     private suspend fun getPlayerIdsForMatch(matchId: String): List<String> {
         try {
-            // Buscar os jogadores para os quais existem votos nesta partida
             val playersCollection = votesCollection.document(matchId).collection("players")
             val playersSnapshot = playersCollection.get().await()
 
@@ -262,7 +232,6 @@ class FirebaseVoteRepository(
                 return playersSnapshot.documents.map { it.id }
             }
 
-            // Se não encontrou, tenta no resumo
             val summaryPlayersCollection = voteSummariesCollection.document(matchId).collection("players")
             val summarySnapshot = summaryPlayersCollection.get().await()
 
@@ -273,7 +242,6 @@ class FirebaseVoteRepository(
             println("Erro ao buscar IDs de jogadores: ${e.message}")
         }
 
-        // Se tudo falhar, retorna lista padrão
         return listOf(
             "player_ie_burdol", "player_ie_josedeodo", "player_ie_mireu",
             "player_ie_snaker", "player_ie_ackerman", "player_pain_wizer",
@@ -282,51 +250,8 @@ class FirebaseVoteRepository(
         )
     }
 
-    /**
-     * Atualiza o resumo de votos para um jogador em uma partida dentro de uma transação
-     */
-    private fun updateVoteSummaryInTransaction(
-        transaction: Transaction,
-        matchId: String,
-        playerId: String
-    ) {
-        try {
-            // Referência para o documento de resumo
-            val summaryRef = voteSummariesCollection
-                .document(matchId)
-                .collection("players")
-                .document(playerId)
-
-            // Observe que não podemos recuperar toda a coleção em uma transação
-            // Em vez disso, vamos apenas criar um resumo básico para marcar que o voto foi processado
-            // O resumo completo será atualizado posteriormente por um processo separado
-
-            val summaryData = hashMapOf(
-                "needsUpdate" to true,
-                "lastUpdated" to Date.from(Clock.System.now().toJavaInstant())
-            )
-
-            // Atualizar resumo com informação de que precisa ser recalculado
-            transaction.set(summaryRef, summaryData, SetOptions.merge())
-
-            // Agendamos uma atualização do resumo fora da transação
-            ioScope.launch {
-                try {
-                    delay(500) // Pequeno atraso para garantir que o voto foi salvo
-                    updateVoteSummary(matchId, playerId)
-                } catch (e: Exception) {
-                    println("Erro ao atualizar resumo após transação: ${e.message}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Erro ao marcar resumo para atualização: ${e.message}")
-        }
-    }
-
-    // Método para atualizar resumos fora de uma transação (usado pelo ranking)
     suspend fun updateVoteSummary(matchId: String, playerId: String) {
         try {
-            // Obter todos os votos para este jogador nesta partida
             val querySnapshot = votesCollection
                 .document(matchId)
                 .collection("players")
@@ -341,11 +266,9 @@ class FirebaseVoteRepository(
                 }
 
                 if (votes.isNotEmpty()) {
-                    // Calcular média
                     val average = votes.average()
                     val total = votes.size
 
-                    // Atualizar ou criar o documento de resumo
                     val summaryRef = voteSummariesCollection
                         .document(matchId)
                         .collection("players")
@@ -371,7 +294,6 @@ class FirebaseVoteRepository(
 
     override suspend fun submitVote(vote: Vote) {
         try {
-            // Salvar o voto original (código existente)
             val voteRef = votesCollection
                 .document(vote.matchId)
                 .collection("players")
@@ -389,11 +311,8 @@ class FirebaseVoteRepository(
 
             voteRef.set(voteData).await()
 
-            // Atualizar o resumo
             updateVoteSummary(vote.matchId, vote.playerId)
 
-            // NOVO: Adicionar ao histórico do usuário
-            // Precisamos buscar mais informações sobre a partida e o jogador
             val matchInfo = getMatchMetadata(vote.matchId)
             val playerInfo = getPlayerMetadata(vote.playerId)
 
@@ -463,7 +382,6 @@ class FirebaseVoteRepository(
         try {
             println("Buscando histórico de votos para usuário $userId")
 
-            // Adicionar listener para atualizações em tempo real
             val listener = firestore
                 .collection("user_vote_history")
                 .document(userId)
@@ -499,11 +417,10 @@ class FirebaseVoteRepository(
                             val rating = doc.getDouble("rating")?.toFloat() ?: 0f
                             val timestampDate = doc.getDate("timestamp")
 
-                            // Converter string de posição para enum
                             val playerPosition = try {
                                 PlayerPosition.valueOf(playerPositionStr)
-                            } catch (e: Exception) {
-                                PlayerPosition.TOP // Valor padrão
+                            } catch (_: Exception) {
+                                PlayerPosition.TOP
                             }
 
                             val matchDate = if (matchDateTimestamp != null) {
@@ -559,12 +476,8 @@ class FirebaseVoteRepository(
         }
     }
 
-    // Função auxiliar para obter metadados da partida
     private suspend fun getMatchMetadata(matchId: String): MatchMetadata? {
         try {
-            // Buscar dados da partida do cache local ou Firestore
-            // Implementação dependente da sua estrutura
-            // Aqui está um exemplo simplificado:
             val matchDoc = firestore
                 .collection("match_metadata")
                 .document(matchId)
@@ -575,7 +488,6 @@ class FirebaseVoteRepository(
                 val date = matchDoc.getDate("date")?.toInstant() ?: Clock.System.now().toJavaInstant()
                 val teamsMap = mutableMapOf<String, TeamInfo>()
 
-                // Ler os dados dos times
                 val teamsData = matchDoc.get("teams") as? Map<*, *>
                 teamsData?.forEach { (teamId, data) ->
                     if (teamId is String && data is Map<*, *>) {
@@ -603,11 +515,8 @@ class FirebaseVoteRepository(
         }
     }
 
-    // Função auxiliar para obter metadados do jogador
-    private suspend fun getPlayerMetadata(playerId: String): PlayerMetadata? {
+    private fun getPlayerMetadata(playerId: String): PlayerMetadata? {
         try {
-            // Buscar dados do jogador do cache estático
-            // Esta função dependeria da sua implementação do PlayersStaticDataSource
             val player = playersStaticDataSource.getPlayerById(playerId)
 
             return player?.let {
@@ -626,7 +535,6 @@ class FirebaseVoteRepository(
         }
     }
 
-    // Classes auxiliares para metadados
     private data class MatchMetadata(
         val id: String,
         val date: Instant,

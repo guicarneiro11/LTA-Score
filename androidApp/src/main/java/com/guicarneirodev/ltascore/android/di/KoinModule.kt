@@ -42,19 +42,14 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
-    // Firebase
     single { FirebaseAuth.getInstance() }
     single { FirebaseFirestore.getInstance() }
 
-    // API
     single { LoLEsportsApi() }
 
-
-    // DataSources
     single { PlayersStaticDataSource() }
     single { MatchLocalDataSource() }
 
-    // Repositories
     single<MatchRepository> { MatchRepositoryImpl(get(), get(), get()) }
     single<UserRepository> { FirebaseUserRepository(get(), get()) }
     single<VoteRepository> { FirebaseVoteRepository(get(), get()) }
@@ -62,10 +57,8 @@ val appModule = module {
     single<FriendshipRepository> { FirebaseFriendshipRepository(get(), get()) }
     single<VoteSocialRepository> { FirebaseVoteSocialRepository(get(), get()) }
 
-    // DataStore Repository
     single { UserPreferencesRepository(androidContext()) }
 
-    // Use Cases
     single { GetMatchesUseCase(get()) }
     single { GetCompletedMatchesUseCase(get()) }
     single { GetMatchByIdUseCase(get()) }
@@ -75,7 +68,6 @@ val appModule = module {
     single { ManageFriendshipsUseCase(get()) }
     single { GetFriendsFeedUseCase(get(), get(), get()) }
 
-    // ViewModels
     viewModel { MatchesViewModel(get(), get()) }
     viewModel { VotingViewModel(get(), get(), get(), get()) }
     viewModel { MatchSummaryViewModel(get(), get(), get(), get()) }

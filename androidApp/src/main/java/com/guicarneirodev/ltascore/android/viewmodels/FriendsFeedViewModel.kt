@@ -49,32 +49,26 @@ class FriendsFeedViewModel(
     private val _uiState = MutableStateFlow(FriendsFeedUiState(isLoading = true))
     val uiState: StateFlow<FriendsFeedUiState> = _uiState.asStateFlow()
 
-    // Usado para controlar os jobs de coleta de dados do Firebase
     private var reactionsJobs = mutableMapOf<String, Job>()
     private var commentsJobs = mutableMapOf<String, Job>()
 
-    // SupervisorJob para manter as coletas ativas mesmo se algumas falharem
     private val supervisorJob = SupervisorJob()
 
     init {
         loadCurrentUser()
 
-        // Inicializa o estado com dados do cache, se disponíveis
         initializeFromCache()
 
-        // Carrega os dados mais recentes
         loadFeed()
     }
 
     private fun initializeFromCache() {
         viewModelScope.launch {
-            // Atualizar o ID do usuário atual (importante fazer isso primeiro)
             val user = userRepository.getCurrentUser().first()
             if (user != null) {
                 _uiState.value = _uiState.value.copy(currentUserId = user.id)
             }
 
-            // Combina todos os fluxos do cache e atualiza o estado de uma vez
             combine(
                 FeedCache.cachedFeed,
                 FeedCache.cachedReactions,
@@ -82,7 +76,6 @@ class FriendsFeedViewModel(
                 FeedCache.cachedComments
             ) { feed, reactions, userReactions, comments ->
                 if (feed.isNotEmpty()) {
-                    // Agrupar por amigo + partida para exibição
                     val groupedItems = feed.groupBy { item ->
                         val prefix = if (item.friendId == _uiState.value.currentUserId) {
                             "Seus votos"
@@ -92,7 +85,6 @@ class FriendsFeedViewModel(
                         "$prefix: ${item.matchId}|${formatDateForGrouping(item.matchDate)}"
                     }
 
-                    // Criar o mapa de estados de reação
                     val reactionsState = reactions.mapValues { (voteId, reactionsList) ->
                         VoteReactionsState(
                             reactions = reactionsList,
@@ -100,7 +92,6 @@ class FriendsFeedViewModel(
                         )
                     }
 
-                    // Atualizar o estado da UI com todos os dados do cache
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         feed = feed,
@@ -139,18 +130,14 @@ class FriendsFeedViewModel(
                 getFriendsFeedUseCase.execute().collect { feedItems ->
                     println("Feed recebido: ${feedItems.size} itens")
 
-                    // Armazenar no cache
                     FeedCache.updateFeed(feedItems)
 
-                    // Agrupar por amigo + partida para melhor visualização
                     val groupedItems = feedItems.groupBy { item ->
-                        // Verificar se o item é do próprio usuário
                         val prefix = if (item.friendId == _uiState.value.currentUserId) {
                             "Seus votos"
                         } else {
                             item.friendUsername
                         }
-                        // Formato: "Nome do amigo: MatchId|Data" ou "Seus votos: MatchId|Data"
                         "$prefix: ${item.matchId}|${formatDateForGrouping(item.matchDate)}"
                     }
 
@@ -160,10 +147,8 @@ class FriendsFeedViewModel(
                         groupedFeed = groupedItems
                     )
 
-                    // Cancela jobs anteriores antes de iniciar novos
                     cancelExistingJobs()
 
-                    // Carregar reações e comentários para cada voto
                     feedItems.forEach { voteItem ->
                         println("Carregando reações e comentários para voto: ${voteItem.id}")
                         loadReactionsForVote(voteItem.id)
@@ -189,30 +174,24 @@ class FriendsFeedViewModel(
     }
 
     private fun loadReactionsForVote(voteId: String) {
-        // Inicia um novo job para coletar reações e o armazena no mapa
         reactionsJobs[voteId] = viewModelScope.launch(Dispatchers.IO + supervisorJob) {
             try {
                 println("Iniciando carregamento de reações para: $voteId")
 
-                // Coletar reações do repositório
                 voteSocialRepository.getReactionsForVote(voteId).collect { reactions ->
                     println("Reações recebidas para $voteId: ${reactions.size}")
 
-                    // Armazenar no cache
                     FeedCache.updateReactions(voteId, reactions)
 
-                    // Carregar a reação do usuário atual
                     val userReaction = withContext(Dispatchers.IO) {
                         voteSocialRepository.getUserReactionForVote(voteId).first()
                     }
 
-                    // Armazenar no cache
                     FeedCache.updateUserReaction(voteId, userReaction)
 
                     println("Reação do usuário atual para $voteId: ${userReaction?.reaction ?: "nenhuma"}")
 
                     withContext(Dispatchers.Main) {
-                        // Atualizar o estado
                         val currentReactions = _uiState.value.voteReactions
                         val updatedReactions = currentReactions.toMutableMap().apply {
                             this[voteId] = VoteReactionsState(
@@ -234,20 +213,16 @@ class FriendsFeedViewModel(
     }
 
     private fun loadCommentsForVote(voteId: String) {
-        // Inicia um novo job para coletar comentários e o armazena no mapa
         commentsJobs[voteId] = viewModelScope.launch(Dispatchers.IO + supervisorJob) {
             try {
                 println("Iniciando carregamento de comentários para: $voteId")
 
-                // Coletar comentários do repositório
                 voteSocialRepository.getCommentsForVote(voteId).collect { comments ->
                     println("Comentários recebidos para $voteId: ${comments.size}")
 
-                    // Armazenar no cache
                     FeedCache.updateComments(voteId, comments)
 
                     withContext(Dispatchers.Main) {
-                        // Atualizar o estado
                         val currentComments = _uiState.value.voteComments
                         val updatedComments = currentComments.toMutableMap().apply {
                             this[voteId] = comments
@@ -270,29 +245,22 @@ class FriendsFeedViewModel(
             try {
                 println("Adicionando reação '$reaction' ao voto $voteId")
 
-                // Realizar a operação no repositório
                 val result = voteSocialRepository.addReaction(voteId, reaction)
 
-                // Atualizar o estado local imediatamente para feedback rápido
                 result.onSuccess { newReaction ->
                     println("Reação adicionada com sucesso: ${newReaction.reaction}")
 
-                    // Atualizar o cache
                     FeedCache.addOrUpdateReaction(voteId, newReaction)
 
-                    // Atualizar a lista de reações atual
                     val currentState = _uiState.value
                     val currentReactionsState = currentState.voteReactions[voteId] ?: VoteReactionsState()
 
-                    // Removendo reação anterior do usuário (se existir)
                     val filteredReactions = currentReactionsState.reactions.filter {
                         it.userId != newReaction.userId
                     }
 
-                    // Criando nova lista com a reação adicionada
                     val updatedReactions = filteredReactions + newReaction
 
-                    // Atualizando o estado
                     val updatedReactionsMap = currentState.voteReactions.toMutableMap().apply {
                         this[voteId] = VoteReactionsState(
                             reactions = updatedReactions,
@@ -318,31 +286,24 @@ class FriendsFeedViewModel(
             try {
                 println("Removendo reação do voto $voteId")
 
-                // Obter o ID do usuário atual
                 val currentUserId = _uiState.value.currentUserId
 
-                // Salvar informação da reação atual antes de remover
                 val currentState = _uiState.value
                 val currentReactionsState = currentState.voteReactions[voteId] ?: VoteReactionsState()
                 val userReaction = currentReactionsState.userReaction
 
-                // Realizar a operação no repositório
                 val result = voteSocialRepository.removeReaction(voteId)
 
-                // Atualizar o estado local imediatamente para feedback rápido
                 result.onSuccess {
                     println("Reação removida com sucesso")
 
-                    // Atualizar o cache
                     FeedCache.removeReaction(voteId, currentUserId)
 
-                    // Filtrar a reação removida da lista
                     val userId = userReaction?.userId ?: currentState.currentUserId
                     val updatedReactions = currentReactionsState.reactions.filter {
                         it.userId != userId
                     }
 
-                    // Atualizando o estado
                     val updatedReactionsMap = currentState.voteReactions.toMutableMap().apply {
                         this[voteId] = VoteReactionsState(
                             reactions = updatedReactions,
@@ -368,17 +329,15 @@ class FriendsFeedViewModel(
             try {
                 println("Adicionando comentário ao voto $voteId: '$text'")
 
-                // Verificar se já existe um comentário igual recente (evitar duplicações por cliques múltiplos)
                 val currentState = _uiState.value
                 val existingComments = currentState.voteComments[voteId] ?: emptyList()
 
-                // Verificar se existe um comentário com texto idêntico nos últimos 5 segundos
                 val recentDuplicateExists = existingComments.any { existingComment ->
                     val now = Clock.System.now()
                     val timeDiff = now - existingComment.timestamp
                     existingComment.text == text &&
                             existingComment.userId == currentState.currentUserId &&
-                            timeDiff.inWholeSeconds < 5 // Dentro dos últimos 5 segundos
+                            timeDiff.inWholeSeconds < 5
                 }
 
                 if (recentDuplicateExists) {
@@ -386,20 +345,15 @@ class FriendsFeedViewModel(
                     return@launch
                 }
 
-                // Realizar a operação no repositório
                 val result = voteSocialRepository.addComment(voteId, text)
 
-                // Atualizar o estado local imediatamente para feedback rápido
                 result.onSuccess { newComment ->
                     println("Comentário adicionado com sucesso: ${newComment.id}")
 
-                    // Atualizar o cache
                     FeedCache.addComment(voteId, newComment)
 
-                    // Atualizar a lista de comentários
                     val updatedComments = existingComments + newComment
 
-                    // Atualizando o estado
                     val updatedCommentsMap = currentState.voteComments.toMutableMap().apply {
                         this[voteId] = updatedComments
                     }
@@ -422,17 +376,13 @@ class FriendsFeedViewModel(
             try {
                 println("Removendo comentário $commentId")
 
-                // Realizar a operação no repositório
                 val result = voteSocialRepository.removeComment(commentId)
 
-                // Atualizar o estado local imediatamente para feedback rápido
                 result.onSuccess {
                     println("Comentário removido com sucesso")
 
-                    // Atualizar o cache
                     FeedCache.removeComment(commentId)
 
-                    // Atualizar todas as listas de comentários
                     val currentState = _uiState.value
                     val updatedCommentsMap = currentState.voteComments.mapValues { (_, comments) ->
                         comments.filter { it.id != commentId }
@@ -452,7 +402,6 @@ class FriendsFeedViewModel(
     }
 
     private fun formatDateForGrouping(date: Instant): String {
-        // Formatar data para agrupar por dia
         val localDate = date.toLocalDateTime(TimeZone.currentSystemDefault()).date
         return "${localDate.dayOfMonth}/${localDate.monthNumber}/${localDate.year}"
     }
@@ -460,7 +409,6 @@ class FriendsFeedViewModel(
     override fun onCleared() {
         super.onCleared()
 
-        // Cancela todos os jobs ao destruir o ViewModel
         cancelExistingJobs()
         supervisorJob.cancel()
     }

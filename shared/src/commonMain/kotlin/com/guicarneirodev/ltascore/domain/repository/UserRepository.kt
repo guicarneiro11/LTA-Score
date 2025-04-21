@@ -19,4 +19,6 @@ interface UserRepository {
     suspend fun signOut()
 
     suspend fun updateFavoriteTeam(teamId: String): Result<Unit>
+
+    suspend fun refreshCurrentUser()
 }

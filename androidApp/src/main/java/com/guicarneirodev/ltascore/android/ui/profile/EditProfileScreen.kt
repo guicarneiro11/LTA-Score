@@ -58,14 +58,11 @@ fun EditProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // IMPORTANTE: Efeito para mostrar um Toast quando salvar com sucesso
     val context = LocalContext.current
     LaunchedEffect(key1 = uiState.success) {
         if (uiState.success != null) {
-            // Mostrar Toast e navegar de volta após salvar com sucesso
             Toast.makeText(context, uiState.success, Toast.LENGTH_SHORT).show()
 
-            // Aguardar 1 segundo antes de retornar à tela anterior
             delay(1000)
             onBackClick()
         }
@@ -115,7 +112,6 @@ fun EditProfileScreen(
                     CircularProgressIndicator(color = LTAThemeColors.PrimaryGold)
                 }
             } else {
-                // Grid de times
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -134,7 +130,6 @@ fun EditProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botão de salvar
                 Button(
                     onClick = { viewModel.saveProfile() },
                     enabled = !uiState.isLoading && uiState.selectedTeamId != null,
@@ -160,7 +155,6 @@ fun EditProfileScreen(
                     }
                 }
 
-                // Mensagem de sucesso
                 if (uiState.success != null) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -172,7 +166,6 @@ fun EditProfileScreen(
                     )
                 }
 
-                // Mensagem de erro
                 if (uiState.error != null) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -218,7 +211,6 @@ fun TeamCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(8.dp)
             ) {
-                // Logo do time
                 LogoImage(
                     imageUrl = team.imageUrl,
                     name = team.name,
@@ -228,7 +220,6 @@ fun TeamCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Nome do time
                 Text(
                     text = team.name,
                     style = MaterialTheme.typography.bodyMedium,
@@ -238,7 +229,6 @@ fun TeamCard(
                 )
             }
 
-            // Ícone de verificação quando selecionado
             if (isSelected) {
                 Box(
                     modifier = Modifier

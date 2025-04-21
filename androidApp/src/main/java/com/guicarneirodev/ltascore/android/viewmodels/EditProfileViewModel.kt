@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.android.data.cache.UserEvents
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +31,10 @@ class EditProfileViewModel(
     init {
         // Primeiro carregamos o perfil para obter o time favorito atual
         loadCurrentUserProfile()
+    }
+
+    fun loadTeams() {
+        loadAvailableTeams()
     }
 
     private fun loadCurrentUserProfile() {
@@ -132,8 +137,18 @@ class EditProfileViewModel(
                 val teamId = _uiState.value.selectedTeamId
                 if (teamId != null) {
                     val result = userRepository.updateFavoriteTeam(teamId)
+
                     result.fold(
                         onSuccess = {
+                            // Após sucesso, emitir um evento de atualização
+                            // Não precisamos do valor em si, apenas notificar que houve uma mudança
+                            val currentUser = userRepository.getCurrentUser().first()
+                            if (currentUser != null) {
+                                // Emitir evento de atualização
+                                UserEvents.notifyUserUpdated(currentUser.id)
+                                println("Evento de atualização enviado após salvar time: $teamId")
+                            }
+
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
                                 success = "Time favorito atualizado com sucesso"

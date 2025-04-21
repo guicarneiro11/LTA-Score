@@ -43,10 +43,8 @@ fun ReactionBar(
     onReactionRemoved: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Estado para controlar se o seletor de reações está aberto
     var showReactionSelector by remember { mutableStateOf(false) }
 
-    // Debug log para verificar as reações
     println("ReactionBar para $voteId: ${reactions.size} reações, userReaction=${userReaction?.reaction ?: "nenhuma"}")
 
     Column(
@@ -54,7 +52,6 @@ fun ReactionBar(
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        // Barra de reações existentes
         if (reactions.isNotEmpty()) {
             Row(
                 modifier = Modifier
@@ -62,7 +59,6 @@ fun ReactionBar(
                     .padding(bottom = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Contador de reações
                 val reactionCounts = reactions.groupBy { it.reaction }
                     .mapValues { it.value.size }
 
@@ -87,14 +83,12 @@ fun ReactionBar(
             }
         }
 
-        // Barra de adição de reações
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Botão para mostrar todas as reações
             Text(
                 text = "Reagir:",
                 color = LTAThemeColors.TextSecondary,
@@ -107,7 +101,6 @@ fun ReactionBar(
                     .padding(end = 4.dp)
             )
 
-            // Seletor de reações
             AnimatedVisibility(
                 visible = showReactionSelector,
                 enter = fadeIn(),

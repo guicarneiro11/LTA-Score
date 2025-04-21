@@ -40,7 +40,6 @@ fun FriendRequestsSection(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Título da seção
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -64,7 +63,6 @@ fun FriendRequestsSection(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Lista de solicitações
             uiState.requests.forEach { request ->
                 FriendRequestItem(
                     request = request,
@@ -75,7 +73,6 @@ fun FriendRequestsSection(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Mensagens de erro ou sucesso
             if (uiState.error != null) {
                 Text(
                     text = uiState.error,
@@ -116,7 +113,6 @@ fun FriendRequestItem(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar (placeholder circular)
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -134,7 +130,6 @@ fun FriendRequestItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Nome de usuário e mensagem
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -152,7 +147,6 @@ fun FriendRequestItem(
                 )
             }
 
-            // Botões de aceitar/recusar
             Row {
                 IconButton(
                     onClick = onAccept,

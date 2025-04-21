@@ -1,11 +1,40 @@
 package com.guicarneirodev.ltascore.android.ui.auth
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -36,10 +65,8 @@ fun RegisterScreen(
 
     val usernameAvailabilityState by viewModel.usernameAvailabilityState.collectAsState()
 
-    // Estado do username
     var username by remember { mutableStateOf("") }
 
-    // Gatilho para verificação de disponibilidade
     LaunchedEffect(username) {
         if (username.isNotBlank()) {
             viewModel.checkUsernameAvailability(username)
@@ -52,7 +79,6 @@ fun RegisterScreen(
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
-    // Validação local
     var emailError by remember { mutableStateOf<String?>(null) }
     var usernameError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
@@ -61,7 +87,6 @@ fun RegisterScreen(
     fun validateInputs(): Boolean {
         var isValid = true
 
-        // Validar email
         if (email.isBlank()) {
             emailError = "Email é obrigatório"
             isValid = false
@@ -72,7 +97,6 @@ fun RegisterScreen(
             emailError = null
         }
 
-        // Validar nome de usuário
         if (username.isBlank()) {
             usernameError = "Nome de usuário é obrigatório"
             isValid = false
@@ -83,7 +107,6 @@ fun RegisterScreen(
             usernameError = null
         }
 
-        // Validar senha
         if (password.isBlank()) {
             passwordError = "Senha é obrigatória"
             isValid = false
@@ -94,7 +117,6 @@ fun RegisterScreen(
             passwordError = null
         }
 
-        // Validar confirmação de senha
         if (confirmPassword != password) {
             confirmPasswordError = "Senhas não conferem"
             isValid = false
@@ -111,7 +133,7 @@ fun RegisterScreen(
                 title = { Text("Criar Conta") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateToLogin) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 }
             )
@@ -139,12 +161,11 @@ fun RegisterScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Campo de email
             OutlinedTextField(
                 value = email,
                 onValueChange = {
                     email = it
-                    emailError = null // Limpa o erro ao digitar
+                    emailError = null
                 },
                 label = { Text("Email") },
                 singleLine = true,
@@ -162,12 +183,10 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Campo de nome de usuário
             OutlinedTextField(
                 value = username,
                 onValueChange = {
                     username = it
-                    // Verificação automática será disparada pelo LaunchedEffect
                 },
                 label = { Text("Nome de usuário") },
                 supportingText = {
@@ -189,7 +208,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Campo de senha
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -221,7 +239,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Campo de confirmação de senha
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = {
@@ -253,7 +270,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botão de cadastro
             Button(
                 onClick = {
                     if (validateInputs()) {
@@ -275,7 +291,6 @@ fun RegisterScreen(
                 }
             }
 
-            // Erro de cadastro
             if (uiState.error != null) {
                 val errorMessage = when {
                     uiState.error!!.contains("Nome de usuário já está em uso") ->
@@ -298,7 +313,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Link para voltar para o login
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
