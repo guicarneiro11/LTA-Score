@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.api
 
 import com.guicarneirodev.ltascore.api.models.LeaguesResponse
 import com.guicarneirodev.ltascore.api.models.ScheduleResponse
+import com.guicarneirodev.ltascore.domain.models.VodsResponse
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.functions.functions
 import kotlinx.serialization.json.Json
@@ -13,7 +14,7 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
         isLenient = true
     }
 
-    override suspend fun getLeagues(language: String): LeaguesResponse {
+    actual override suspend fun getLeagues(language: String): LeaguesResponse {
         val data = mapOf(
             "language" to language
         )
@@ -22,8 +23,7 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
         return json.decodeFromString(result)
     }
 
-    override suspend fun getSchedule(leagueSlug: String, language: String): ScheduleResponse {
-        // Convertendo slug para ID conforme necessário
+    actual override suspend fun getSchedule(leagueSlug: String, language: String): ScheduleResponse {
         val leagueId = when (leagueSlug) {
             "lta_s" -> "113475181634818701" // LTA Sul
             "lta_n" -> "113475181634818702" // LTA Norte
@@ -39,13 +39,23 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
         return json.decodeFromString(result)
     }
 
-    override suspend fun getMatch(matchId: String, language: String): ScheduleResponse {
+    actual override suspend fun getMatch(matchId: String, language: String): ScheduleResponse {
         val data = mapOf(
             "language" to language,
             "id" to matchId
         )
 
         val result = functions.httpsCallable("getMatch").call(data).data as String
+        return json.decodeFromString(result)
+    }
+
+    actual override suspend fun getVods(tournamentId: String, language: String): VodsResponse {
+        val data = mapOf(
+            "language" to language,
+            "tournamentId" to tournamentId
+        )
+
+        val result = functions.httpsCallable("getVods").call(data).data as String
         return json.decodeFromString(result)
     }
 }

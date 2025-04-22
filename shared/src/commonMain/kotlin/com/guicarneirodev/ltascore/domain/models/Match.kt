@@ -11,7 +11,8 @@ data class Match(
     val leagueSlug: String,
     val teams: List<Team>,
     val bestOf: Int,
-    val hasVod: Boolean = false
+    val hasVod: Boolean = false,
+    val vodUrl: String? = null
 )
 
 enum class MatchState {

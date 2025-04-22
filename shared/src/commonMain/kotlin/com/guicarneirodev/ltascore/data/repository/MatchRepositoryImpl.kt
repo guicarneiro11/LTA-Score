@@ -22,6 +22,8 @@ class MatchRepositoryImpl(
 
     private val split2StartDate = Instant.parse("2025-04-01T00:00:00Z")
 
+    private val matchVods = mutableMapOf<String, String>()
+
     override suspend fun getMatches(leagueSlug: String): Flow<List<Match>> {
         return flow {
             emit(localDataSource.getMatches(leagueSlug))
@@ -98,6 +100,8 @@ class MatchRepositoryImpl(
 
     override suspend fun refreshMatches(leagueSlug: String) {
         try {
+            loadVods()
+
             val scheduleResponse = api.getSchedule(leagueSlug)
 
             val matches = scheduleResponse.data?.schedule?.events?.mapNotNull { event ->
@@ -133,8 +137,12 @@ class MatchRepositoryImpl(
                     )
                 }
 
+                val matchId = matchDto.id
+                val hasVod = matchDto.flags.contains("hasVod")
+                val vodUrl = matchVods[matchId]
+
                 Match(
-                    id = matchDto.id,
+                    id = matchId,
                     startTime = matchDate,
                     state = parseMatchState(event.state),
                     blockName = event.blockName,
@@ -142,7 +150,8 @@ class MatchRepositoryImpl(
                     leagueSlug = event.league.slug,
                     teams = teams,
                     bestOf = matchDto.strategy.count,
-                    hasVod = matchDto.flags.contains("hasVod")
+                    hasVod = hasVod,
+                    vodUrl = vodUrl
                 )
             } ?: emptyList()
 
@@ -186,5 +195,21 @@ class MatchRepositoryImpl(
             wins = wins,
             losses = losses
         )
+    }
+
+    suspend fun loadVods() {
+        try {
+            val vodsResponse = api.getVods()
+            vodsResponse.data?.schedule?.events?.forEach { event ->
+                if (event.games.isNotEmpty() && event.games[0].vods.isNotEmpty()) {
+                    val matchId = event.match.id
+                    val vodParameter = event.games[0].vods[0].parameter
+                    val vodUrl = "https://www.youtube.com/watch?v=$vodParameter"
+                    matchVods[matchId] = vodUrl
+                }
+            }
+        } catch (e: Exception) {
+            println("Erro ao carregar VODs: ${e.message}")
+        }
     }
 }

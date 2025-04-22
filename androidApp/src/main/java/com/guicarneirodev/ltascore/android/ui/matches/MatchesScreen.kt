@@ -1,5 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.matches
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,6 +59,7 @@ import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +70,7 @@ fun MatchesScreen(
     onRankingClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.loadMatches()
@@ -352,7 +355,11 @@ fun MatchesScreen(
                         items(matchesOnDay) { match ->
                             MatchCard(
                                 match = match,
-                                onClick = { onMatchClick(match.id) }
+                                onClick = { onMatchClick(match.id) },
+                                onVodClick = { vodUrl ->
+                                    val intent = Intent(Intent.ACTION_VIEW, vodUrl.toUri())
+                                    context.startActivity(intent)
+                                }
                             )
                         }
                     }

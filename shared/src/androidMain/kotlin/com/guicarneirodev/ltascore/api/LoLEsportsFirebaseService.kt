@@ -7,6 +7,7 @@ import com.guicarneirodev.ltascore.api.models.ScheduleResponse
 import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
 import com.google.gson.Gson
+import com.guicarneirodev.ltascore.domain.models.VodsResponse
 
 actual class LoLEsportsFirebaseService : LoLEsportsService {
     private val functions = Firebase.functions("us-central1")
@@ -71,6 +72,24 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
         val jsonString = convertToJsonString(resultData)
         return json.decodeFromString(jsonString)
     }
+
+    actual override suspend fun getVods(tournamentId: String, language: String): VodsResponse {
+        val data = hashMapOf(
+            "language" to language,
+            "tournamentId" to tournamentId
+        )
+
+        val result = functions
+            .getHttpsCallable("getVods")
+            .call(data)
+            .await()
+
+        val resultData = result.data
+
+        val jsonString = convertToJsonString(resultData)
+        return json.decodeFromString(jsonString)
+    }
+
 
     private fun convertToJsonString(data: Any?): String {
         return when (data) {

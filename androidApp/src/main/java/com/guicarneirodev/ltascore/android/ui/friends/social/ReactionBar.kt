@@ -144,11 +144,6 @@ fun ReactionBar(
                         onReactionSelected("🧠")
                         showReactionSelector = false
                     }
-                    ReactionEmoji("🏆", userReaction?.reaction == "🏆") {
-                        println("Selecionada reação 🏆")
-                        onReactionSelected("🏆")
-                        showReactionSelector = false
-                    }
                     ReactionEmoji("\uD83E\uDD26\u200D♂\uFE0F", userReaction?.reaction == "\uD83E\uDD26\u200D♂\uFE0F") {
                         println("Selecionada reação \uD83E\uDD26\u200D♂\uFE0F")
                         onReactionSelected("\uD83E\uDD26\u200D♂\uFE0F")

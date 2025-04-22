@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.api
 
 import com.guicarneirodev.ltascore.api.models.LeaguesResponse
 import com.guicarneirodev.ltascore.api.models.ScheduleResponse
+import com.guicarneirodev.ltascore.domain.models.VodsResponse
 
 class LoLEsportsApi {
     private val service: LoLEsportsService = LoLEsportsFirebaseService()
@@ -29,6 +30,19 @@ class LoLEsportsApi {
             return response
         } catch (e: Exception) {
             logger.log("Erro na chamada API: ${e.message}")
+            throw e
+        }
+    }
+
+    suspend fun getVods(tournamentId: String = "113486838366247730"): VodsResponse {
+        logger.log("Buscando VODs para torneio: $tournamentId")
+
+        try {
+            val response = service.getVods(tournamentId)
+            logger.log("Resposta HTTP: Sucesso para VODs")
+            return response
+        } catch (e: Exception) {
+            logger.log("Erro na chamada API getVods: ${e.message}")
             throw e
         }
     }
