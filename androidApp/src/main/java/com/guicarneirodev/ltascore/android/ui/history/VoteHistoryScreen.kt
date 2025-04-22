@@ -10,10 +10,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +44,29 @@ fun VoteHistoryScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showShareDialog by remember { mutableStateOf(false) }
+    var selectedMatchId by remember { mutableStateOf("") }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.shareSuccess) {
+        if (uiState.shareSuccess != null) {
+            snackbarHostState.showSnackbar(
+                message = uiState.shareSuccess!!,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+
+    if (showShareDialog) {
+        ShareVoteDialog(
+            matchId = selectedMatchId,
+            onDismiss = { showShareDialog = false },
+            onShareToTeamFeed = { matchId ->
+                viewModel.shareVoteToTeamFeed(matchId)
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -67,7 +95,8 @@ fun VoteHistoryScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -134,6 +163,12 @@ fun VoteHistoryScreen(
                             MatchHeader(
                                 date = dateStr,
                                 teams = "${votes.first().teamCode} vs ${votes.first().opponentTeamCode}",
+                                matchId = votes.first().matchId,
+                                onShareClick = { matchId ->
+                                    selectedMatchId = matchId
+                                    showShareDialog = true
+                                },
+                                isSharing = uiState.isSharing && selectedMatchId == votes.first().matchId,
                                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                             )
                         }
@@ -157,25 +192,88 @@ fun VoteHistoryScreen(
 
 @Composable
 fun MatchHeader(
+    modifier: Modifier = Modifier,
     date: String,
     teams: String,
-    modifier: Modifier = Modifier
+    matchId: String,
+    onShareClick: (String) -> Unit,
+    isSharing: Boolean = false,
 ) {
-    Column(modifier = modifier) {
-        Text(
-            text = date,
-            style = MaterialTheme.typography.titleMedium,
-            color = LTAThemeColors.TertiaryGold,
-            fontWeight = FontWeight.Medium
-        )
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = date,
+                style = MaterialTheme.typography.titleMedium,
+                color = LTAThemeColors.TertiaryGold,
+                fontWeight = FontWeight.Medium
+            )
 
-        Text(
-            text = teams,
-            style = MaterialTheme.typography.titleLarge,
-            color = LTAThemeColors.TextPrimary,
-            fontWeight = FontWeight.Bold
-        )
+            Text(
+                text = teams,
+                style = MaterialTheme.typography.titleLarge,
+                color = LTAThemeColors.TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        IconButton(
+            onClick = { onShareClick(matchId) },
+            enabled = !isSharing
+        ) {
+            if (isSharing) {
+                CircularProgressIndicator(
+                    color = LTAThemeColors.PrimaryGold,
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "Compartilhar",
+                    tint = LTAThemeColors.PrimaryGold
+                )
+            }
+        }
     }
+}
+
+@Composable
+fun ShareVoteDialog(
+    matchId: String,
+    onDismiss: () -> Unit,
+    onShareToTeamFeed: (String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Compartilhar Votos") },
+        text = {
+            Text("Deseja compartilhar suas avaliações desta partida com a torcida do seu time?")
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onShareToTeamFeed(matchId)
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = LTAThemeColors.PrimaryGold
+                )
+            ) {
+                Text("Compartilhar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        },
+        containerColor = LTAThemeColors.CardBackground,
+        titleContentColor = LTAThemeColors.TextPrimary,
+        textContentColor = LTAThemeColors.TextPrimary
+    )
 }
 
 @SuppressLint("DefaultLocale")

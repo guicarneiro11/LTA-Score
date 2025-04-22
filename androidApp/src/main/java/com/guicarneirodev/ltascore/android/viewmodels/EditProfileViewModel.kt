@@ -204,16 +204,24 @@ class EditProfileViewModel(
         viewModelScope.launch {
             FavoriteTeamCache.updateFavoriteTeam(teamId)
 
-            authViewModel.refreshCurrentUser()
+            userRepository.refreshCurrentUser()
 
-            delay(300)
+            try {
+                val userId = userRepository.getCurrentUser().first()?.id ?: ""
+                UserEvents.notifyUserUpdated(userId)
 
-            val userId = userRepository.getCurrentUser().first()?.id ?: ""
-            UserEvents.notifyUserUpdated(userId)
+                delay(300)
 
-            delay(100)
+                _uiState.value = _uiState.value.copy(
+                    success = "Time favorito atualizado com sucesso"
+                )
 
-            onComplete(teamId)
+                onComplete(teamId)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = "Erro ao salvar time favorito: ${e.message}"
+                )
+            }
         }
     }
 }

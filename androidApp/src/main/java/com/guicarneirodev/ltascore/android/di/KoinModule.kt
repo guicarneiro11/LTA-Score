@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseFriendshipRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseRankingRepository
+import com.guicarneirodev.ltascore.android.data.repository.FirebaseTeamFeedRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseUserRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteSocialRepository
@@ -26,6 +27,7 @@ import com.guicarneirodev.ltascore.data.repository.MatchRepositoryImpl
 import com.guicarneirodev.ltascore.domain.repository.FriendshipRepository
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import com.guicarneirodev.ltascore.domain.repository.RankingRepository
+import com.guicarneirodev.ltascore.domain.repository.TeamFeedRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteSocialRepository
@@ -36,6 +38,7 @@ import com.guicarneirodev.ltascore.domain.usecases.GetMatchesUseCase
 import com.guicarneirodev.ltascore.domain.usecases.GetPlayerRankingUseCase
 import com.guicarneirodev.ltascore.domain.usecases.GetUserVoteHistoryUseCase
 import com.guicarneirodev.ltascore.domain.usecases.ManageFriendshipsUseCase
+import com.guicarneirodev.ltascore.domain.usecases.ShareVoteToTeamFeedUseCase
 import com.guicarneirodev.ltascore.domain.usecases.SubmitPlayerVoteUseCase
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -56,6 +59,7 @@ val appModule = module {
     single<RankingRepository> { FirebaseRankingRepository(get(), get(), get()) }
     single<FriendshipRepository> { FirebaseFriendshipRepository(get(), get()) }
     single<VoteSocialRepository> { FirebaseVoteSocialRepository(get(), get()) }
+    single<TeamFeedRepository> { FirebaseTeamFeedRepository(get(), get()) }
 
     single { UserPreferencesRepository(androidContext()) }
 
@@ -67,14 +71,15 @@ val appModule = module {
     single { GetUserVoteHistoryUseCase(get(), get()) }
     single { ManageFriendshipsUseCase(get()) }
     single { GetFriendsFeedUseCase(get(), get(), get()) }
+    single { ShareVoteToTeamFeedUseCase(get(), get(), get()) }
 
     viewModel { MatchesViewModel(get(), get()) }
     viewModel { VotingViewModel(get(), get(), get(), get()) }
     viewModel { MatchSummaryViewModel(get(), get(), get(), get()) }
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { RankingViewModel(get(), get()) }
-    viewModel { VoteHistoryViewModel(get()) }
+    viewModel { VoteHistoryViewModel(get(), get()) }
     viewModel { FriendsViewModel(get()) }
-    viewModel { FriendsFeedViewModel(get(), get(), get()) }
+    viewModel { FriendsFeedViewModel(get(), get(), get(), get()) }
     viewModel { EditProfileViewModel(get(), get(), get()) }
 }

@@ -26,6 +26,7 @@ import com.guicarneirodev.ltascore.android.ui.ranking.RankingScreen
 import com.guicarneirodev.ltascore.android.ui.summary.MatchSummaryScreen
 import com.guicarneirodev.ltascore.android.ui.voting.VotingScreen
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
@@ -137,6 +138,8 @@ fun AppNavigation(
                 }
             )
         ) { backStackEntry ->
+            val friendsViewModel = koinViewModel<FriendsViewModel>()
+
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -155,7 +158,7 @@ fun AppNavigation(
             }
 
             ProfileScreen(
-                forceUpdate = System.currentTimeMillis(),
+                friendsViewModel = friendsViewModel,
                 authViewModel = authViewModel,
                 onNavigateToMatchHistory = {
                     navController.navigate(Screen.VoteHistory.route)
@@ -178,6 +181,12 @@ fun AppNavigation(
                     navController.navigate(Screen.Matches.route) {
                         popUpTo(Screen.Matches.route) { inclusive = true }
                     }
+                },
+                // Novo parâmetro para uiState - pegando do viewModel
+                uiState = friendsViewModel.uiState.collectAsState().value,
+                // Novo parâmetro para visualizar feed
+                onViewFriendsFeed = {
+                    navController.navigate(Screen.FriendsFeed.route)
                 }
             )
         }

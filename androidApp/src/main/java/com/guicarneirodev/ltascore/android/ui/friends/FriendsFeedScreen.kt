@@ -36,6 +36,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -63,11 +67,16 @@ import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.ui.friends.social.CommentSection
 import com.guicarneirodev.ltascore.android.ui.friends.social.ReactionBar
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsFeedViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState
 import com.guicarneirodev.ltascore.domain.models.FriendVoteHistoryItem
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
+import com.guicarneirodev.ltascore.domain.models.TeamFeedItem
 import com.guicarneirodev.ltascore.domain.models.VoteComment
 import com.guicarneirodev.ltascore.domain.models.VoteReaction
-import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,7 +86,8 @@ fun FriendsFeedScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
+    rememberCoroutineScope()
+    val tabs = listOf("Amigos", "Torcida")
 
     DisposableEffect(Unit) {
         onDispose {
@@ -87,35 +97,71 @@ fun FriendsFeedScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Feed de Avaliações") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LTAThemeColors.PrimaryGold,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                ),
-                actions = {
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            viewModel.loadFeed()
+            Column {
+                TopAppBar(
+                    title = { Text("Feed de Avaliações") },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Voltar"
+                            )
                         }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Atualizar",
-                            tint = Color.White
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = LTAThemeColors.PrimaryGold,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White
+                    ),
+                    actions = {
+                        IconButton(onClick = {
+                            if (uiState.activeTab == 0) {
+                                viewModel.loadFriendsFeed()
+                            } else {
+                                viewModel.loadTeamFeed()
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Atualizar",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                )
+
+                // Abas
+                TabRow(
+                    selectedTabIndex = uiState.activeTab,
+                    containerColor = LTAThemeColors.PrimaryGold,
+                    contentColor = Color.White,
+                    indicator = { tabPositions ->
+                        if (uiState.activeTab < tabPositions.size) {
+                            TabRowDefaults.Indicator(
+                                modifier = Modifier.tabIndicatorOffset(tabPositions[uiState.activeTab]),
+                                height = 3.dp,
+                                color = Color.White
+                            )
+                        }
+                    }
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = uiState.activeTab == index,
+                            onClick = { viewModel.setActiveTab(index) },
+                            text = {
+                                Text(
+                                    text = title,
+                                    fontWeight = if (uiState.activeTab == index)
+                                        FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            selectedContentColor = Color.White,
+                            unselectedContentColor = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
-            )
+            }
         }
     ) { innerPadding ->
         Box(
@@ -152,7 +198,13 @@ fun FriendsFeedScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
-                        onClick = { viewModel.loadFeed() }
+                        onClick = {
+                            if (uiState.activeTab == 0) {
+                                viewModel.loadFriendsFeed()
+                            } else {
+                                viewModel.loadTeamFeed()
+                            }
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -163,18 +215,195 @@ fun FriendsFeedScreen(
                         Text("Tentar Novamente")
                     }
                 }
-            } else if (uiState.feed.isEmpty()) {
-                EmptyFeedContent()
             } else {
-                FriendsFeedContent(
-                    groupedFeed = uiState.groupedFeed,
-                    voteReactions = uiState.voteReactions,
-                    voteComments = uiState.voteComments,
-                    currentUserId = uiState.currentUserId,
-                    onAddReaction = { voteId, reaction -> viewModel.addReaction(voteId, reaction) },
-                    onRemoveReaction = { voteId -> viewModel.removeReaction(voteId) },
-                    onAddComment = { voteId, text -> viewModel.addComment(voteId, text) },
-                    onDeleteComment = { commentId -> viewModel.deleteComment(commentId) }
+                // Conteúdo baseado na aba selecionada
+                when (uiState.activeTab) {
+                    0 -> {
+                        // Aba de Amigos
+                        if (uiState.feed.isEmpty()) {
+                            EmptyFriendsFeedContent()
+                        } else {
+                            FriendsFeedContent(
+                                groupedFeed = uiState.groupedFeed,
+                                voteReactions = uiState.voteReactions,
+                                voteComments = uiState.voteComments,
+                                currentUserId = uiState.currentUserId,
+                                onAddReaction = { voteId, reaction -> viewModel.addReaction(voteId, reaction) },
+                                onRemoveReaction = { voteId -> viewModel.removeReaction(voteId) },
+                                onAddComment = { voteId, text -> viewModel.addComment(voteId, text) },
+                                onDeleteComment = { commentId -> viewModel.deleteComment(commentId) }
+                            )
+                        }
+                    }
+                    1 -> {
+                        if (uiState.currentUserTeamId == null) {
+                            NoTeamSelectedContent(
+                                onEditProfileClick = { /* Navegar para tela de edição de perfil */ }
+                            )
+                        } else if (uiState.teamFeed.isEmpty()) {
+                            EmptyTeamFeedContent()
+                        } else {
+                            TeamFeedContent(
+                                groupedFeed = uiState.groupedTeamFeed,
+                                voteReactions = uiState.teamVoteReactions,
+                                voteComments = uiState.teamVoteComments,
+                                currentUserId = uiState.currentUserId,
+                                onAddReaction = { voteId, reaction ->
+                                    viewModel.addReactionToTeamVote(voteId, reaction)
+                                },
+                                onRemoveReaction = { voteId ->
+                                    viewModel.removeReactionFromTeamVote(voteId)
+                                },
+                                onAddComment = { voteId, text ->
+                                    viewModel.addCommentToTeamVote(voteId, text)
+                                },
+                                onDeleteComment = { commentId ->
+                                    viewModel.deleteCommentFromTeamVote(commentId)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyTeamFeedContent() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.ErrorOutline,
+            contentDescription = null,
+            tint = LTAThemeColors.TextSecondary,
+            modifier = Modifier.size(64.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Nenhuma atividade da torcida",
+            style = MaterialTheme.typography.titleMedium,
+            color = LTAThemeColors.TextPrimary,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Ainda não há avaliações compartilhadas pela torcida. Compartilhe seus votos a partir do seu histórico de votos para iniciar a conversa!",
+            style = MaterialTheme.typography.bodyMedium,
+            color = LTAThemeColors.TextSecondary,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun NoTeamSelectedContent(onEditProfileClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.ErrorOutline,
+            contentDescription = null,
+            tint = LTAThemeColors.TextSecondary,
+            modifier = Modifier.size(64.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Time não selecionado",
+            style = MaterialTheme.typography.titleMedium,
+            color = LTAThemeColors.TextPrimary,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Selecione seu time favorito para ver o feed da torcida",
+            style = MaterialTheme.typography.bodyMedium,
+            color = LTAThemeColors.TextSecondary,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onEditProfileClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = LTAThemeColors.PrimaryGold
+            )
+        ) {
+            Text("Escolher Time")
+        }
+    }
+}
+
+@Composable
+fun TeamFeedContent(
+    groupedFeed: Map<String, List<TeamFeedItem>>,
+    voteReactions: Map<String, VoteReactionsState>,
+    voteComments: Map<String, List<VoteComment>>,
+    currentUserId: String,
+    onAddReaction: (String, String) -> Unit,
+    onRemoveReaction: (String) -> Unit,
+    onAddComment: (String, String) -> Unit,
+    onDeleteComment: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        groupedFeed.forEach { (groupKey, votes) ->
+            val parts = groupKey.split(":")
+            val username = parts[0].trim()
+            val matchInfo = parts.getOrNull(1)?.trim()?.split("|") ?: listOf("", "")
+            val dateStr = matchInfo.getOrNull(1) ?: ""
+
+            item(key = "header_$groupKey") {
+                TeamFeedHeader(
+                    username = username,
+                    date = dateStr,
+                    teams = "${votes.firstOrNull()?.teamCode ?: ""} vs ${votes.firstOrNull()?.opponentTeamCode ?: ""}",
+                    isCurrentUser = votes.firstOrNull()?.userId == currentUserId,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
+            }
+
+            items(votes, key = { it.id }) { vote ->
+                val reactionsState = voteReactions[vote.id] ?: VoteReactionsState()
+                val commentsList = voteComments[vote.id] ?: emptyList()
+
+                TeamVoteItem(
+                    vote = vote,
+                    reactions = reactionsState.reactions,
+                    userReaction = reactionsState.userReaction,
+                    comments = commentsList,
+                    currentUserId = currentUserId,
+                    isCurrentUser = vote.userId == currentUserId,
+                    onAddReaction = { reaction -> onAddReaction(vote.id, reaction) },
+                    onRemoveReaction = { onRemoveReaction(vote.id) },
+                    onAddComment = { text -> onAddComment(vote.id, text) },
+                    onDeleteComment = onDeleteComment
+                )
+            }
+
+            item(key = "divider_$groupKey") {
+                Divider(
+                    color = Color(0xFF333340),
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
         }
@@ -182,7 +411,64 @@ fun FriendsFeedScreen(
 }
 
 @Composable
-fun EmptyFeedContent() {
+fun TeamFeedHeader(
+    modifier: Modifier = Modifier,
+    username: String,
+    date: String,
+    teams: String,
+    isCurrentUser: Boolean = false
+) {
+    Column(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isCurrentUser) LTAThemeColors.TertiaryGold.copy(alpha = 0.3f)
+                        else LTAThemeColors.PrimaryGold.copy(alpha = 0.2f)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = username.take(1).uppercase(),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isCurrentUser) LTAThemeColors.TertiaryGold else LTAThemeColors.PrimaryGold
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                text = if (isCurrentUser) "$username (você)" else username,
+                style = MaterialTheme.typography.titleMedium,
+                color = if (isCurrentUser) LTAThemeColors.TertiaryGold else LTAThemeColors.PrimaryGold,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = date,
+            style = MaterialTheme.typography.labelMedium,
+            color = LTAThemeColors.TextSecondary
+        )
+
+        Text(
+            text = teams,
+            style = MaterialTheme.typography.titleMedium,
+            color = LTAThemeColors.TextPrimary,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+fun EmptyFriendsFeedContent() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -230,7 +516,7 @@ fun EmptyFeedContent() {
 @Composable
 fun FriendsFeedContent(
     groupedFeed: Map<String, List<FriendVoteHistoryItem>>,
-    voteReactions: Map<String, com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState>,
+    voteReactions: Map<String, VoteReactionsState>,
     voteComments: Map<String, List<VoteComment>>,
     currentUserId: String,
     onAddReaction: (String, String) -> Unit,
@@ -260,7 +546,7 @@ fun FriendsFeedContent(
             }
 
             items(votes, key = { it.id }) { vote ->
-                val reactionsState = voteReactions[vote.id] ?: com.guicarneirodev.ltascore.android.viewmodels.VoteReactionsState()
+                val reactionsState = voteReactions[vote.id] ?: VoteReactionsState()
                 val commentsList = voteComments[vote.id] ?: emptyList()
 
                 val uniqueComments = commentsList.distinctBy { it.id }
@@ -347,6 +633,185 @@ fun FeedGroupHeader(
             color = LTAThemeColors.TextPrimary,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@SuppressLint("DefaultLocale")
+@Composable
+fun TeamVoteItem(
+    modifier: Modifier = Modifier,
+    vote: TeamFeedItem,
+    reactions: List<VoteReaction>,
+    userReaction: VoteReaction?,
+    comments: List<VoteComment>,
+    currentUserId: String,
+    isCurrentUser: Boolean = false,
+    onAddReaction: (String) -> Unit,
+    onRemoveReaction: () -> Unit,
+    onAddComment: (String) -> Unit,
+    onDeleteComment: (String) -> Unit
+) {
+    val ratingColor = when {
+        vote.rating < 3.0f -> Color(0xFFE57373) // Vermelho para notas muito baixas
+        vote.rating < 5.0f -> Color(0xFFFFB74D) // Laranja para notas baixas
+        vote.rating < 7.0f -> Color(0xFFFFD54F) // Amarelo para notas médias
+        vote.rating < 9.0f -> Color(0xFF81C784) // Verde claro para notas boas
+        else -> Color(0xFF4CAF50)               // Verde para notas excelentes
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCurrentUser)
+                LTAThemeColors.CardBackground.copy(alpha = 0.95f)
+                    .compositeOver(LTAThemeColors.TertiaryGold.copy(alpha = 0.1f))
+            else
+                LTAThemeColors.CardBackground
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = if (isCurrentUser)
+            BorderStroke(1.dp, LTAThemeColors.TertiaryGold.copy(alpha = 0.3f))
+        else
+            null
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Imagem do jogador
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(vote.playerImage)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = vote.playerNickname,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+
+                // Informações do jogador
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp)
+                ) {
+                    Text(
+                        text = vote.playerNickname,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = LTAThemeColors.TextPrimary
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        PositionBadge(position = vote.playerPosition)
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Mostrar quando foi compartilhado
+                        Text(
+                            text = "Compartilhado ${formatTime(vote.sharedAt)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = LTAThemeColors.TextSecondary
+                        )
+                    }
+                }
+
+                // Nota do jogador
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = String.format("%.1f", vote.rating),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ratingColor
+                    )
+
+                    // Barra visual da nota
+                    Box(
+                        modifier = Modifier
+                            .width(60.dp)
+                            .height(4.dp)
+                            .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(2.dp))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(60.dp * (vote.rating / 10f))
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(ratingColor.copy(alpha = 0.7f), ratingColor)
+                                    ),
+                                    shape = RoundedCornerShape(2.dp)
+                                )
+                        )
+                    }
+                }
+            }
+
+            // Destaque visual se for o voto do usuário atual
+            if (isCurrentUser) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(LTAThemeColors.TertiaryGold.copy(alpha = 0.3f))
+                )
+            }
+
+            // Seção de reações
+            ReactionBar(
+                voteId = vote.id,
+                reactions = reactions,
+                userReaction = userReaction,
+                onReactionSelected = onAddReaction,
+                onReactionRemoved = onRemoveReaction
+            )
+
+            // Separador entre reações e comentários
+            Spacer(modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .padding(horizontal = 16.dp)
+                .background(LTAThemeColors.DarkBackground)
+            )
+
+            // Seção de comentários
+            CommentSection(
+                voteId = vote.id,
+                comments = comments,
+                currentUserId = currentUserId,
+                onAddComment = onAddComment,
+                onDeleteComment = onDeleteComment
+            )
+        }
+    }
+}
+
+// Função auxiliar para formatação do tempo
+private fun formatTime(timestamp: Instant): String {
+    val now = Clock.System.now()
+    val diff = now - timestamp
+
+    return when {
+        diff.inWholeSeconds < 60 -> "agora"
+        diff.inWholeMinutes < 60 -> "${diff.inWholeMinutes}m"
+        diff.inWholeHours < 24 -> "${diff.inWholeHours}h"
+        diff.inWholeDays < 7 -> "${diff.inWholeDays}d"
+        else -> {
+            val date = timestamp.toLocalDateTime(TimeZone.currentSystemDefault()).date
+            "${date.dayOfMonth}/${date.monthNumber}"
+        }
     }
 }
 

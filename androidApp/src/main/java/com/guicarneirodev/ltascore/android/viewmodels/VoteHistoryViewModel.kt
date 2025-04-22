@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.guicarneirodev.ltascore.domain.models.UserVoteHistoryItem
 import com.guicarneirodev.ltascore.domain.usecases.GetUserVoteHistoryUseCase
+import com.guicarneirodev.ltascore.domain.usecases.ShareVoteToTeamFeedUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,13 +15,16 @@ import kotlinx.datetime.toLocalDateTime
 
 data class VoteHistoryUiState(
     val isLoading: Boolean = false,
+    val isSharing: Boolean = false,
     val history: List<UserVoteHistoryItem> = emptyList(),
     val groupedHistory: Map<String, List<UserVoteHistoryItem>> = emptyMap(),
+    val shareSuccess: String? = null,
     val error: String? = null
 )
 
 class VoteHistoryViewModel(
-    private val getUserVoteHistoryUseCase: GetUserVoteHistoryUseCase
+    private val getUserVoteHistoryUseCase: GetUserVoteHistoryUseCase,
+    private val shareVoteToTeamFeedUseCase: ShareVoteToTeamFeedUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VoteHistoryUiState(isLoading = true))
@@ -32,7 +36,7 @@ class VoteHistoryViewModel(
 
     fun loadVoteHistory() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null, shareSuccess = null)
 
             try {
                 getUserVoteHistoryUseCase().collect { historyItems ->
@@ -50,6 +54,42 @@ class VoteHistoryViewModel(
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "Erro ao carregar histórico: ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun shareVoteToTeamFeed(matchId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSharing = true, error = null, shareSuccess = null)
+
+            try {
+                val result = shareVoteToTeamFeedUseCase(matchId)
+
+                result.fold(
+                    onSuccess = {
+                        _uiState.value = _uiState.value.copy(
+                            isSharing = false,
+                            shareSuccess = "Seus votos foram compartilhados com sucesso!"
+                        )
+
+                        // Limpar a mensagem de sucesso após 3 segundos
+                        launch {
+                            kotlinx.coroutines.delay(3000)
+                            _uiState.value = _uiState.value.copy(shareSuccess = null)
+                        }
+                    },
+                    onFailure = { e ->
+                        _uiState.value = _uiState.value.copy(
+                            isSharing = false,
+                            error = "Erro ao compartilhar: ${e.message}"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isSharing = false,
+                    error = "Erro ao compartilhar votos: ${e.message}"
                 )
             }
         }

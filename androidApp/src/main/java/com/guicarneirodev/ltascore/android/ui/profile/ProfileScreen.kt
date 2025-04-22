@@ -86,13 +86,15 @@ fun ProfileScreen(
     friendsViewModel: FriendsViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel(),
     editProfileViewModel: EditProfileViewModel = koinViewModel(),
+    onNavigateToFriendsFeed: () -> Unit,
     onNavigateToMatchHistory: () -> Unit,
     onNavigateToRanking: () -> Unit,
-    onNavigateToFriendsFeed: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onLogout: () -> Unit,
     onBackClick: () -> Unit,
-    forceUpdate: Long = System.currentTimeMillis()
+    forceUpdate: Long = System.currentTimeMillis(),
+    uiState: FriendsManagementUiState,
+    onViewFriendsFeed: () -> Unit
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
     val friendsUiState by friendsViewModel.uiState.collectAsState()
@@ -257,6 +259,27 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.bodyLarge,
                         color = LTAThemeColors.TextSecondary
                     )
+
+                    val showFeedButton = uiState.friends.isNotEmpty() || currentUser?.favoriteTeamId != null
+                    if (showFeedButton) {
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Button(
+                            onClick = onViewFriendsFeed,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = LTAThemeColors.PrimaryGold
+                            ),
+                            modifier = Modifier.height(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Groups,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Ver Feed", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -278,8 +301,7 @@ fun ProfileScreen(
                     onToggleFriendsSection = { showFriendsSection = !showFriendsSection },
                     onFriendUsernameChange = friendsViewModel::updateFriendUsername,
                     onAddFriend = friendsViewModel::sendFriendRequest,
-                    onRemoveFriend = friendsViewModel::removeFriend,
-                    onViewFriendsFeed = onNavigateToFriendsFeed
+                    onRemoveFriend = friendsViewModel::removeFriend
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -402,8 +424,7 @@ fun FriendsSection(
     onToggleFriendsSection: () -> Unit,
     onFriendUsernameChange: (String) -> Unit,
     onAddFriend: () -> Unit,
-    onRemoveFriend: (Friendship) -> Unit,
-    onViewFriendsFeed: () -> Unit
+    onRemoveFriend: (Friendship) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -446,19 +467,6 @@ fun FriendsSection(
                     contentDescription = if (showFriendsSection) "Esconder amigos" else "Mostrar amigos",
                     tint = LTAThemeColors.TextSecondary
                 )
-
-                if (uiState.friends.isNotEmpty()) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = onViewFriendsFeed,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = LTAThemeColors.PrimaryGold
-                        ),
-                        modifier = Modifier.height(36.dp)
-                    ) {
-                        Text("Ver Feed", style = MaterialTheme.typography.labelMedium)
-                    }
-                }
             }
 
             AnimatedVisibility(
