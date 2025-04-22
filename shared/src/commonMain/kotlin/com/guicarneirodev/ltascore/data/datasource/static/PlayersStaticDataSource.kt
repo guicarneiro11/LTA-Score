@@ -19,6 +19,7 @@ class PlayersStaticDataSource {
     fun getPlayersByTeamIdAndDate(teamId: String, matchDate: Instant, blockName: String): List<Player> {
         val allTeamPlayers = playersByTeamId[teamId] ?: emptyList()
 
+        // Lógica existente para Isurus Estral (Burdol/Summit)
         if (teamId == "isurus-estral") {
             val isWeek1 = blockName.contains("Semana 1", ignoreCase = true) ||
                     blockName.contains("Week 1", ignoreCase = true)
@@ -42,6 +43,22 @@ class PlayersStaticDataSource {
             } else {
                 println("Retornando time IE com Summit (Semana 2+)")
                 allTeamPlayers.filter { it.id != "player_ie_burdol" }
+            }
+        }
+
+        if (teamId == "red") {
+            val aegisStartDate = Instant.parse("2025-04-21T00:00:00Z")
+
+            val useAegis = matchDate >= aegisStartDate
+
+            println("Partida RED de ${matchDate}, useAegis: $useAegis")
+
+            return if (useAegis) {
+                println("Retornando time RED com Aegis (a partir de 21/04)")
+                allTeamPlayers.filter { it.id != "player_red_doom" }
+            } else {
+                println("Retornando time RED com DOOM (até 20/04)")
+                allTeamPlayers.filter { it.id != "player_red_aegis" }
             }
         }
 
@@ -317,6 +334,14 @@ class PlayersStaticDataSource {
                 nickname = "fNb",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/6/6a/RED_fNb_LTA_2025_Split_1.png/revision/latest?cb=20250125194031",
                 position = PlayerPosition.TOP,
+                teamId = "red"
+            ),
+            Player(
+                id = "player_red_aegis",
+                name = "Gabriel Vinicius Saes de Lemos",
+                nickname = "Aegis",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/85/RED_Aegis_2025_Split_2.png/revision/latest?cb=20250408221920",
+                position = PlayerPosition.JUNGLE,
                 teamId = "red"
             ),
             Player(
