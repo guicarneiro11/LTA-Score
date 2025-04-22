@@ -50,6 +50,8 @@ fun MatchCard(
     onClick: () -> Unit,
     onVodClick: (String) -> Unit
 ) {
+    println("MatchCard: match.id=${match.id}, hasVod=${match.hasVod}, vodUrl=${match.vodUrl}")
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,17 +205,21 @@ fun MatchCard(
                     Button(
                         onClick = { onVodClick(match.vodUrl!!) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = LTAThemeColors.TertiaryGold
+                            containerColor = Color(0xFFD9A546) // Cor dourada mais forte para destaque
                         ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(20.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
                             contentDescription = "Assistir VOD",
                             modifier = Modifier.size(16.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Assistir VOD", style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Assistir VOD",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                        )
                     }
                 }
             }

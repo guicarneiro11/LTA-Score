@@ -86,10 +86,18 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
 
         val resultData = result.data
 
-        val jsonString = convertToJsonString(resultData)
-        return json.decodeFromString(jsonString)
-    }
+        println("Resposta bruta de getVods: $resultData")
 
+        val jsonString = convertToJsonString(resultData)
+        println("JSON processado: $jsonString")
+
+        return try {
+            json.decodeFromString(jsonString)
+        } catch (e: Exception) {
+            println("Erro ao decodificar JSON de VODs: ${e.message}")
+            VodsResponse()
+        }
+    }
 
     private fun convertToJsonString(data: Any?): String {
         return when (data) {

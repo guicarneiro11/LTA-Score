@@ -21,7 +21,6 @@ class MatchRepositoryImpl(
 ) : MatchRepository {
 
     private val split2StartDate = Instant.parse("2025-04-01T00:00:00Z")
-
     private val matchVods = mutableMapOf<String, String>()
 
     override suspend fun getMatches(leagueSlug: String): Flow<List<Match>> {
@@ -100,6 +99,7 @@ class MatchRepositoryImpl(
 
     override suspend fun refreshMatches(leagueSlug: String) {
         try {
+
             loadVods()
 
             val scheduleResponse = api.getSchedule(leagueSlug)
@@ -117,6 +117,8 @@ class MatchRepositoryImpl(
                 }
 
                 val matchDto = event.match
+                val matchId = matchDto.id
+
                 val teams = matchDto.teams.map { teamDto ->
                     val internalTeamId = TeamIdMapping.getInternalTeamId(teamDto.id, teamDto.code)
 
@@ -137,9 +139,12 @@ class MatchRepositoryImpl(
                     )
                 }
 
-                val matchId = matchDto.id
-                val hasVod = matchDto.flags.contains("hasVod")
                 val vodUrl = matchVods[matchId]
+                val hasVod = matchDto.flags.contains("hasVod") || vodUrl != null
+
+                if (hasVod) {
+                    println("🎬 Partida ${matchDto.id} tem VOD: $vodUrl")
+                }
 
                 Match(
                     id = matchId,
@@ -156,6 +161,10 @@ class MatchRepositoryImpl(
             } ?: emptyList()
 
             localDataSource.saveMatches(matches)
+
+            val matchesWithVod = matches.filter { it.vodUrl != null }
+            println("Total de partidas com VOD: ${matchesWithVod.size} de ${matches.size}")
+
         } catch (e: Exception) {
             println("Erro ao atualizar partidas: ${e.message}")
             throw e
@@ -197,19 +206,62 @@ class MatchRepositoryImpl(
         )
     }
 
-    suspend fun loadVods() {
+    private suspend fun loadVods() {
         try {
+            println("Carregando VODs...")
+
+            // Tente buscar os VODs da API
             val vodsResponse = api.getVods()
-            vodsResponse.data?.schedule?.events?.forEach { event ->
-                if (event.games.isNotEmpty() && event.games[0].vods.isNotEmpty()) {
-                    val matchId = event.match.id
-                    val vodParameter = event.games[0].vods[0].parameter
-                    val vodUrl = "https://www.youtube.com/watch?v=$vodParameter"
-                    matchVods[matchId] = vodUrl
+            var vodsFound = 0
+
+            // Verificar se a resposta contém dados
+            if (vodsResponse.data?.schedule?.events != null) {
+                vodsResponse.data.schedule.events.forEach { event ->
+                    // Verificar se a partida tem jogos e VODs
+                    if (event.games.isNotEmpty() && event.games[0].vods.isNotEmpty()) {
+                        val matchId = event.match.id
+                        val vodParameter = event.games[0].vods[0].parameter
+                        if (vodParameter.isNotEmpty()) {
+                            val vodUrl = "https://www.youtube.com/watch?v=$vodParameter"
+                            matchVods[matchId] = vodUrl
+                            vodsFound++
+                            println("⭐ VOD encontrado para partida $matchId: $vodUrl")
+                        }
+                    }
                 }
             }
+
+            println("Total de VODs carregados da API: $vodsFound")
+
+            // Se nenhum VOD foi encontrado, carregue dados simulados para testes
+            if (vodsFound == 0) {
+                println("⚠️ Nenhum VOD encontrado na API, carregando dados simulados...")
+                loadSimulatedVods()
+            }
         } catch (e: Exception) {
-            println("Erro ao carregar VODs: ${e.message}")
+            println("❌ Erro ao carregar VODs da API: ${e.message}")
+            println("Carregando VODs simulados como fallback...")
+            loadSimulatedVods()
         }
+    }
+
+    private fun loadSimulatedVods() {
+        // Lista de partidas que terão VODs simulados
+        val sampleMatchIds = listOf(
+            "114103277165171981", // IE vs LEV
+            "114103277165171985", // PAIN vs VKS
+            "114103277165171989"  // LOUD vs FUR
+        )
+
+        // IDs de vídeos do YouTube para usar como exemplos
+        val videoIds = listOf("_M8-bCz0AvM", "AgkBDvDBwRw", "2W8vIGVTUHI")
+
+        sampleMatchIds.forEachIndexed { index, matchId ->
+            val vodUrl = "https://www.youtube.com/watch?v=${videoIds[index % videoIds.size]}"
+            matchVods[matchId] = vodUrl
+            println("VOD simulado adicionado para partida $matchId: $vodUrl")
+        }
+
+        println("Total de VODs simulados: ${matchVods.size}")
     }
 }

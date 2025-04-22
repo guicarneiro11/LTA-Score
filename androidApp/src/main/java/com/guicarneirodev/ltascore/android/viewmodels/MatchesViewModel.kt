@@ -69,6 +69,13 @@ class MatchesViewModel(
 
                 getMatchesUseCase(leagueSlug).collect { matches ->
                     println("ViewModel: Recebidas ${matches.size} partidas")
+
+                    val matchesWithVods = matches.filter { it.vodUrl != null }
+                    println("ViewModel: Partidas com VODs: ${matchesWithVods.size}")
+                    matchesWithVods.forEach { match ->
+                        println("Partida ${match.id} tem VOD: ${match.vodUrl}")
+                    }
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         matches = matches,
