@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">LTA Score</string>
+
+    <!-- Auth Screens -->
+    <string name="login_title">LTA Score</string>
+    <string name="login_subtitle">Faça login para avaliar jogadores</string>
+    <string name="email">Email</string>
+    <string name="password">Senha</string>
+    <string name="forgot_password">Esqueci minha senha</string>
+    <string name="login_button">ENTRAR</string>
+    <string name="no_account">Não tem uma conta?</string>
+    <string name="register">Cadastre-se</string>
+
+    <!-- Registration Screen -->
+    <string name="create_account">Criar Conta</string>
+    <string name="register_title">Cadastre-se no LTA Score</string>
+    <string name="username">Nome de usuário</string>
+    <string name="confirm_password">Confirmar senha</string>
+    <string name="username_requirements">Use letras, números e _ (3–20 caracteres)</string>
+    <string name="username_required">Nome de usuário é obrigatório</string>
+    <string name="username_too_short">Nome de usuário deve ter pelo menos 3 caracteres</string>
+    <string name="email_required">Email é obrigatório</string>
+    <string name="invalid_email">Email inválido</string>
+    <string name="password_required">Senha é obrigatória</string>
+    <string name="password_too_short">Senha deve ter pelo menos 6 caracteres</string>
+    <string name="passwords_dont_match">Senhas não conferem</string>
+    <string name="create_account_button">CRIAR CONTA</string>
+    <string name="already_have_account">Já tem uma conta?</string>
+    <string name="sign_in">Entrar</string>
+    <string name="username_in_use">Este nome de usuário já está sendo usado por outra pessoa. Por favor, escolha outro.</string>
+    <string name="email_in_use">Este email já está cadastrado. Tente fazer login ou use outro email.</string>
+    <string name="weak_password">A senha é muito fraca. Use pelo menos 6 caracteres com letras e números.</string>
+
+    <!-- Reset Password Screen -->
+    <string name="reset_password">Recuperar Senha</string>
+    <string name="reset_password_instructions">Digite seu email abaixo para receber um link de recuperação de senha</string>
+    <string name="send_reset_link">ENVIAR LINK DE RECUPERAÇÃO</string>
+    <string name="email_sent_success">Email enviado com sucesso!</string>
+    <string name="check_inbox">Verifique sua caixa de entrada para redefinir sua senha.</string>
+    <string name="back_to_login">Voltar para o login</string>
+
+    <!-- Matches Screen -->
+    <string name="matches_title">LTA Score</string>
+    <string name="split_title">Split 2 – 2025</string>
+    <string name="all_matches">Todas</string>
+    <string name="upcoming">Próx.</string>
+    <string name="live">Ao Vivo</string>
+    <string name="completed">Concl.</string>
+    <string name="all_matches_title">Todas as partidas</string>
+    <string name="upcoming_matches_title">Próximas partidas</string>
+    <string name="live_matches_title">Partidas ao vivo</string>
+    <string name="completed_matches_title">Partidas concluídas</string>
+    <string name="matches_count">%d partidas</string>
+    <string name="loading_matches">Carregando partidas…</string>
+    <string name="no_matches_split">Nenhuma partida encontrada no Split 2</string>
+    <string name="no_upcoming_matches">Não há próximas partidas agendadas</string>
+    <string name="no_live_matches">Nenhuma partida acontecendo agora</string>
+    <string name="no_completed_matches">Nenhuma partida concluída ainda</string>
+    <string name="try_again">Tentar Novamente</string>
+    <string name="vs">vs</string>
+    <string name="soon">Em breve</string>
+    <string name="live_now">AO VIVO</string>
+    <string name="completed_click">Concluída - Clique para votar</string>
+    <string name="watch_vod">Assistir VOD</string>
+    <string name="lta_south">LTA Sul</string>
+    <string name="lta_north">LTA Norte</string>
+
+    <!-- Match Summary Screen -->
+    <string name="match_ratings">Avaliações da Partida</string>
+    <string name="loading_ratings">Carregando avaliações…</string>
+    <string name="match_not_found">Partida não encontrada</string>
+    <string name="total_votes">Total de %d votos computados</string>
+    <string name="waiting_first_vote">Aguardando primeiro voto</string>
+    <string name="already_voted">Você já votou nesta partida!</string>
+    <string name="thanks_voting">Obrigado por contribuir com sua avaliação.</string>
+    <string name="not_voted_yet">Você ainda não votou!</string>
+    <string name="vote_instruction">Volte para a tela de partidas e selecione esta partida para votar.</string>
+    <string name="votes_count">%d votos</string>
+
+    <!-- Voting Screen -->
+    <string name="rate_players">Avaliar Jogadores</string>
+    <string name="players_count">Jogadores: %d</string>
+    <string name="no_players_found">Nenhum jogador encontrado para este time</string>
+    <string name="submit_ratings">Enviar Avaliações</string>
+
+    <!-- Profile Screen -->
+    <string name="my_profile">Meu Perfil</string>
+    <string name="team">Time: %s</string>
+    <string name="view_feed">Ver Feed</string>
+    <string name="friends">Amigos</string>
+    <string name="hide_friends">Esconder amigos</string>
+    <string name="show_friends">Mostrar amigos</string>
+    <string name="friends_count">Meus Amigos (%d)</string>
+    <string name="no_friends">Você ainda não adicionou nenhum amigo</string>
+    <string name="username_add">Nome de usuário</string>
+    <string name="username_add_placeholder">Digite o username para enviar solicitação</string>
+    <string name="activities">Atividades</string>
+    <string name="vote_history">Meu Histórico de Votos</string>
+    <string name="vote_history_subtitle">Veja suas avaliações de jogadores</string>
+    <string name="player_ranking">Ranking de Jogadores</string>
+    <string name="ranking_subtitle">Veja as avaliações da comunidade</string>
+    <string name="sign_out">Sair da Conta</string>
+
+    <!-- Edit Profile Screen -->
+    <string name="edit_profile">Editar Perfil</string>
+    <string name="choose_team">Escolha seu time favorito</string>
+    <string name="save">Salvar</string>
+    <string name="choose_team_button">Escolher Time</string>
+
+    <!-- Friend Requests -->
+    <string name="friend_requests">Solicitações de Amizade (%d)</string>
+    <string name="wants_to_be_friend">Quer ser seu amigo</string>
+    <string name="accept">Aceitar</string>
+    <string name="decline">Recusar</string>
+    <string name="add_friends">Adicionar Amigos</string>
+
+    <!-- Vote History Screen -->
+    <string name="vote_history_title">Histórico de Votos</string>
+    <string name="no_votes">Você ainda não votou em nenhuma partida.</string>
+    <string name="share_votes">Compartilhar Votos</string>
+    <string name="share_votes_question">Deseja compartilhar suas avaliações desta partida com a torcida do seu time?</string>
+    <string name="share">Compartilhar</string>
+    <string name="cancel">Cancelar</string>
+
+    <!-- Feed Screens -->
+    <string name="feed_title">Feed de Avaliações</string>
+    <string name="friends_tab">Amigos</string>
+    <string name="fans_tab">Torcida</string>
+    <string name="no_activity">Nenhuma atividade recente</string>
+    <string name="no_votes_display">Ainda não há avaliações para exibir. Avalie alguns jogadores ou adicione amigos para ver suas avaliações aqui.</string>
+    <string name="no_team_fans">Nenhuma atividade da torcida</string>
+    <string name="no_team_fans_message">Ainda não há avaliações compartilhadas pela torcida. Compartilhe seus votos a partir do seu histórico de votos para iniciar a conversa!</string>
+    <string name="no_team_selected">Time não selecionado</string>
+    <string name="select_team_message">Selecione seu time favorito para ver o feed da torcida</string>
+    <string name="shared_at">Compartilhado %s</string>
+    <string name="now">agora</string>
+    <string name="mins_ago">%dm</string>
+    <string name="hours_ago">%dh</string>
+    <string name="days_ago">%dd</string>
+    <string name="date_format">%d/%d</string>
+    <string name="react">Reagir:</string>
+    <string name="comments">Comentários</string>
+    <string name="comments_count">Comentários (%d)</string>
+    <string name="no_comments">Nenhum comentário ainda. Seja o primeiro a comentar!</string>
+    <string name="add_comment">Adicionar comentário…</string>
+    <string name="your_votes">Seus votos</string>
+    <string name="you">(você)</string>
+
+    <!-- Ranking Screen -->
+    <string name="player_ranking_title">Ranking de Jogadores</string>
+    <string name="search_player">Pesquisar jogador ou time…</string>
+    <string name="filters">Filtros</string>
+    <string name="top_rated">Top Notas</string>
+    <string name="most_voted">Mais Votados</string>
+    <string name="by_team">Por Time</string>
+    <string name="by_position">Por Posição</string>
+    <string name="position_all">Todas</string>
+    <string name="select_team">Selecione um time</string>
+    <string name="all_teams">Todos os Times</string>
+    <string name="filter_by">Filtrar Por</string>
+    <string name="close">Fechar</string>
+    <string name="loading_ranking">Carregando ranking…</string>
+    <string name="showing_players">Mostrando %d jogadores</string>
+    <string name="top_players">Top Jogadores</string>
+    <string name="best_ratings">Melhores Avaliações</string>
+
+    <!-- API Debug Screen -->
+    <string name="api_debug_tool">API Debug Tool</string>
+    <string name="league">Liga:</string>
+    <string name="test_api">Testar API</string>
+    <string name="api_logs">Logs de API aparecerão aqui…</string>
+</resources>

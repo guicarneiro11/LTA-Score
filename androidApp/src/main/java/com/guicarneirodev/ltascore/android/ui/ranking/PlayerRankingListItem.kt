@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +34,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
+import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
 
 @SuppressLint("DefaultLocale")
@@ -119,7 +121,7 @@ fun PlayerRankingListItem(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "${item.totalVotes} votos",
+                        text = stringResource(R.string.votes_count, item.totalVotes),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

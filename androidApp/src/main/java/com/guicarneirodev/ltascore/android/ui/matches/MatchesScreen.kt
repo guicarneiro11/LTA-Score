@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,6 +61,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
 import androidx.core.net.toUri
+import com.guicarneirodev.ltascore.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,7 +107,7 @@ fun MatchesScreen(
                     }
 
                     Text(
-                        text = "LTA Score",
+                        text = stringResource(R.string.matches_title),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -152,7 +154,11 @@ fun MatchesScreen(
                     onClick = { viewModel.selectLeague(index) },
                     text = {
                         Text(
-                            text = league.name,
+                            text = when(league.name) {
+                                "LTA Sul" -> stringResource(R.string.lta_south)
+                                "LTA Norte" -> stringResource(R.string.lta_north)
+                                else -> league.name
+                            },
                             fontWeight = if (index == uiState.selectedLeagueIndex) FontWeight.Bold else FontWeight.Normal
                         )
                     }
@@ -161,7 +167,7 @@ fun MatchesScreen(
         }
 
         Text(
-            text = "Split 2 - 2025",
+            text = stringResource(R.string.split_title),
             style = MaterialTheme.typography.titleMedium,
             color = LTAThemeColors.TextSecondary,
             fontWeight = FontWeight.Medium,
@@ -180,7 +186,7 @@ fun MatchesScreen(
             FilterChip(
                 selected = uiState.filter == MatchFilter.ALL,
                 onClick = { viewModel.setFilter(MatchFilter.ALL) },
-                label = { Text("Todas") },
+                label = { Text(stringResource(R.string.all_matches)) },
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = Color(0xFF252530),
                     labelColor = LTAThemeColors.TextSecondary,
@@ -192,7 +198,7 @@ fun MatchesScreen(
             FilterChip(
                 selected = uiState.filter == MatchFilter.UPCOMING,
                 onClick = { viewModel.setFilter(MatchFilter.UPCOMING) },
-                label = { Text("Próx.") },
+                label = { Text(stringResource(R.string.upcoming)) },
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = Color(0xFF252530),
                     labelColor = LTAThemeColors.TextSecondary,
@@ -204,7 +210,7 @@ fun MatchesScreen(
             FilterChip(
                 selected = uiState.filter == MatchFilter.LIVE,
                 onClick = { viewModel.setFilter(MatchFilter.LIVE) },
-                label = { Text("Ao Vivo") },
+                label = { Text(stringResource(R.string.live)) },
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = Color(0xFF252530),
                     labelColor = LTAThemeColors.TextSecondary,
@@ -216,7 +222,7 @@ fun MatchesScreen(
             FilterChip(
                 selected = uiState.filter == MatchFilter.COMPLETED,
                 onClick = { viewModel.setFilter(MatchFilter.COMPLETED) },
-                label = { Text("Concl.") },
+                label = { Text(stringResource(R.string.completed)) },
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = Color(0xFF252530),
                     labelColor = LTAThemeColors.TextSecondary,
@@ -237,10 +243,10 @@ fun MatchesScreen(
             ) {
                 Text(
                     text = when(uiState.filter) {
-                        MatchFilter.ALL -> "Todas as partidas"
-                        MatchFilter.UPCOMING -> "Próximas partidas"
-                        MatchFilter.LIVE -> "Partidas ao vivo"
-                        MatchFilter.COMPLETED -> "Partidas concluídas"
+                        MatchFilter.ALL -> stringResource(R.string.all_matches_title)
+                        MatchFilter.UPCOMING -> stringResource(R.string.upcoming_matches_title)
+                        MatchFilter.LIVE -> stringResource(R.string.live_matches_title)
+                        MatchFilter.COMPLETED -> stringResource(R.string.completed_matches_title)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = LTAThemeColors.TextSecondary
@@ -248,7 +254,7 @@ fun MatchesScreen(
 
                 if (!uiState.isLoading) {
                     Text(
-                        text = "${uiState.filteredMatches.size} partidas",
+                        text = stringResource(R.string.matches_count, uiState.filteredMatches.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = LTAThemeColors.TextSecondary
                     )
@@ -274,7 +280,7 @@ fun MatchesScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Carregando partidas...",
+                        text = stringResource(R.string.loading_matches),
                         color = LTAThemeColors.TextSecondary
                     )
                 }
@@ -303,7 +309,7 @@ fun MatchesScreen(
                             containerColor = LTAThemeColors.PrimaryGold
                         )
                     ) {
-                        Text("Tentar Novamente")
+                        Text(stringResource(R.string.try_again))
                     }
                 }
             } else if (uiState.filteredMatches.isEmpty()) {
@@ -320,10 +326,10 @@ fun MatchesScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = when(uiState.filter) {
-                            MatchFilter.ALL -> "Nenhuma partida encontrada no Split 2"
-                            MatchFilter.UPCOMING -> "Não há próximas partidas agendadas"
-                            MatchFilter.LIVE -> "Nenhuma partida acontecendo agora"
-                            MatchFilter.COMPLETED -> "Nenhuma partida concluída ainda"
+                            MatchFilter.ALL -> stringResource(R.string.no_matches_split)
+                            MatchFilter.UPCOMING -> stringResource(R.string.no_upcoming_matches)
+                            MatchFilter.LIVE -> stringResource(R.string.no_live_matches)
+                            MatchFilter.COMPLETED -> stringResource(R.string.no_completed_matches)
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,

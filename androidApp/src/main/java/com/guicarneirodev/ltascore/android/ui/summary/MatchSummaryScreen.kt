@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -56,6 +57,7 @@ import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
 import com.guicarneirodev.ltascore.domain.models.Player
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import org.koin.androidx.compose.koinViewModel
+import com.guicarneirodev.ltascore.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,10 +75,10 @@ fun MatchSummaryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Avaliações da Partida") },
+                title = { Text(stringResource(R.string.match_ratings)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -102,7 +104,7 @@ fun MatchSummaryScreen(
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Carregando avaliações...",
+                        text = stringResource(R.string.loading_ratings),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -128,7 +130,7 @@ fun MatchSummaryScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = uiState.error ?: "Partida não encontrada",
+                        text = uiState.error ?: stringResource(R.string.match_not_found),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.error
@@ -143,7 +145,7 @@ fun MatchSummaryScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Tentar Novamente")
+                        Text(text = stringResource(R.string.try_again),)
                     }
                 }
             }
@@ -175,8 +177,10 @@ fun MatchSummaryScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (totalVotes > 0) "Total de $totalVotes votos computados"
-                        else "Aguardando primeiro voto",
+                        text = if (totalVotes > 0)
+                            stringResource(R.string.total_votes, totalVotes)
+                        else
+                            stringResource(R.string.waiting_first_vote),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
@@ -239,12 +243,12 @@ fun MatchSummaryScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        text = "Você já votou nesta partida!",
+                                        text = stringResource(R.string.already_voted),
                                         style = MaterialTheme.typography.titleMedium,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                     Text(
-                                        text = "Obrigado por contribuir com sua avaliação.",
+                                        text = stringResource(R.string.thanks_voting),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                                         textAlign = TextAlign.Center,
@@ -266,12 +270,12 @@ fun MatchSummaryScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(
-                                        text = "Você ainda não votou!",
+                                        text = stringResource(R.string.not_voted_yet),
                                         style = MaterialTheme.typography.titleMedium,
                                         color = MaterialTheme.colorScheme.onTertiaryContainer
                                     )
                                     Text(
-                                        text = "Volte para a tela de partidas e selecione esta partida para votar.",
+                                        text = stringResource(R.string.vote_instruction),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
                                         textAlign = TextAlign.Center,
@@ -349,7 +353,7 @@ fun PlayerRatingSummaryItem(
                     PositionBadge(position = player.position)
 
                     Text(
-                        text = "$totalVotes votos",
+                        text = stringResource(R.string.votes_count, totalVotes),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 8.dp)

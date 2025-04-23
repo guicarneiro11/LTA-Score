@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Button
+import com.guicarneirodev.ltascore.android.R
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -148,12 +150,12 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Meu Perfil") },
+                title = { Text(stringResource(R.string.my_profile)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
+                            contentDescription = "Back"
                         )
                     }
                 },
@@ -166,7 +168,7 @@ fun ProfileScreen(
                     IconButton(onClick = onNavigateToEditProfile) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar Perfil",
+                            contentDescription = "Edit Profile",
                             tint = LTAThemeColors.TextPrimary
                         )
                     }
@@ -204,7 +206,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = currentUser?.username ?: "Usuário",
+                        text = currentUser?.username ?: "Username",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = LTAThemeColors.TextPrimary
@@ -237,7 +239,7 @@ fun ProfileScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
 
                                     Text(
-                                        text = "Time: ${displayTeam.code}",
+                                        text = stringResource(R.string.team, displayTeam.code),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = LTAThemeColors.TextPrimary,
                                         fontWeight = FontWeight.SemiBold
@@ -277,7 +279,7 @@ fun ProfileScreen(
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Ver Feed", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.view_feed))
                         }
                     }
                 }
@@ -336,7 +338,7 @@ fun ProfileScreen(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Sair da Conta")
+                    Text(stringResource(R.string.sign_out))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -454,7 +456,7 @@ fun FriendsSection(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = "Amigos",
+                    text = stringResource(R.string.friends),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = LTAThemeColors.TextPrimary
@@ -505,7 +507,7 @@ fun FriendsSection(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Meus Amigos (${uiState.friends.size})",
+                        text = stringResource(R.string.friends_count, uiState.friends.size),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = LTAThemeColors.TextPrimary
@@ -541,8 +543,8 @@ fun AddFriendField(
         OutlinedTextField(
             value = username,
             onValueChange = onUsernameChange,
-            label = { Text("Nome de usuário") },
-            placeholder = { Text("Digite o username para enviar solicitação") },
+            label = { Text(stringResource(R.string.username_add)) },
+            placeholder = { Text(stringResource(R.string.username_add_placeholder)) },
             singleLine = true,
             leadingIcon = {
                 Icon(
@@ -604,7 +606,7 @@ fun EmptyFriendsList() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Você ainda não adicionou nenhum amigo",
+            text = stringResource(R.string.no_friends),
             style = MaterialTheme.typography.bodyMedium,
             color = LTAThemeColors.TextSecondary,
             textAlign = TextAlign.Center
@@ -709,7 +711,7 @@ fun ProfileOptionsSection(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Atividades",
+                text = stringResource(R.string.activities),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = LTAThemeColors.TextPrimary,
@@ -718,8 +720,8 @@ fun ProfileOptionsSection(
 
             ProfileOptionItem(
                 icon = Icons.Default.Person,
-                title = "Meu Histórico de Votos",
-                subtitle = "Veja suas avaliações de jogadores",
+                title = stringResource(R.string.vote_history),
+                subtitle = stringResource(R.string.vote_history_subtitle),
                 onClick = onNavigateToMatchHistory
             )
 
@@ -727,8 +729,8 @@ fun ProfileOptionsSection(
 
             ProfileOptionItem(
                 icon = Icons.Default.Leaderboard,
-                title = "Ranking de Jogadores",
-                subtitle = "Veja as avaliações da comunidade",
+                title = stringResource(R.string.player_ranking),
+                subtitle = stringResource(R.string.ranking_subtitle),
                 onClick = onNavigateToRanking
             )
         }

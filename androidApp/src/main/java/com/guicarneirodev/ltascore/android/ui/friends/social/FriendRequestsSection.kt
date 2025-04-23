@@ -54,7 +54,7 @@ fun FriendRequestsSection(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = "Solicitações de Amizade (${uiState.requests.size})",
+                    text = "Friend Requests (${uiState.requests.size})",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = LTAThemeColors.TextPrimary
@@ -141,7 +141,7 @@ fun FriendRequestItem(
                 )
 
                 Text(
-                    text = "Quer ser seu amigo",
+                    text = "Want to be your friend",
                     style = MaterialTheme.typography.bodySmall,
                     color = LTAThemeColors.TextSecondary
                 )

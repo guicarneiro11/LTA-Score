@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import com.guicarneirodev.ltascore.android.R
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -71,7 +73,7 @@ fun VoteHistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Histórico de Votos") },
+                title = { Text(stringResource(R.string.vote_history_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -132,7 +134,7 @@ fun VoteHistoryScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(onClick = { viewModel.loadVoteHistory() }) {
-                        Text("Tentar Novamente")
+                        Text(stringResource(R.string.try_again))
                     }
                 }
             } else if (uiState.history.isEmpty()) {
@@ -142,7 +144,7 @@ fun VoteHistoryScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "Você ainda não votou em nenhuma partida.",
+                        text = stringResource(R.string.no_votes),
                         style = MaterialTheme.typography.bodyLarge,
                         color = LTAThemeColors.TextSecondary,
                         textAlign = TextAlign.Center
@@ -248,9 +250,9 @@ fun ShareVoteDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Compartilhar Votos") },
+        title = { Text(stringResource(R.string.share_votes)) },
         text = {
-            Text("Deseja compartilhar suas avaliações desta partida com a torcida do seu time?")
+            Text(stringResource(R.string.share_votes_question))
         },
         confirmButton = {
             Button(
@@ -262,12 +264,12 @@ fun ShareVoteDialog(
                     containerColor = LTAThemeColors.PrimaryGold
                 )
             ) {
-                Text("Compartilhar")
+                Text(stringResource(R.string.share))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.cancel))
             }
         },
         containerColor = LTAThemeColors.CardBackground,

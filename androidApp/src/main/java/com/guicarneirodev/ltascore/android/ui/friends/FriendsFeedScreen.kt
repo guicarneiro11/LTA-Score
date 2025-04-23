@@ -3,6 +3,7 @@ package com.guicarneirodev.ltascore.android.ui.friends
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import com.guicarneirodev.ltascore.android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -87,7 +89,7 @@ fun FriendsFeedScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     rememberCoroutineScope()
-    val tabs = listOf("Amigos", "Torcida")
+    val tabs = listOf(stringResource(R.string.friends_tab), stringResource(R.string.fans_tab))
 
     DisposableEffect(Unit) {
         onDispose {
@@ -99,7 +101,7 @@ fun FriendsFeedScreen(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { Text("Feed de Avaliações") },
+                    title = { Text(stringResource(R.string.feed_title)) },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
                             Icon(
@@ -212,11 +214,10 @@ fun FriendsFeedScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Tentar Novamente")
+                        Text(stringResource(R.string.try_again))
                     }
                 }
             } else {
-                // Conteúdo baseado na aba selecionada
                 when (uiState.activeTab) {
                     0 -> {
                         // Aba de Amigos
@@ -286,7 +287,7 @@ fun EmptyTeamFeedContent() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Nenhuma atividade da torcida",
+            text = stringResource(R.string.no_activity),
             style = MaterialTheme.typography.titleMedium,
             color = LTAThemeColors.TextPrimary,
             textAlign = TextAlign.Center,
@@ -296,7 +297,7 @@ fun EmptyTeamFeedContent() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Ainda não há avaliações compartilhadas pela torcida. Compartilhe seus votos a partir do seu histórico de votos para iniciar a conversa!",
+            text = stringResource(R.string.no_votes_display),
             style = MaterialTheme.typography.bodyMedium,
             color = LTAThemeColors.TextSecondary,
             textAlign = TextAlign.Center
@@ -321,7 +322,7 @@ fun NoTeamSelectedContent(onEditProfileClick: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Time não selecionado",
+            text = stringResource(R.string.no_team_selected),
             style = MaterialTheme.typography.titleMedium,
             color = LTAThemeColors.TextPrimary,
             textAlign = TextAlign.Center,
@@ -331,7 +332,7 @@ fun NoTeamSelectedContent(onEditProfileClick: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Selecione seu time favorito para ver o feed da torcida",
+            text = stringResource(R.string.select_team_message),
             style = MaterialTheme.typography.bodyMedium,
             color = LTAThemeColors.TextSecondary,
             textAlign = TextAlign.Center
@@ -345,7 +346,7 @@ fun NoTeamSelectedContent(onEditProfileClick: () -> Unit) {
                 containerColor = LTAThemeColors.PrimaryGold
             )
         ) {
-            Text("Escolher Time")
+            Text(stringResource(R.string.choose_team_button))
         }
     }
 }
@@ -443,7 +444,7 @@ fun TeamFeedHeader(
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = if (isCurrentUser) "$username (você)" else username,
+                text = if (isCurrentUser) "$username (you)" else username,
                 style = MaterialTheme.typography.titleMedium,
                 color = if (isCurrentUser) LTAThemeColors.TertiaryGold else LTAThemeColors.PrimaryGold,
                 fontWeight = FontWeight.Medium
@@ -484,7 +485,7 @@ fun EmptyFriendsFeedContent() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Nenhuma atividade recente",
+            text = stringResource(R.string.no_activity),
             style = MaterialTheme.typography.titleMedium,
             color = LTAThemeColors.TextPrimary,
             textAlign = TextAlign.Center,
@@ -494,7 +495,7 @@ fun EmptyFriendsFeedContent() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Ainda não há avaliações para exibir. Avalie alguns jogadores ou adicione amigos para ver suas avaliações aqui.",
+            text = stringResource(R.string.no_votes_display),
             style = MaterialTheme.typography.bodyMedium,
             color = LTAThemeColors.TextSecondary,
             textAlign = TextAlign.Center
@@ -508,7 +509,7 @@ fun EmptyFriendsFeedContent() {
                 containerColor = LTAThemeColors.PrimaryGold
             )
         ) {
-            Text("Adicionar Amigos")
+            Text(stringResource(R.string.add_friends))
         }
     }
 }
@@ -524,6 +525,8 @@ fun FriendsFeedContent(
     onAddComment: (String, String) -> Unit,
     onDeleteComment: (String) -> Unit
 ) {
+    val youText = stringResource(R.string.you)
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -535,12 +538,18 @@ fun FriendsFeedContent(
             val matchInfo = parts.getOrNull(1)?.trim()?.split("|") ?: listOf("", "")
             val dateStr = matchInfo.getOrNull(1) ?: ""
 
+            val isCurrentUser = friendName.contains("(you)") || votes.firstOrNull()?.friendId == currentUserId
+
             item(key = "header_$groupKey") {
                 FeedGroupHeader(
-                    friendName = friendName,
+                    friendName = if (isCurrentUser) {
+                        friendName.replace("(you)", youText)
+                    } else {
+                        friendName
+                    },
                     date = dateStr,
                     teams = "${votes.firstOrNull()?.teamCode ?: ""} vs ${votes.firstOrNull()?.opponentTeamCode ?: ""}",
-                    isCurrentUser = friendName.contains("(você)"),
+                    isCurrentUser = isCurrentUser,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
             }
@@ -652,11 +661,11 @@ fun TeamVoteItem(
     onDeleteComment: (String) -> Unit
 ) {
     val ratingColor = when {
-        vote.rating < 3.0f -> Color(0xFFE57373) // Vermelho para notas muito baixas
-        vote.rating < 5.0f -> Color(0xFFFFB74D) // Laranja para notas baixas
-        vote.rating < 7.0f -> Color(0xFFFFD54F) // Amarelo para notas médias
-        vote.rating < 9.0f -> Color(0xFF81C784) // Verde claro para notas boas
-        else -> Color(0xFF4CAF50)               // Verde para notas excelentes
+        vote.rating < 3.0f -> Color(0xFFE57373)
+        vote.rating < 5.0f -> Color(0xFFFFB74D)
+        vote.rating < 7.0f -> Color(0xFFFFD54F)
+        vote.rating < 9.0f -> Color(0xFF81C784)
+        else -> Color(0xFF4CAF50)
     }
 
     Card(
@@ -719,7 +728,7 @@ fun TeamVoteItem(
 
                         // Mostrar quando foi compartilhado
                         Text(
-                            text = "Compartilhado ${formatTime(vote.sharedAt)}",
+                            text = stringResource(R.string.shared_at, formatTime(vote.sharedAt)),
                             style = MaterialTheme.typography.bodySmall,
                             color = LTAThemeColors.TextSecondary
                         )
@@ -798,19 +807,19 @@ fun TeamVoteItem(
     }
 }
 
-// Função auxiliar para formatação do tempo
+@Composable
 private fun formatTime(timestamp: Instant): String {
     val now = Clock.System.now()
     val diff = now - timestamp
 
     return when {
-        diff.inWholeSeconds < 60 -> "agora"
-        diff.inWholeMinutes < 60 -> "${diff.inWholeMinutes}m"
-        diff.inWholeHours < 24 -> "${diff.inWholeHours}h"
-        diff.inWholeDays < 7 -> "${diff.inWholeDays}d"
+        diff.inWholeSeconds < 60 -> stringResource(R.string.now)
+        diff.inWholeMinutes < 60 -> stringResource(R.string.mins_ago, diff.inWholeMinutes)
+        diff.inWholeHours < 24 -> stringResource(R.string.hours_ago, diff.inWholeHours)
+        diff.inWholeDays < 7 -> stringResource(R.string.days_ago, diff.inWholeDays)
         else -> {
             val date = timestamp.toLocalDateTime(TimeZone.currentSystemDefault()).date
-            "${date.dayOfMonth}/${date.monthNumber}"
+            stringResource(R.string.date_format, date.dayOfMonth, date.monthNumber)
         }
     }
 }

@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.android.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import com.guicarneirodev.ltascore.android.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -77,7 +79,7 @@ fun LoginScreen(
                     .data(logoUrl)
                     .crossfade(true)
                     .build(),
-                contentDescription = "LTA Cross Logo",
+                contentDescription = stringResource(R.string.app_name),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(LTAThemeColors.PrimaryGold),
                 loading = {
@@ -90,14 +92,14 @@ fun LoginScreen(
         }
 
         Text(
-            text = "LTA Score",
+            text = stringResource(R.string.login_title),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
 
         Text(
-            text = "Faça login para avaliar jogadores",
+            text = stringResource(R.string.login_subtitle),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 32.dp)
@@ -106,7 +108,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
@@ -120,7 +122,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Senha") },
+            label = { Text(stringResource(R.string.password)) },
             singleLine = true,
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
@@ -131,7 +133,7 @@ fun LoginScreen(
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                     Icon(
                         imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = "Mostrar/Esconder senha"
+                        contentDescription = "Show/Hide password"
                     )
                 }
             },
@@ -142,7 +144,7 @@ fun LoginScreen(
             onClick = onNavigateToResetPassword,
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text("Esqueci minha senha")
+            Text(stringResource(R.string.forgot_password))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -160,7 +162,7 @@ fun LoginScreen(
                     modifier = Modifier.size(24.dp)
                 )
             } else {
-                Text("ENTRAR")
+                Text(stringResource(R.string.login_button))
             }
         }
 
@@ -181,11 +183,11 @@ fun LoginScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Não tem uma conta?",
+                text = stringResource(R.string.no_account),
                 style = MaterialTheme.typography.bodyMedium
             )
             TextButton(onClick = onNavigateToRegistration) {
-                Text("Cadastre-se")
+                Text(stringResource(R.string.register))
             }
         }
     }

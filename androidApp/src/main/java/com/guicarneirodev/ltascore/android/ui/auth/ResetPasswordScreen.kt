@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
+import com.guicarneirodev.ltascore.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,10 +66,10 @@ fun ResetPasswordScreen(
 
     fun validateEmail(): Boolean {
         return if (email.isBlank()) {
-            emailError = "Email é obrigatório"
+            emailError = "Email is required"
             false
         } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailError = "Email inválido"
+            emailError = "Invalid email"
             false
         } else {
             emailError = null
@@ -78,7 +80,7 @@ fun ResetPasswordScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recuperar Senha") },
+                title = { Text(stringResource(R.string.reset_password)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
@@ -103,14 +105,14 @@ fun ResetPasswordScreen(
             )
 
             Text(
-                text = "Recuperar Senha",
+                text = stringResource(R.string.reset_password),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
             Text(
-                text = "Digite seu email abaixo para receber um link de recuperação de senha",
+                text = stringResource(R.string.reset_password_instructions),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -123,7 +125,7 @@ fun ResetPasswordScreen(
                     email = it
                     emailError = null
                 },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.email)) },
                 singleLine = true,
                 isError = emailError != null,
                 supportingText = { emailError?.let { Text(it) } },
@@ -156,7 +158,7 @@ fun ResetPasswordScreen(
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("ENVIAR LINK DE RECUPERAÇÃO")
+                    Text(stringResource(R.string.send_reset_link))
                 }
             }
 
@@ -191,13 +193,13 @@ fun ResetPasswordScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "Email enviado com sucesso!",
+                            text = stringResource(R.string.email_sent_success),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
 
                         Text(
-                            text = "Verifique sua caixa de entrada para redefinir sua senha.",
+                            text = stringResource(R.string.check_inbox),
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
@@ -209,7 +211,7 @@ fun ResetPasswordScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             TextButton(onClick = onNavigateBack) {
-                Text("Voltar para o login")
+                Text(stringResource(R.string.back_to_login))
             }
         }
     }

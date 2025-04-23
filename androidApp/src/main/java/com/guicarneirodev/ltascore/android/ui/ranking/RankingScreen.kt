@@ -72,8 +72,10 @@ import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.RankingFilter
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.guicarneirodev.ltascore.android.viewmodels.RankingUiState
+import com.guicarneirodev.ltascore.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +89,7 @@ fun RankingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ranking de Jogadores") },
+                title = { Text(stringResource(R.string.player_ranking_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -193,7 +195,7 @@ fun SearchBar(
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Pesquisar jogador ou time...") },
+        placeholder = { Text(stringResource(R.string.search_player)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Pesquisar") },
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
@@ -244,14 +246,14 @@ fun ActiveFilterIndicator(
 
                 Text(
                     text = when (currentFilter) {
-                        RankingFilter.TOP_RATED -> "Top Notas"
-                        RankingFilter.MOST_VOTED -> "Mais Votados"
+                        RankingFilter.TOP_RATED -> stringResource(R.string.top_rated)
+                        RankingFilter.MOST_VOTED -> stringResource(R.string.most_voted)
                         RankingFilter.BY_TEAM -> {
                             val team = availableTeams.find { it.id == selectedTeamId }
-                            "Time: ${team?.code ?: "Todos"}"
+                            stringResource(R.string.by_team) + ": ${team?.code ?: stringResource(R.string.all_teams)}"
                         }
-                        RankingFilter.BY_POSITION -> "Posição: ${selectedPosition?.name ?: "Todas"}"
-                        else -> "Filtro Ativo"
+                        RankingFilter.BY_POSITION -> stringResource(R.string.by_position) + ": ${selectedPosition?.name ?: stringResource(R.string.position_all)}"
+                        else -> stringResource(R.string.filters)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = LTAThemeColors.PrimaryGold
@@ -326,7 +328,7 @@ fun PositionFilterChip(
         modifier = Modifier.height(32.dp)
     ) {
         Text(
-            text = position?.name ?: "Todas",
+            text = position?.name ?: stringResource(R.string.position_all),
             style = MaterialTheme.typography.bodyMedium,
             color = if (selected) Color.White else Color.White.copy(alpha = 0.7f),
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -350,7 +352,7 @@ fun FilterMenuDialog(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Filtrar Por",
+                    text = stringResource(R.string.filter_by),
                     style = MaterialTheme.typography.titleLarge,
                     color = LTAThemeColors.TextPrimary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -358,35 +360,35 @@ fun FilterMenuDialog(
 
                 FilterMenuItem(
                     icon = Icons.Default.FilterNone,
-                    text = "Todos",
+                    text = stringResource(R.string.all_teams),
                     selected = currentFilter == RankingFilter.ALL,
                     onClick = { onFilterSelected(RankingFilter.ALL) }
                 )
 
                 FilterMenuItem(
                     icon = Icons.Default.Star,
-                    text = "Top Notas",
+                    text = stringResource(R.string.top_rated),
                     selected = currentFilter == RankingFilter.TOP_RATED,
                     onClick = { onFilterSelected(RankingFilter.TOP_RATED) }
                 )
 
                 FilterMenuItem(
                     icon = Icons.Default.ThumbUp,
-                    text = "Mais Votados",
+                    text = stringResource(R.string.most_voted),
                     selected = currentFilter == RankingFilter.MOST_VOTED,
                     onClick = { onFilterSelected(RankingFilter.MOST_VOTED) }
                 )
 
                 FilterMenuItem(
                     icon = Icons.Default.Group,
-                    text = "Por Time",
+                    text = stringResource(R.string.by_team),
                     selected = currentFilter == RankingFilter.BY_TEAM,
                     onClick = { onFilterSelected(RankingFilter.BY_TEAM) }
                 )
 
                 FilterMenuItem(
                     icon = Icons.Default.Person,
-                    text = "Por Posição",
+                    text = stringResource(R.string.by_position),
                     selected = currentFilter == RankingFilter.BY_POSITION,
                     onClick = { onFilterSelected(RankingFilter.BY_POSITION) }
                 )
@@ -400,7 +402,7 @@ fun FilterMenuDialog(
                         containerColor = LTAThemeColors.PrimaryGold
                     )
                 ) {
-                    Text("Fechar")
+                    Text(stringResource(R.string.close))
                 }
             }
         }
@@ -470,7 +472,7 @@ fun TeamFilterDropdown(
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = teams.find { it.id == selectedTeamId }?.name ?: "Selecione um time",
+            value = teams.find { it.id == selectedTeamId }?.name ?: stringResource(R.string.select_team),
             onValueChange = {},
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -492,7 +494,7 @@ fun TeamFilterDropdown(
             modifier = Modifier.background(LTAThemeColors.CardBackground)
         ) {
             DropdownMenuItem(
-                text = { Text("Todos os Times") },
+                text = { Text(stringResource(R.string.all_teams)) },
                 onClick = {
                     onTeamSelected(null)
                     expanded = false
@@ -567,7 +569,7 @@ fun RankingContent(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Carregando ranking...",
+                    text = stringResource(R.string.loading_ranking),
                     color = LTAThemeColors.TextSecondary
                 )
             }
@@ -579,7 +581,7 @@ fun RankingContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.ErrorOutline,
-                    contentDescription = "Erro",
+                    contentDescription = "Error",
                     tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(64.dp)
                 )
@@ -600,7 +602,7 @@ fun RankingContent(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-                    Text("Tentar Novamente")
+                    Text(stringResource(R.string.try_again))
                 }
             }
         } else if (uiState.filteredPlayers.isEmpty()) {
@@ -611,13 +613,13 @@ fun RankingContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.SearchOff,
-                    contentDescription = "Sem resultados",
+                    contentDescription = "No results",
                     tint = LTAThemeColors.TextSecondary,
                     modifier = Modifier.size(64.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Nenhum jogador encontrado",
+                    text = stringResource(R.string.no_players_found),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = LTAThemeColors.TextSecondary
@@ -638,7 +640,7 @@ fun RankingContent(
                         val topPlayers = uiState.filteredPlayers.take(3)
                         if (topPlayers.isNotEmpty()) {
                             Text(
-                                text = "Top Jogadores",
+                                text = stringResource(R.string.top_players),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = LTAThemeColors.TextPrimary,
@@ -657,7 +659,7 @@ fun RankingContent(
 
                 item {
                     Text(
-                        text = "Mostrando ${uiState.filteredPlayers.size} jogadores",
+                        text = stringResource(R.string.showing_players, uiState.filteredPlayers.size),
                         style = MaterialTheme.typography.bodyMedium,
                         color = LTAThemeColors.TextSecondary,
                         modifier = Modifier.padding(vertical = 8.dp)

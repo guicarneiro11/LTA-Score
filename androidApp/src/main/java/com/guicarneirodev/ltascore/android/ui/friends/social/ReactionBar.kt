@@ -28,11 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.domain.models.VoteReaction
+import com.guicarneirodev.ltascore.android.R
 
 @Composable
 fun ReactionBar(
@@ -62,8 +64,6 @@ fun ReactionBar(
                 val reactionCounts = reactions.groupBy { it.reaction }
                     .mapValues { it.value.size }
 
-                println("Contadores de reações: $reactionCounts")
-
                 reactionCounts.forEach { (emoji, count) ->
                     ReactionCounter(
                         emoji = emoji,
@@ -71,10 +71,8 @@ fun ReactionBar(
                         isSelected = userReaction?.reaction == emoji,
                         onClick = {
                             if (userReaction?.reaction == emoji) {
-                                println("Removendo reação $emoji")
                                 onReactionRemoved()
                             } else {
-                                println("Alterando para reação $emoji")
                                 onReactionSelected(emoji)
                             }
                         }
@@ -90,7 +88,7 @@ fun ReactionBar(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Reagir:",
+                text = stringResource(R.string.react),
                 color = LTAThemeColors.TextSecondary,
                 fontSize = 12.sp,
                 modifier = Modifier

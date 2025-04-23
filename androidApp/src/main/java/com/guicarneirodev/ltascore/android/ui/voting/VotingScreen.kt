@@ -27,10 +27,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
 import org.koin.androidx.compose.koinViewModel
+import com.guicarneirodev.ltascore.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +57,7 @@ fun VotingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Avaliar Jogadores") },
+                title = { Text(stringResource(R.string.rate_players)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
@@ -80,7 +82,7 @@ fun VotingScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Partida não encontrada")
+                Text(text = stringResource(R.string.match_not_found))
             }
         } else {
             Column(
@@ -116,7 +118,7 @@ fun VotingScreen(
 
                     item {
                         Text(
-                            text = "Jogadores: ${uiState.match!!.teams[0].players.size}",
+                            text = stringResource(R.string.players_count, uiState.match!!.teams[0].players.size),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -125,7 +127,7 @@ fun VotingScreen(
                     if (uiState.match!!.teams[0].players.isEmpty()) {
                         item {
                             Text(
-                                text = "Nenhum jogador encontrado para este time",
+                                text = stringResource(R.string.no_players_found),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.padding(vertical = 8.dp)
@@ -154,7 +156,7 @@ fun VotingScreen(
 
                     item {
                         Text(
-                            text = "Jogadores: ${uiState.match!!.teams[1].players.size}",
+                            text = stringResource(R.string.players_count, uiState.match!!.teams[1].players.size),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -163,7 +165,7 @@ fun VotingScreen(
                     if (uiState.match!!.teams[1].players.isEmpty()) {
                         item {
                             Text(
-                                text = "Nenhum jogador encontrado para este time",
+                                text = stringResource(R.string.no_players_found),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.padding(vertical = 8.dp)
@@ -198,7 +200,7 @@ fun VotingScreen(
                                     modifier = Modifier.size(24.dp)
                                 )
                             } else {
-                                Text("Enviar Avaliações")
+                                Text(stringResource(R.string.submit_ratings))
                             }
                         }
 

@@ -1,6 +1,7 @@
 package com.guicarneirodev.ltascore.android.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
+import com.guicarneirodev.ltascore.android.R
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -88,37 +90,37 @@ fun RegisterScreen(
         var isValid = true
 
         if (email.isBlank()) {
-            emailError = "Email é obrigatório"
+            emailError = "Email is required"
             isValid = false
         } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailError = "Email inválido"
+            emailError = "Invalid email"
             isValid = false
         } else {
             emailError = null
         }
 
         if (username.isBlank()) {
-            usernameError = "Nome de usuário é obrigatório"
+            usernameError = "Username is required"
             isValid = false
         } else if (username.length < 3) {
-            usernameError = "Nome de usuário deve ter pelo menos 3 caracteres"
+            usernameError = "Username must be at least 3 characters long"
             isValid = false
         } else {
             usernameError = null
         }
 
         if (password.isBlank()) {
-            passwordError = "Senha é obrigatória"
+            passwordError = "Password is required"
             isValid = false
         } else if (password.length < 6) {
-            passwordError = "Senha deve ter pelo menos 6 caracteres"
+            passwordError = "Password must be at least 6 characters long"
             isValid = false
         } else {
             passwordError = null
         }
 
         if (confirmPassword != password) {
-            confirmPasswordError = "Senhas não conferem"
+            confirmPasswordError = "Passwords do not match"
             isValid = false
         } else {
             confirmPasswordError = null
@@ -130,7 +132,7 @@ fun RegisterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Criar Conta") },
+                title = { Text(stringResource(R.string.create_account)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateToLogin) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
@@ -155,7 +157,7 @@ fun RegisterScreen(
             )
 
             Text(
-                text = "Cadastre-se no LTA Score",
+                text = stringResource(R.string.register_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 24.dp)
@@ -167,7 +169,7 @@ fun RegisterScreen(
                     email = it
                     emailError = null
                 },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.email)) },
                 singleLine = true,
                 isError = emailError != null,
                 supportingText = { emailError?.let { Text(it) } },
@@ -188,7 +190,7 @@ fun RegisterScreen(
                 onValueChange = {
                     username = it
                 },
-                label = { Text("Nome de usuário") },
+                label = { Text(stringResource(R.string.username)) },
                 supportingText = {
                     when (val state = usernameAvailabilityState) {
                         is UsernameCheckState.Unavailable -> Text(
@@ -200,7 +202,7 @@ fun RegisterScreen(
                             color = MaterialTheme.colorScheme.error
                         )
                         UsernameCheckState.Checking -> CircularProgressIndicator()
-                        else -> Text("Use letras, números e _ (3-20 caracteres)")
+                        else -> Text(stringResource(R.string.username_requirements))
                     }
                 },
                 isError = usernameAvailabilityState is UsernameCheckState.Unavailable
@@ -214,7 +216,7 @@ fun RegisterScreen(
                     password = it
                     passwordError = null
                 },
-                label = { Text("Senha") },
+                label = { Text(stringResource(R.string.password)) },
                 singleLine = true,
                 isError = passwordError != null,
                 supportingText = { passwordError?.let { Text(it) } },
@@ -226,7 +228,7 @@ fun RegisterScreen(
                     IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                         Icon(
                             imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = "Mostrar/Esconder senha"
+                            contentDescription = "Show/Hide password"
                         )
                     }
                 },
@@ -245,7 +247,7 @@ fun RegisterScreen(
                     confirmPassword = it
                     confirmPasswordError = null
                 },
-                label = { Text("Confirmar senha") },
+                label = { Text(stringResource(R.string.confirm_password)) },
                 singleLine = true,
                 isError = confirmPasswordError != null,
                 supportingText = { confirmPasswordError?.let { Text(it) } },
@@ -257,7 +259,7 @@ fun RegisterScreen(
                     IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
                         Icon(
                             imageVector = if (isConfirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = "Mostrar/Esconder senha"
+                            contentDescription = "Show/Hide Password"
                         )
                     }
                 },
@@ -287,18 +289,18 @@ fun RegisterScreen(
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("CRIAR CONTA")
+                    Text(stringResource(R.string.create_account_button))
                 }
             }
 
             if (uiState.error != null) {
                 val errorMessage = when {
                     uiState.error!!.contains("Nome de usuário já está em uso") ->
-                        "Este nome de usuário já está sendo usado por outra pessoa. Por favor, escolha outro."
+                        stringResource(R.string.username_in_use)
                     uiState.error!!.contains("email already in use") ->
-                        "Este email já está cadastrado. Tente fazer login ou use outro email."
+                        stringResource(R.string.email_in_use)
                     uiState.error!!.contains("weak password") ->
-                        "A senha é muito fraca. Use pelo menos 6 caracteres com letras e números."
+                        stringResource(R.string.weak_password)
                     else -> uiState.error!!
                 }
 
@@ -319,11 +321,11 @@ fun RegisterScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Já tem uma conta?",
+                    text = stringResource(R.string.already_have_account),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 TextButton(onClick = onNavigateToLogin) {
-                    Text("Entrar")
+                    Text(stringResource(R.string.sign_in))
                 }
             }
         }

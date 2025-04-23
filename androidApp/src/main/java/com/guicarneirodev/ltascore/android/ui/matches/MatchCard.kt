@@ -7,6 +7,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import com.guicarneirodev.ltascore.android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -140,7 +142,7 @@ fun MatchCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "vs",
+                        text = stringResource(R.string.vs),
                         style = MaterialTheme.typography.bodyMedium,
                         color = LTAThemeColors.TextSecondary,
                         textAlign = TextAlign.Center
@@ -190,9 +192,9 @@ fun MatchCard(
             }
 
             val (statusText, statusColor) = when (match.state) {
-                MatchState.UNSTARTED -> Pair("Em breve", LTAThemeColors.Warning)
-                MatchState.INPROGRESS -> Pair("AO VIVO", LTAThemeColors.LiveRed)
-                MatchState.COMPLETED -> Pair("Concluída - Clique para votar", LTAThemeColors.Success)
+                MatchState.UNSTARTED -> Pair(stringResource(R.string.soon), LTAThemeColors.Warning)
+                MatchState.INPROGRESS -> Pair(stringResource(R.string.live_now), LTAThemeColors.LiveRed)
+                MatchState.COMPLETED -> Pair(stringResource(R.string.completed_click), LTAThemeColors.Success)
             }
 
             if (match.state == MatchState.COMPLETED && match.vodUrl != null) {
@@ -205,19 +207,19 @@ fun MatchCard(
                     Button(
                         onClick = { onVodClick(match.vodUrl!!) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD9A546) // Cor dourada mais forte para destaque
+                            containerColor = Color(0xFFD9A546)
                         ),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Assistir VOD",
+                            contentDescription = stringResource(R.string.watch_vod),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Assistir VOD",
+                            stringResource(R.string.watch_vod),
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                         )
                     }

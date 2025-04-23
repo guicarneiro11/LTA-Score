@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,6 +52,7 @@ import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.TeamFilterItem
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
+import com.guicarneirodev.ltascore.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,7 +85,7 @@ fun EditProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Editar Perfil") },
+                title = { Text(stringResource(R.string.edit_profile)) },
                 navigationIcon = {
                     IconButton(onClick = actualOnBackClick) {
                         Icon(
@@ -108,7 +110,7 @@ fun EditProfileScreen(
                 .background(LTAThemeColors.DarkBackground)
         ) {
             Text(
-                text = "Escolha seu time favorito",
+                text = stringResource(R.string.choose_team),
                 style = MaterialTheme.typography.titleLarge,
                 color = LTAThemeColors.TextPrimary,
                 fontWeight = FontWeight.Bold
@@ -170,7 +172,7 @@ fun EditProfileScreen(
                         )
                     } else {
                         Text(
-                            text = "Salvar",
+                            text = stringResource(R.string.save),
                             style = MaterialTheme.typography.titleMedium
                         )
                     }

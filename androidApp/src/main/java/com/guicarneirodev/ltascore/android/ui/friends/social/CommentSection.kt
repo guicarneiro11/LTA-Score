@@ -41,10 +41,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.domain.models.VoteComment
 import kotlinx.datetime.Clock
@@ -88,7 +90,10 @@ fun CommentSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (uniqueComments.isEmpty()) "Comentários" else "Comentários (${uniqueComments.size})",
+                text = if (uniqueComments.isEmpty())
+                    stringResource(R.string.comments)
+                else
+                    stringResource(R.string.comments_count, uniqueComments.size),
                 color = LTAThemeColors.TextSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -134,7 +139,7 @@ fun CommentSection(
                     )
                 } else {
                     Text(
-                        text = "Nenhum comentário ainda. Seja o primeiro a comentar!",
+                        stringResource(R.string.comments_count, uniqueComments.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = LTAThemeColors.TextSecondary,
                         modifier = Modifier
@@ -151,7 +156,7 @@ fun CommentSection(
                     OutlinedTextField(
                         value = commentText,
                         onValueChange = { commentText = it },
-                        placeholder = { Text("Adicionar comentário...") },
+                        placeholder = { Text(stringResource(R.string.add_comment)) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = LTAThemeColors.CardBackground,
@@ -168,7 +173,6 @@ fun CommentSection(
                     IconButton(
                         onClick = {
                             if (commentText.isNotEmpty()) {
-                                println("Enviando comentário: $commentText")
                                 onAddComment(commentText)
                                 commentText = ""
                             }
@@ -177,7 +181,7 @@ fun CommentSection(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Enviar",
+                            contentDescription = "Send",
                             tint = if (commentText.isNotEmpty()) LTAThemeColors.PrimaryGold else LTAThemeColors.TextSecondary
                         )
                     }
@@ -271,7 +275,7 @@ private fun formatTime(timestamp: Instant): String {
     val diff = now - timestamp
 
     return when {
-        diff.inWholeSeconds < 60 -> "agora"
+        diff.inWholeSeconds < 60 -> "now"
         diff.inWholeMinutes < 60 -> "${diff.inWholeMinutes}m"
         diff.inWholeHours < 24 -> "${diff.inWholeHours}h"
         diff.inWholeDays < 7 -> "${diff.inWholeDays}d"
