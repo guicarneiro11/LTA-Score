@@ -11,15 +11,6 @@
 
 Created by fans and for fans, LTA Score does not intend to be an alternative classification system to official rankings, but rather a way to engage the community in constructive discussions about the performance of professional players and celebrate great plays.
 
-## ✨ Key Features
-
-- **Match Calendar**: View all past, current, and future matches of LTA South and North leagues
-- **Rating System**: Assign scores from 0-10 to players from completed matches
-- **User Profile**: Manage your account and see your rating history
-- **Social Feed**: Add friends and follow their recent ratings
-- **Community Rankings**: See the highest-rated players by fans across various categories
-- **Social Interactions**: Comment and react to other fans' ratings
-
 ## 🖼️ Screenshots and Videos
 
 https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
@@ -33,6 +24,47 @@ https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
 <img src="https://i.imgur.com/j9Q0PWA.png" alt="Profile Screen" width="200"/>
 <img src="https://i.imgur.com/uFlyeFx.png" alt="Ranking Screen" width="200"/>
 </div>
+
+## ✨ Key Features
+
+### 🏆 Rating System
+- Rate players from 0-10 after each match
+- Provide constructive feedback on player performances
+- Contribute to a community-driven evaluation of professional athletes
+
+### 🤝 Social Connectivity
+- Friends System
+  * Send and accept friend requests
+  * View friends' ratings and voting history
+- Team Feeds
+  * Share your votes with your favorite team's community
+  * Interact with team-specific vote feeds
+- Social Interactions
+  * Comment on votes
+  * React to friends' and team ratings
+  * Engage in meaningful discussions
+
+### 📅 Comprehensive Match Management
+- Detailed match calendar for LTA South and North leagues
+- Filter matches by status:
+  * Upcoming matches
+  * Live matches
+  * Completed matches
+- Access to match VODs
+
+### 📊 Ranking Systems
+- Multiple ranking categories:
+  * Overall player rankings
+  * Team-based rankings
+  * Position-specific rankings (Top, Jungle, Mid, ADC, Support)
+  * Most voted players
+  * Time-based rankings (weekly, monthly)
+
+### 👤 Personalized User Experience
+- Create and customize your profile
+- Select and display your favorite team
+- Track personal voting history
+- Manage account settings
 
 ## 🔧 Technologies
 
