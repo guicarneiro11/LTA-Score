@@ -23,6 +23,7 @@ https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
 <img src="https://i.imgur.com/AZiSZYf.png" alt="Evaluate players" width="200"/>
 <img src="https://i.imgur.com/j9Q0PWA.png" alt="Profile Screen" width="200"/>
 <img src="https://i.imgur.com/uFlyeFx.png" alt="Ranking Screen" width="200"/>
+<img src="https://i.imgur.com/1Z4ZKa4.png" alt="Team Feed" width="200"/>
 </div>
 
 ## ✨ Key Features
