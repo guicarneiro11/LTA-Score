@@ -45,12 +45,12 @@ https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
   * Engage in meaningful discussions
 
 ### 📅 Comprehensive Match Management
-- Detailed match calendar for LTA South and North leagues
+- Detailed match calendar for LTA South and North leagues (coming soon LTA North)
 - Filter matches by status:
   * Upcoming matches
   * Live matches
   * Completed matches
-- Access to match VODs
+- Access to match VODs (coming soon)
 
 ### 📊 Ranking Systems
 - Multiple ranking categories:
@@ -58,7 +58,6 @@ https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
   * Team-based rankings
   * Position-specific rankings (Top, Jungle, Mid, ADC, Support)
   * Most voted players
-  * Time-based rankings (weekly, monthly)
 
 ### 👤 Personalized User Experience
 - Create and customize your profile
