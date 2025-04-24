@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
 import com.guicarneirodev.ltascore.android.data.cache.UserEvents
+import com.guicarneirodev.ltascore.android.util.StringResources
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import kotlinx.coroutines.delay
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.guicarneirodev.ltascore.android.R
 
 data class EditProfileUiState(
     val isLoading: Boolean = false,
@@ -54,7 +56,7 @@ class EditProfileViewModel(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar perfil: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.profile_load_error, e.message ?: "")
                 )
             }
         }
@@ -69,7 +71,7 @@ class EditProfileViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                val hardcodedTeams = listOf(
+                listOf(
                     TeamFilterItem("loud", "LOUD", "LOUD", ""),
                     TeamFilterItem("pain-gaming", "paiN Gaming", "PAIN", ""),
                     TeamFilterItem("isurus-estral", "Isurus Estral", "IE", ""),
@@ -126,15 +128,16 @@ class EditProfileViewModel(
                         isLoading = false
                     )
                 } catch (e: Exception) {
-                    println("Erro ao carregar times do repositório: ${e.message}")
                     _uiState.value = _uiState.value.copy(
-                        availableTeams = hardcodedTeams,
-                        isLoading = false
+                        isLoading = false,
+                        error = StringResources.getStringFormatted(R.string.team_load_error, e.message ?: "")
                     )
                 }
             } catch (e: Exception) {
-                println("Erro ao carregar times: ${e.message}")
-                _uiState.value = _uiState.value.copy(isLoading = false)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = StringResources.getStringFormatted(R.string.team_load_error, e.message ?: "")
+                )
             }
         }
     }
@@ -174,27 +177,27 @@ class EditProfileViewModel(
 
                                 _uiState.value = _uiState.value.copy(
                                     isLoading = false,
-                                    success = "Time favorito atualizado com sucesso"
+                                    success = StringResources.getString(R.string.team_updated)
                                 )
                             }
                         },
                         onFailure = { e ->
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
-                                error = "Erro ao atualizar time favorito: ${e.message}"
+                                error = StringResources.getStringFormatted(R.string.team_save_error, e.message ?: "")
                             )
                         }
                     )
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = "Selecione um time favorito"
+                        error = StringResources.getString(R.string.select_team_required)
                     )
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao salvar perfil: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.profile_save_error, e.message ?: "")
                 )
             }
         }
@@ -213,13 +216,13 @@ class EditProfileViewModel(
                 delay(300)
 
                 _uiState.value = _uiState.value.copy(
-                    success = "Time favorito atualizado com sucesso"
+                    success = StringResources.getString(R.string.team_updated)
                 )
 
                 onComplete(teamId)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    error = "Erro ao salvar time favorito: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.team_save_error, e.message ?: "")
                 )
             }
         }

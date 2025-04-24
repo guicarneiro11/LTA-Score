@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.android.util.StringResources
 import com.guicarneirodev.ltascore.domain.models.FriendRequest
 import com.guicarneirodev.ltascore.domain.models.Friendship
 import com.guicarneirodev.ltascore.domain.usecases.ManageFriendshipsUseCase
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.guicarneirodev.ltascore.android.R
 
 data class FriendsManagementUiState(
     val isLoading: Boolean = false,
@@ -53,7 +55,7 @@ class FriendsViewModel(
 
         if (username.isEmpty()) {
             _uiState.value = _uiState.value.copy(
-                error = "Nome de usuário não pode ser vazio"
+                error = StringResources.getString(R.string.username_empty)
             )
             return
         }
@@ -73,20 +75,20 @@ class FriendsViewModel(
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
                             friendUsername = "",
-                            success = "Solicitação enviada para $username"
+                            success = StringResources.getStringFormatted(R.string.friend_request_sent, username)
                         )
                     },
                     onFailure = { e ->
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = e.message ?: "Erro ao enviar solicitação"
+                            error = e.message ?: StringResources.getString(R.string.request_send_error)
                         )
                     }
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao enviar solicitação: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.request_send_error, e.message ?: "")
                 )
             }
         }
@@ -107,21 +109,21 @@ class FriendsViewModel(
                     onSuccess = {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            success = "${friendship.friendUsername} removido(a) da sua lista de amigos"
+                            success = StringResources.getStringFormatted(R.string.friend_removed, friendship.friendUsername)
                         )
                         loadFriends()
                     },
                     onFailure = { e ->
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = e.message ?: "Erro ao remover amigo"
+                            error = StringResources.getStringFormatted(R.string.friend_remove_error, e.message ?: "")
                         )
                     }
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao remover amigo: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.friend_remove_error, e.message ?: "")
                 )
             }
         }
@@ -144,7 +146,7 @@ class FriendsViewModel(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar amigos: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.friends_load_error, e.message ?: "")
                 )
             }
         }
@@ -167,7 +169,7 @@ class FriendsViewModel(
             } catch (e: Exception) {
                 _requestsUiState.value = _requestsUiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar solicitações: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.friends_load_error, e.message ?: "")
                 )
             }
         }
@@ -188,7 +190,7 @@ class FriendsViewModel(
                     onSuccess = {
                         _requestsUiState.value = _requestsUiState.value.copy(
                             isLoading = false,
-                            success = "Solicitação aceita"
+                            success = StringResources.getString(R.string.request_accepted)
                         )
                         loadFriends()
                         loadFriendRequests()
@@ -196,14 +198,14 @@ class FriendsViewModel(
                     onFailure = { e ->
                         _requestsUiState.value = _requestsUiState.value.copy(
                             isLoading = false,
-                            error = e.message ?: "Erro ao aceitar solicitação"
+                            error = StringResources.getStringFormatted(R.string.request_accept_error, e.message ?: "")
                         )
                     }
                 )
             } catch (e: Exception) {
                 _requestsUiState.value = _requestsUiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao aceitar solicitação: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.request_accept_error, e.message ?: "")
                 )
             }
         }
@@ -224,21 +226,21 @@ class FriendsViewModel(
                     onSuccess = {
                         _requestsUiState.value = _requestsUiState.value.copy(
                             isLoading = false,
-                            success = "Solicitação recusada"
+                            success = StringResources.getString(R.string.request_declined)
                         )
                         loadFriendRequests()
                     },
                     onFailure = { e ->
                         _requestsUiState.value = _requestsUiState.value.copy(
                             isLoading = false,
-                            error = e.message ?: "Erro ao recusar solicitação"
+                            error = StringResources.getStringFormatted(R.string.request_reject_error, e.message ?: "")
                         )
                     }
                 )
             } catch (e: Exception) {
                 _requestsUiState.value = _requestsUiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao recusar solicitação: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.request_reject_error, e.message ?: "")
                 )
             }
         }

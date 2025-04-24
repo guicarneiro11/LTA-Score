@@ -3,6 +3,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.guicarneirodev.ltascore.android.data.cache.FeedCache
+import com.guicarneirodev.ltascore.android.util.StringResources
 import com.guicarneirodev.ltascore.domain.models.FriendVoteHistoryItem
 import com.guicarneirodev.ltascore.domain.models.TeamFeedItem
 import com.guicarneirodev.ltascore.domain.models.VoteComment
@@ -26,6 +27,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
+import com.guicarneirodev.ltascore.android.R
 
 data class VoteReactionsState(
     val reactions: List<VoteReaction> = emptyList(),
@@ -54,6 +56,10 @@ class FriendsFeedViewModel(
     private val teamFeedRepository: TeamFeedRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
+
+    companion object {
+        const val CURRENT_USER_KEY = "__CURRENT_USER__"
+    }
 
     private val _uiState = MutableStateFlow(FriendsFeedUiState(isLoading = true))
     val uiState: StateFlow<FriendsFeedUiState> = _uiState.asStateFlow()
@@ -100,7 +106,7 @@ class FriendsFeedViewModel(
                 if (feed.isNotEmpty()) {
                     val groupedItems = feed.groupBy { item ->
                         val prefix = if (item.friendId == _uiState.value.currentUserId) {
-                            "Seus votos"
+                            CURRENT_USER_KEY
                         } else {
                             item.friendUsername
                         }
@@ -157,7 +163,7 @@ class FriendsFeedViewModel(
 
                     val groupedItems = feedItems.groupBy { item ->
                         val prefix = if (item.friendId == _uiState.value.currentUserId) {
-                            "Seus votos"
+                            CURRENT_USER_KEY
                         } else {
                             item.friendUsername
                         }
@@ -183,7 +189,7 @@ class FriendsFeedViewModel(
                 e.printStackTrace()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar feed: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.feed_load_error, e.message ?: "")
                 )
             }
         }
@@ -196,7 +202,7 @@ class FriendsFeedViewModel(
             if (teamId == null) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Selecione um time favorito para ver o feed da torcida"
+                    error = StringResources.getString(R.string.select_team_message)
                 )
                 return@launch
             }
@@ -230,53 +236,7 @@ class FriendsFeedViewModel(
                 e.printStackTrace()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar feed da torcida: ${e.message}"
-                )
-            }
-        }
-    }
-
-
-
-    fun loadFeed() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-
-            try {
-                getFriendsFeedUseCase.execute().collect { feedItems ->
-                    println("Feed recebido: ${feedItems.size} itens")
-
-                    FeedCache.updateFeed(feedItems)
-
-                    val groupedItems = feedItems.groupBy { item ->
-                        val prefix = if (item.friendId == _uiState.value.currentUserId) {
-                            "Seus votos"
-                        } else {
-                            item.friendUsername
-                        }
-                        "$prefix: ${item.matchId}|${formatDateForGrouping(item.matchDate)}"
-                    }
-
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        feed = feedItems,
-                        groupedFeed = groupedItems
-                    )
-
-                    cancelExistingJobs()
-
-                    feedItems.forEach { voteItem ->
-                        println("Carregando reações e comentários para voto: ${voteItem.id}")
-                        loadReactionsForVote(voteItem.id)
-                        loadCommentsForVote(voteItem.id)
-                    }
-                }
-            } catch (e: Exception) {
-                println("Erro ao carregar feed: ${e.message}")
-                e.printStackTrace()
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Erro ao carregar feed: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.team_feed_load_error, e.message ?: "")
                 )
             }
         }
@@ -329,7 +289,6 @@ class FriendsFeedViewModel(
                     }
                 }
             } catch (e: Exception) {
-                println("Erro ao carregar reações para $voteId: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -457,10 +416,16 @@ class FriendsFeedViewModel(
                     )
                 }.onFailure { error ->
                     println("Erro ao adicionar reação: ${error.message}")
+                    _uiState.value = _uiState.value.copy(
+                        error = StringResources.getStringFormatted(R.string.reaction_add_error, error.message ?: "")
+                    )
                 }
             } catch (e: Exception) {
                 println("Erro ao adicionar reação: ${e.message}")
                 e.printStackTrace()
+                _uiState.value = _uiState.value.copy(
+                    error = StringResources.getStringFormatted(R.string.reaction_add_error, e.message ?: "")
+                )
             }
         }
     }

@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.android.util.StringResources
 import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
+import com.guicarneirodev.ltascore.android.R
 
 data class RankingUiState(
     val isLoading: Boolean = false,
@@ -85,7 +87,7 @@ class RankingViewModel(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar ranking: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.ranking_load_error, e.message ?: "")
                 )
             }
         }
@@ -146,7 +148,7 @@ class RankingViewModel(
                     if (players.isEmpty()) {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            error = "Não foi possível carregar dados do ranking. Tente novamente."
+                            error = StringResources.getString(R.string.ranking_data_error)
                         )
                     } else {
                         _uiState.value = _uiState.value.copy(
@@ -159,7 +161,7 @@ class RankingViewModel(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao atualizar ranking: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.ranking_update_error, e.message ?: "")
                 )
             }
         }

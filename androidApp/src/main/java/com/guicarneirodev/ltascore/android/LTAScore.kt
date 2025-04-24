@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.functions.FirebaseFunctions
 import com.guicarneirodev.ltascore.android.di.appModule
+import com.guicarneirodev.ltascore.android.util.StringResources
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -17,7 +18,7 @@ class LTAScore : Application() {
         Log.d("LOLVotingApp", "Iniciando aplicação")
 
         FirebaseApp.initializeApp(this)
-
+        StringResources.initialize(this)
         FirebaseFunctions.getInstance("us-central1")
 
         startKoin {

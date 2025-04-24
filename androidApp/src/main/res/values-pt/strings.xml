@@ -171,4 +171,69 @@
     <string name="league">Liga:</string>
     <string name="test_api">Testar API</string>
     <string name="api_logs">Logs de API aparecerão aqui…</string>
+
+    <!-- Auth errors -->
+    <string name="auth_error">Erro de autenticação: %s</string>
+    <string name="wrong_password">Senha incorreta</string>
+    <string name="user_not_found">Usuário não encontrado</string>
+    <string name="connection_error">Erro de conexão</string>
+    <string name="username_required_length">Nome de usuário deve ter entre 3 e 20 caracteres</string>
+    <string name="username_format">Use apenas letras, números e _</string>
+    <string name="username_empty">Nome de usuário não pode ser vazio</string>
+    <string name="username_check_error">Erro ao verificar nome de usuário: %s</string>
+    <string name="login_error">Erro ao fazer login: %s</string>
+    <string name="register_error">Erro ao criar conta: %s</string>
+    <string name="email_send_error">Erro ao enviar email: %s</string>
+    <string name="request_send_error">Erro ao enviar solicitação: %s</string>
+    <string name="friend_remove_error">Erro ao remover amigo: %s</string>
+    <string name="request_accept_error">Erro ao aceitar solicitação: %s</string>
+    <string name="request_reject_error">Erro ao recusar solicitação: %s</string>
+    <string name="team_load_error">Erro ao carregar times: %s</string>
+    <string name="reaction_add_error">Erro ao adicionar reação: %s</string>
+    <string name="reaction_remove_error">Erro ao remover reação: %s</string>
+    <string name="comment_add_error">Erro ao adicionar comentário: %s</string>
+    <string name="comment_delete_error">Erro ao remover comentário: %s</string>
+    <string name="error_check_votes">Erro ao verificar votos do usuário: %s</string>
+
+    <!-- Profile messages -->
+    <string name="profile_load_error">Erro ao carregar perfil: %s</string>
+    <string name="select_team_required">Selecione um time favorito</string>
+    <string name="profile_save_error">Erro ao salvar perfil: %s</string>
+    <string name="team_updated">Time favorito atualizado com sucesso</string>
+    <string name="team_save_error">Erro ao salvar time favorito: %s</string>
+
+    <!-- Feed messages -->
+    <string name="feed_load_error">Erro ao carregar feed: %s</string>
+    <string name="team_feed_load_error">Erro ao carregar feed da torcida: %s</string>
+
+    <!-- Friends messages -->
+    <string name="friend_request_sent">Solicitação enviada para %s</string>
+    <string name="friend_removed">%s removido(a) da sua lista de amigos</string>
+    <string name="friends_load_error">Erro ao carregar amigos: %s</string>
+    <string name="request_accepted">Solicitação aceita</string>
+    <string name="request_declined">Solicitação recusada</string>
+
+    <!-- Match messages -->
+    <string name="not_authenticated">Usuário não autenticado</string>
+    <string name="match_not_found_retries">Partida não encontrada após várias tentativas</string>
+    <string name="data_load_error">Erro ao carregar dados: %s</string>
+    <string name="no_match_found">Nenhuma partida encontrada</string>
+    <string name="matches_load_error">Erro ao carregar partidas: %s</string>
+
+    <!-- Ranking messages -->
+    <string name="ranking_load_error">Erro ao carregar ranking: %s</string>
+    <string name="ranking_update_error">Erro ao atualizar ranking: %s</string>
+    <string name="ranking_data_error">Não foi possível carregar dados do ranking. Tente novamente.</string>
+
+    <!-- Vote history messages -->
+    <string name="history_load_error">Erro ao carregar histórico: %s</string>
+    <string name="votes_shared">Seus votos foram compartilhados com sucesso!</string>
+    <string name="share_error">Erro ao compartilhar: %s</string>
+    <string name="votes_share_error">Erro ao compartilhar votos: %s</string>
+
+    <!-- Voting messages -->
+    <string name="match_load_error">Erro ao carregar partida: %s</string>
+    <string name="vote_submit_fail">Falha ao enviar votos. Tente novamente.</string>
+    <string name="not_authenticated_or_match">Usuário não autenticado ou partida não encontrada</string>
+    <string name="vote_submit_error">Erro ao enviar votos: %s</string>
 </resources>

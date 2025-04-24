@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.guicarneirodev.ltascore.android.util.StringResources
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.domain.models.Match
 import com.guicarneirodev.ltascore.domain.models.MatchState
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.guicarneirodev.ltascore.android.R
 
 enum class MatchFilter {
     ALL, UPCOMING, LIVE, COMPLETED
@@ -23,8 +25,8 @@ data class MatchesUiState(
     val filteredMatches: List<Match> = emptyList(),
     val filter: MatchFilter = MatchFilter.ALL,
     val availableLeagues: List<League> = listOf(
-        League("LTA Sul", "lta_s"),
-        League("LTA Norte", "lta_n")
+        League("LTA South", "lta_s"),
+        League("LTA North", "lta_n")
     ),
     val selectedLeagueIndex: Int = 0,
     val error: String? = null,
@@ -80,7 +82,7 @@ class MatchesViewModel(
                         isLoading = false,
                         matches = matches,
                         filteredMatches = filterMatches(matches, _uiState.value.filter),
-                        error = if (matches.isEmpty()) "Nenhuma partida encontrada" else null
+                        error = if (matches.isEmpty()) StringResources.getString(R.string.no_match_found) else null
                     )
                 }
             } catch (e: Exception) {
@@ -88,7 +90,7 @@ class MatchesViewModel(
                 e.printStackTrace()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar partidas: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.matches_load_error, e.message ?: "")
                 )
             }
         }

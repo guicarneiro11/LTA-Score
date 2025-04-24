@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.guicarneirodev.ltascore.android.data.cache.UserEvents
+import com.guicarneirodev.ltascore.android.util.StringResources
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.domain.models.User
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.guicarneirodev.ltascore.android.R
 
 data class LoginUiState(
     val isLoading: Boolean = false,
@@ -68,7 +70,6 @@ class AuthViewModel(
 
     fun triggerUserRefresh() {
         _forceUserRefresh.value += 1
-        println("Triggered force refresh: ${_forceUserRefresh.value}")
     }
 
     fun refreshCurrentUser() {
@@ -132,7 +133,7 @@ class AuthViewModel(
 
                 if (username.length < 3 || username.length > 20) {
                     _usernameAvailabilityState.value = UsernameCheckState.Unavailable(
-                        "Nome de usuário deve ter entre 3 e 20 caracteres"
+                        StringResources.getString(R.string.username_required_length)
                     )
                     return@launch
                 }
@@ -140,7 +141,7 @@ class AuthViewModel(
                 val usernameRegex = Regex("^[a-zA-Z0-9_]+$")
                 if (!usernameRegex.matches(username)) {
                     _usernameAvailabilityState.value = UsernameCheckState.Unavailable(
-                        "Use apenas letras, números e _"
+                        StringResources.getString(R.string.username_format)
                     )
                     return@launch
                 }
@@ -152,14 +153,14 @@ class AuthViewModel(
                     .await()
 
                 _usernameAvailabilityState.value = if (snapshot.exists()) {
-                    UsernameCheckState.Unavailable("Nome de usuário já está em uso")
+                    UsernameCheckState.Unavailable(StringResources.getString(R.string.username_in_use))
                 } else {
                     UsernameCheckState.Available
                 }
 
             } catch (e: Exception) {
                 _usernameAvailabilityState.value = UsernameCheckState.Error(
-                    "Erro ao verificar nome de usuário: ${e.message}"
+                    StringResources.getStringFormatted(R.string.username_check_error, e.message ?: "")
                 )
             }
         }
@@ -191,7 +192,7 @@ class AuthViewModel(
             } catch (e: Exception) {
                 _loginUiState.value = _loginUiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao fazer login: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.login_error, e.message ?: "")
                 )
             }
         }
@@ -223,7 +224,7 @@ class AuthViewModel(
             } catch (e: Exception) {
                 _registerUiState.value = _registerUiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao criar conta: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.register_error, e.message ?: "")
                 )
             }
         }
@@ -256,7 +257,7 @@ class AuthViewModel(
             } catch (e: Exception) {
                 _resetPasswordUiState.value = _resetPasswordUiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao enviar email: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.email_send_error, e.message ?: "")
                 )
             }
         }
@@ -270,14 +271,21 @@ class AuthViewModel(
 
     private fun mapFirebaseAuthError(e: Throwable): String {
         return when {
-            e.message?.contains("Nome de usuário já está em uso") == true -> "Nome de usuário já está em uso"
-            e.message?.contains("badly formatted") == true -> "Email inválido"
-            e.message?.contains("password is invalid") == true -> "Senha incorreta"
-            e.message?.contains("no user record") == true -> "Usuário não encontrado"
-            e.message?.contains("email already in use") == true -> "Email já cadastrado"
-            e.message?.contains("network error") == true -> "Erro de conexão"
-            e.message?.contains("weak password") == true -> "Senha muito fraca"
-            else -> "Erro de autenticação: ${e.message}"
+            e.message?.contains("Username already in use") == true ->
+                StringResources.getString(R.string.username_in_use)
+            e.message?.contains("Badly formatted") == true ->
+                StringResources.getString(R.string.invalid_email)
+            e.message?.contains("Password is invalid") == true ->
+                StringResources.getString(R.string.wrong_password)
+            e.message?.contains("No user record") == true ->
+                StringResources.getString(R.string.user_not_found)
+            e.message?.contains("Email already in use") == true ->
+                StringResources.getString(R.string.email_in_use)
+            e.message?.contains("Network error") == true ->
+                StringResources.getString(R.string.connection_error)
+            e.message?.contains("Weak password") == true ->
+                StringResources.getString(R.string.weak_password)
+            else -> StringResources.getStringFormatted(R.string.auth_error, e.message ?: "")
         }
     }
 }

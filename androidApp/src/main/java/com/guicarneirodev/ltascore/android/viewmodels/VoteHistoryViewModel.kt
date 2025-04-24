@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.android.util.StringResources
 
 data class VoteHistoryUiState(
     val isLoading: Boolean = false,
@@ -53,7 +55,7 @@ class VoteHistoryViewModel(
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar histórico: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.history_load_error, e.message ?: "")
                 )
             }
         }
@@ -70,10 +72,9 @@ class VoteHistoryViewModel(
                     onSuccess = {
                         _uiState.value = _uiState.value.copy(
                             isSharing = false,
-                            shareSuccess = "Seus votos foram compartilhados com sucesso!"
+                            shareSuccess = StringResources.getString(R.string.votes_shared)
                         )
 
-                        // Limpar a mensagem de sucesso após 3 segundos
                         launch {
                             kotlinx.coroutines.delay(3000)
                             _uiState.value = _uiState.value.copy(shareSuccess = null)
@@ -82,14 +83,14 @@ class VoteHistoryViewModel(
                     onFailure = { e ->
                         _uiState.value = _uiState.value.copy(
                             isSharing = false,
-                            error = "Erro ao compartilhar: ${e.message}"
+                            error = StringResources.getStringFormatted(R.string.share_error, e.message ?: "")
                         )
                     }
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isSharing = false,
-                    error = "Erro ao compartilhar votos: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.votes_share_error, e.message ?: "")
                 )
             }
         }

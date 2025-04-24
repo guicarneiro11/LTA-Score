@@ -1,35 +1,37 @@
 package com.guicarneirodev.ltascore.android.util
 
+import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 
 object StringResources {
+    private lateinit var appContext: Context
+
+    fun initialize(context: Context) {
+        appContext = context.applicationContext
+    }
+
+    fun getString(resId: Int): String {
+        if (!::appContext.isInitialized) {
+            throw IllegalStateException("StringResources not initialized. Call initialize(context) first.")
+        }
+        return appContext.getString(resId)
+    }
+
+    fun getStringFormatted(resId: Int, vararg formatArgs: Any): String {
+        if (!::appContext.isInitialized) {
+            throw IllegalStateException("StringResources not initialized. Call initialize(context) first.")
+        }
+        return appContext.getString(resId, *formatArgs)
+    }
 
     @Composable
-    fun getString(resId: Int): String {
+    fun getStringResource(resId: Int): String {
         return stringResource(resId)
     }
 
     @Composable
-    fun getStringFormatted(resId: Int, param: Int): String {
-        return stringResource(resId, param)
-    }
-
-    @Composable
-    fun getStringFormatted(resId: Int, param: String): String {
-        return stringResource(resId, param)
-    }
-
-    @Composable
-    fun getStringFormatted(resId: Int, vararg params: Any): String {
-        return stringResource(resId, *params)
-    }
-
-    @Composable
-    fun getStringByName(name: String): String {
-        val context = LocalContext.current
-        val resId = context.resources.getIdentifier(name, "string", context.packageName)
-        return if (resId != 0) stringResource(resId) else name
+    fun getStringResourceFormatted(resId: Int, vararg formatArgs: Any): String {
+        return stringResource(resId, *formatArgs)
     }
 }

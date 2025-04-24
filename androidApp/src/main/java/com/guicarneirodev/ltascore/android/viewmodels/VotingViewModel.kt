@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.android.util.StringResources
 
 data class VotingUiState(
     val isLoading: Boolean = false,
@@ -61,13 +63,13 @@ class VotingViewModel(
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = "Partida não encontrada"
+                        error = StringResources.getString(R.string.match_not_found)
                     )
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Erro ao carregar partida: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.match_load_error, e.message ?: "")
                 )
             }
         }
@@ -122,19 +124,19 @@ class VotingViewModel(
                     } else {
                         _uiState.value = _uiState.value.copy(
                             isSubmitting = false,
-                            error = "Falha ao enviar votos. Tente novamente."
+                            error = StringResources.getString(R.string.vote_submit_fail)
                         )
                     }
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isSubmitting = false,
-                        error = "Usuário não autenticado ou partida não encontrada"
+                        error = StringResources.getString(R.string.not_authenticated_or_match)
                     )
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isSubmitting = false,
-                    error = "Erro ao enviar votos: ${e.message}"
+                    error = StringResources.getStringFormatted(R.string.vote_submit_error, e.message ?: "")
                 )
             }
         }

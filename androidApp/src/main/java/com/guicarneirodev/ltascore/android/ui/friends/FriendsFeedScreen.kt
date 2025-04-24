@@ -220,7 +220,6 @@ fun FriendsFeedScreen(
             } else {
                 when (uiState.activeTab) {
                     0 -> {
-                        // Aba de Amigos
                         if (uiState.feed.isEmpty()) {
                             EmptyFriendsFeedContent()
                         } else {
@@ -525,7 +524,8 @@ fun FriendsFeedContent(
     onAddComment: (String, String) -> Unit,
     onDeleteComment: (String) -> Unit
 ) {
-    val youText = stringResource(R.string.you)
+    stringResource(R.string.you)
+    val yourVotesText = stringResource(R.string.your_votes)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -534,19 +534,22 @@ fun FriendsFeedContent(
     ) {
         groupedFeed.forEach { (groupKey, votes) ->
             val parts = groupKey.split(":")
-            val friendName = parts[0].trim()
+            val rawFriendName = parts[0].trim()
             val matchInfo = parts.getOrNull(1)?.trim()?.split("|") ?: listOf("", "")
             val dateStr = matchInfo.getOrNull(1) ?: ""
 
-            val isCurrentUser = friendName.contains("(you)") || votes.firstOrNull()?.friendId == currentUserId
+            val isCurrentUser = rawFriendName == FriendsFeedViewModel.CURRENT_USER_KEY ||
+                    votes.firstOrNull()?.friendId == currentUserId
+
+            val displayName = if (isCurrentUser) {
+                yourVotesText
+            } else {
+                rawFriendName
+            }
 
             item(key = "header_$groupKey") {
                 FeedGroupHeader(
-                    friendName = if (isCurrentUser) {
-                        friendName.replace("(you)", youText)
-                    } else {
-                        friendName
-                    },
+                    friendName = displayName,
                     date = dateStr,
                     teams = "${votes.firstOrNull()?.teamCode ?: ""} vs ${votes.firstOrNull()?.opponentTeamCode ?: ""}",
                     isCurrentUser = isCurrentUser,

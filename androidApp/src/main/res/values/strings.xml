@@ -171,4 +171,69 @@
     <string name="league">League:</string>
     <string name="test_api">Test API</string>
     <string name="api_logs">API logs will appear here…</string>
+
+    <!-- Auth errors -->
+    <string name="auth_error">Authentication error: %s</string>
+    <string name="wrong_password">Incorrect password</string>
+    <string name="user_not_found">User not found</string>
+    <string name="connection_error">Connection error</string>
+    <string name="username_required_length">Username must be between 3 and 20 characters</string>
+    <string name="username_format">Use only letters, numbers and _</string>
+    <string name="username_empty">Username cannot be empty</string>
+    <string name="username_check_error">Error checking username: %s</string>
+    <string name="login_error">Error during login: %s</string>
+    <string name="register_error">Error creating account: %s</string>
+    <string name="email_send_error">Error sending email: %s</string>
+    <string name="request_send_error">Error sending request: %s</string>
+    <string name="friend_remove_error">Error removing friend: %s</string>
+    <string name="request_accept_error">Error accepting request: %s</string>
+    <string name="request_reject_error">Error rejecting request: %s</string>
+    <string name="team_load_error">Error loading teams: %s</string>
+    <string name="reaction_add_error">Error adding reaction: %s</string>
+    <string name="reaction_remove_error">Error removing reaction: %s</string>
+    <string name="comment_add_error">Error adding comment: %s</string>
+    <string name="comment_delete_error">Error deleting comment: %s</string>
+    <string name="error_check_votes">Error checking user votes: %s</string>
+
+    <!-- Profile messages -->
+    <string name="profile_load_error">Error loading profile: %s</string>
+    <string name="select_team_required">Select a favorite team</string>
+    <string name="profile_save_error">Error saving profile: %s</string>
+    <string name="team_updated">Favorite team updated successfully</string>
+    <string name="team_save_error">Error saving favorite team: %s</string>
+
+    <!-- Feed messages -->
+    <string name="feed_load_error">Error loading feed: %s</string>
+    <string name="team_feed_load_error">Error loading team feed: %s</string>
+
+    <!-- Friends messages -->
+    <string name="friend_request_sent">Request sent to %s</string>
+    <string name="friend_removed">%s removed from your friends list</string>
+    <string name="friends_load_error">Error loading friends: %s</string>
+    <string name="request_accepted">Request accepted</string>
+    <string name="request_declined">Request declined</string>
+
+    <!-- Match messages -->
+    <string name="not_authenticated">User not authenticated</string>
+    <string name="match_not_found_retries">Match not found after multiple attempts</string>
+    <string name="data_load_error">Error loading data: %s</string>
+    <string name="no_match_found">No match found</string>
+    <string name="matches_load_error">Error loading matches: %s</string>
+
+    <!-- Ranking messages -->
+    <string name="ranking_load_error">Error loading ranking: %s</string>
+    <string name="ranking_update_error">Error updating ranking: %s</string>
+    <string name="ranking_data_error">Could not load ranking data. Try again.</string>
+
+    <!-- Vote history messages -->
+    <string name="history_load_error">Error loading history: %s</string>
+    <string name="votes_shared">Your votes were shared successfully!</string>
+    <string name="share_error">Error sharing: %s</string>
+    <string name="votes_share_error">Error sharing votes: %s</string>
+
+    <!-- Voting messages -->
+    <string name="match_load_error">Error loading match: %s</string>
+    <string name="vote_submit_fail">Failed to submit votes. Try again.</string>
+    <string name="not_authenticated_or_match">User not authenticated or match not found</string>
+    <string name="vote_submit_error">Error submitting votes: %s</string>
 </resources>
