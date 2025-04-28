@@ -427,7 +427,7 @@ class PlayersStaticDataSource {
                 nickname = "Thanatos",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/8d/C9_Thanatos_2025_Split_1.png/revision/latest?cb=20250121144454",
                 position = PlayerPosition.TOP,
-                teamId = "cloud9"
+                teamId = "cloud9-kia"
             ),
             Player(
                 id = "player_cloud9_blaber",
@@ -435,7 +435,7 @@ class PlayersStaticDataSource {
                 nickname = "Blaber",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/de/C9_Blaber_2025_Split_1.png/revision/latest?cb=20250121144455",
                 position = PlayerPosition.JUNGLE,
-                teamId = "cloud9"
+                teamId = "cloud9-kia"
             ),
             Player(
                 id = "player_cloud9_loki",
@@ -443,7 +443,7 @@ class PlayersStaticDataSource {
                 nickname = "Loki",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/98/C9_Loki_2025_Split_1.png/revision/latest?cb=20250121144457",
                 position = PlayerPosition.MID,
-                teamId = "cloud9"
+                teamId = "cloud9-kia"
             ),
             Player(
                 id = "player_cloud9_zven",
@@ -451,7 +451,7 @@ class PlayersStaticDataSource {
                 nickname = "Zven",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/86/C9_Zven_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250121144458",
                 position = PlayerPosition.ADC,
-                teamId = "cloud9"
+                teamId = "cloud9-kia"
             ),
             Player(
                 id = "player_cloud9_vulcan",
@@ -459,7 +459,7 @@ class PlayersStaticDataSource {
                 nickname = "Vulcan",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/dc/C9_Vulcan_2025_Split_1.png/revision/latest?cb=20250121144459",
                 position = PlayerPosition.SUPPORT,
-                teamId = "cloud9"
+                teamId = "cloud9-kia"
             ),
 
             //100 Thieves
@@ -469,7 +469,7 @@ class PlayersStaticDataSource {
                 nickname = "Sniper",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/fc/100_Sniper_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240923220459",
                 position = PlayerPosition.TOP,
-                teamId = "100thieves"
+                teamId = "100-thieves"
             ),
             Player(
                 id = "player_100thieves_river",
@@ -477,7 +477,7 @@ class PlayersStaticDataSource {
                 nickname = "River",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f0/100_River_2024_Split_2.png/revision/latest?cb=20240923220400",
                 position = PlayerPosition.JUNGLE,
-                teamId = "100thieves"
+                teamId = "100-thieves"
             ),
             Player(
                 id = "player_100thieves_quid",
@@ -485,7 +485,7 @@ class PlayersStaticDataSource {
                 nickname = "Quid",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/20/100_Quid_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240923220321",
                 position = PlayerPosition.MID,
-                teamId = "100thieves"
+                teamId = "100-thieves"
             ),
             Player(
                 id = "player_100thieves_fbi",
@@ -493,7 +493,7 @@ class PlayersStaticDataSource {
                 nickname = "FBI",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/9e/NRG_FBI_2023_Split_2.png/revision/latest/scale-to-width-down/220?cb=20230624094632",
                 position = PlayerPosition.ADC,
-                teamId = "100thieves"
+                teamId = "100-thieves"
             ),
             Player(
                 id = "player_100thieves_eyla",
@@ -501,7 +501,7 @@ class PlayersStaticDataSource {
                 nickname = "Eyla",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/2b/100_Eyla_2024_Split_2.png/revision/latest?cb=20240923220426",
                 position = PlayerPosition.SUPPORT,
-                teamId = "100thieves"
+                teamId = "100-thieves"
             ),
 
             //Fly Quest
@@ -553,7 +553,7 @@ class PlayersStaticDataSource {
                 nickname = "Impact",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/0b/TL_Impact_2025_Split_1.png/revision/latest?cb=20250311032414",
                 position = PlayerPosition.TOP,
-                teamId = "teamliquid"
+                teamId = "team-liquid-honda"
             ),
             Player(
                 id = "player_teamliquid_umti",
@@ -561,7 +561,7 @@ class PlayersStaticDataSource {
                 nickname = "UmTi",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/e6/TL_UmTi_2025_Split_1.png/revision/latest?cb=20250311032359",
                 position = PlayerPosition.JUNGLE,
-                teamId = "teamliquid"
+                teamId = "team-liquid-honda"
             ),
             Player(
                 id = "player_teamliquid_apa",
@@ -569,7 +569,7 @@ class PlayersStaticDataSource {
                 nickname = "APA",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/11/TL_APA_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250311032347",
                 position = PlayerPosition.MID,
-                teamId = "teamliquid"
+                teamId = "team-liquid-honda"
             ),
             Player(
                 id = "player_teamliquid_yeon",
@@ -577,7 +577,7 @@ class PlayersStaticDataSource {
                 nickname = "Yeon",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/48/TL_Yeon_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250311032323",
                 position = PlayerPosition.ADC,
-                teamId = "teamliquid"
+                teamId = "team-liquid-honda"
             ),
             Player(
                 id = "player_teamliquid_corejj",
@@ -585,7 +585,7 @@ class PlayersStaticDataSource {
                 nickname = "CoreJJ",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/10/TL_CoreJJ_2025_Split_1.png/revision/latest?cb=20250311032305",
                 position = PlayerPosition.SUPPORT,
-                teamId = "teamliquid"
+                teamId = "team-liquid-honda"
             ),
 
             //Shopify Rebellion
@@ -595,7 +595,7 @@ class PlayersStaticDataSource {
                 nickname = "Fudge",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/c2/SR_Fudge_2025_Split_1.png/revision/latest?cb=20250221144256",
                 position = PlayerPosition.TOP,
-                teamId = "shopify"
+                teamId = "shopify-rebellion"
             ),
             Player(
                 id = "player_shopify_contractz",
@@ -603,7 +603,7 @@ class PlayersStaticDataSource {
                 nickname = "Contractz",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b2/SR_Contractz_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144259",
                 position = PlayerPosition.JUNGLE,
-                teamId = "shopify"
+                teamId = "shopify-rebellion"
             ),
             Player(
                 id = "player_shopify_palafox",
@@ -611,7 +611,7 @@ class PlayersStaticDataSource {
                 nickname = "Palafox",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/de/SR_Palafox_2025_Split_1.png/revision/latest?cb=20250221144300",
                 position = PlayerPosition.TOP,
-                teamId = "shopify"
+                teamId = "shopify-rebellion"
             ),
             Player(
                 id = "player_shopify_bvoy",
@@ -619,7 +619,7 @@ class PlayersStaticDataSource {
                 nickname = "Bvoy",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/bd/SR_Bvoy_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144255",
                 position = PlayerPosition.ADC,
-                teamId = "shopify"
+                teamId = "shopify-rebellion"
             ),
             Player(
                 id = "player_shopify_ceos",
@@ -627,7 +627,7 @@ class PlayersStaticDataSource {
                 nickname = "Ceos",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/26/SR_Ceos_2025_Split_1.png/revision/latest?cb=20250221144258",
                 position = PlayerPosition.SUPPORT,
-                teamId = "shopify"
+                teamId = "shopify-rebellion"
             ),
 
             //Dignitas
