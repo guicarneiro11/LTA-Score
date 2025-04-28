@@ -2,6 +2,7 @@ package com.guicarneirodev.ltascore.data.datasource.static
 
 object TeamIdMapping {
     private val apiIdToInternalMap = mapOf(
+        // LTA South
         "100205576309502431" to "furia",
         "107598699275015260" to "leviatan",
         "113606449173273162" to "isurus-estral",
@@ -10,6 +11,16 @@ object TeamIdMapping {
         "99566408219409348" to "keyd",
         "105397404796640412" to "loud",
         "99566408221961358" to "red-kalunga",
+
+        // LTA North
+        "98926509885559666" to "team-liquid-honda",
+        "98926509892121852" to "flyquest",
+        "111504538396430510" to "shopify-rebellion",
+        "98926509883054987" to "dignitas",
+        "98767991877340524" to "cloud9-kia",
+        "99294153828264740" to "100-thieves",
+        "110428362822825796" to "disguised",
+        "99566405941863385" to "lyon"
     )
 
     private val teamCodeToInternalMap = mapOf(
@@ -24,9 +35,14 @@ object TeamIdMapping {
         "FXW7" to "fxw7",
 
         // LTA Norte
-        "TL" to "team-liquid",
-        "C9" to "cloud9",
-        "EG" to "eg"
+        "TL" to "team-liquid-honda",
+        "FLY" to "flyquest",
+        "SR" to "shopify-rebellion",
+        "DIG" to "dignitas",
+        "C9" to "cloud9-kia",
+        "100T" to "100-thieves",
+        "DSG" to "disguised",
+        "LYON" to "lyon"
     )
 
     fun getInternalTeamId(apiTeamId: String?, teamCode: String?): String {
