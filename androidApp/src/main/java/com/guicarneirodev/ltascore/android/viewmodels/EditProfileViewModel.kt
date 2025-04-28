@@ -71,7 +71,7 @@ class EditProfileViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                listOf(
+                val ltaSulTeamsDefault = listOf(
                     TeamFilterItem("loud", "LOUD", "LOUD", ""),
                     TeamFilterItem("pain-gaming", "paiN Gaming", "PAIN", ""),
                     TeamFilterItem("isurus-estral", "Isurus Estral", "IE", ""),
@@ -82,49 +82,86 @@ class EditProfileViewModel(
                     TeamFilterItem("fxw7", "Fluxo W7M", "FXW7", "")
                 )
 
-                try {
-                    val matches = matchRepository.getMatches("lta_s").first()
+                val ltaNorteTeamsDefault = listOf(
+                    TeamFilterItem("cloud9-kia", "Cloud9 KIA", "C9", ""),
+                    TeamFilterItem("100-thieves", "100 Thieves", "100T", ""),
+                    TeamFilterItem("flyquest", "FlyQuest", "FLY", ""),
+                    TeamFilterItem("team-liquid-honda", "Team Liquid Honda", "TL", ""),
+                    TeamFilterItem("shopify-rebellion", "Shopify Rebellion", "SR", ""),
+                    TeamFilterItem("dignitas", "Dignitas", "DIG", ""),
+                    TeamFilterItem("lyon", "Lyon", "LYON", ""),
+                    TeamFilterItem("disguised", "Disguised", "DSG", "")
+                )
 
                 val teamMap = mutableMapOf<String, TeamFilterItem>()
 
-                matches.forEach { match ->
-                    match.teams.forEach { team ->
-                        val internalId = when(team.code) {
-                            "LOUD" -> "loud"
-                            "PAIN" -> "pain-gaming"
-                            "IE" -> "isurus-estral"
-                            "LEV" -> "leviatan"
-                            "FUR" -> "furia"
-                            "VKS" -> "keyd"
-                            "RED" -> "red"
-                            "FXW7" -> "fxw7"
-                            else -> team.id
-                        }
+                try {
+                    val matchesSul = matchRepository.getMatches("lta_s").first()
 
-                        if (!teamMap.containsKey(internalId)) {
-                            teamMap[internalId] = TeamFilterItem(
-                                id = internalId,
-                                name = team.name,
-                                code = team.code,
-                                imageUrl = team.imageUrl
-                            )
+                    matchesSul.forEach { match ->
+                        match.teams.forEach { team ->
+                            val internalId = when(team.code) {
+                                "LOUD" -> "loud"
+                                "PAIN" -> "pain-gaming"
+                                "IE" -> "isurus-estral"
+                                "LEV" -> "leviatan"
+                                "FUR" -> "furia"
+                                "VKS" -> "keyd"
+                                "RED" -> "red"
+                                "FXW7" -> "fxw7"
+                                else -> team.id
+                            }
+
+                            if (!teamMap.containsKey(internalId)) {
+                                teamMap[internalId] = TeamFilterItem(
+                                    id = internalId,
+                                    name = team.name,
+                                    code = team.code,
+                                    imageUrl = team.imageUrl
+                                )
+                            }
                         }
                     }
-                }
 
-                val ltaSulTeams = listOf(
-                    teamMap["loud"] ?: TeamFilterItem("loud", "LOUD", "LOUD", ""),
-                    teamMap["pain-gaming"] ?: TeamFilterItem("pain-gaming", "paiN Gaming", "PAIN", ""),
-                    teamMap["isurus-estral"] ?: TeamFilterItem("isurus-estral", "Isurus Estral", "IE", ""),
-                    teamMap["leviatan"] ?: TeamFilterItem("leviatan", "LEVIATÁN", "LEV", ""),
-                    teamMap["furia"] ?: TeamFilterItem("furia", "FURIA", "FUR", ""),
-                    teamMap["keyd"] ?: TeamFilterItem("keyd", "Vivo Keyd Stars", "VKS", ""),
-                    teamMap["red"] ?: TeamFilterItem("red", "RED Kalunga", "RED", ""),
-                    teamMap["fxw7"] ?: TeamFilterItem("fxw7", "Fluxo W7M", "FXW7", "")
-                )
+                    val matchesNorte = matchRepository.getMatches("lta_n").first()
+
+                    matchesNorte.forEach { match ->
+                        match.teams.forEach { team ->
+                            val internalId = when(team.code) {
+                                "C9" -> "cloud9-kia"
+                                "100T" -> "100-thieves"
+                                "FLY" -> "flyquest"
+                                "TL" -> "team-liquid-honda"
+                                "SR" -> "shopify-rebellion"
+                                "DIG" -> "dignitas"
+                                "LYON" -> "lyon"
+                                "DSG" -> "disguised"
+                                else -> team.id
+                            }
+
+                            if (!teamMap.containsKey(internalId)) {
+                                teamMap[internalId] = TeamFilterItem(
+                                    id = internalId,
+                                    name = team.name,
+                                    code = team.code,
+                                    imageUrl = team.imageUrl
+                                )
+                            }
+                        }
+                    }
+
+                    val ltaSulTeams = ltaSulTeamsDefault.map { defaultTeam ->
+                        teamMap[defaultTeam.id] ?: defaultTeam
+                    }
+
+                    val ltaNorteTeams = ltaNorteTeamsDefault.map { defaultTeam ->
+                        teamMap[defaultTeam.id] ?: defaultTeam
+                    }
+
+                    val allTeams = ltaSulTeams + ltaNorteTeams
 
                     _uiState.value = _uiState.value.copy(
-                        availableTeams = ltaSulTeams,
+                        availableTeams = allTeams,
                         isLoading = false
                     )
                 } catch (e: Exception) {
