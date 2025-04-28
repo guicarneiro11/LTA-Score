@@ -420,7 +420,341 @@ class PlayersStaticDataSource {
             ),
 
             // LTA Norte
-            // ...
+            // Cloud9
+            Player(
+                id = "player_cloud9_thanatos",
+                name = "Park Seung-gyu",
+                nickname = "Thanatos",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/8d/C9_Thanatos_2025_Split_1.png/revision/latest?cb=20250121144454",
+                position = PlayerPosition.TOP,
+                teamId = "cloud9"
+            ),
+            Player(
+                id = "player_cloud9_blaber",
+                name = "Robert Huang",
+                nickname = "Blaber",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/de/C9_Blaber_2025_Split_1.png/revision/latest?cb=20250121144455",
+                position = PlayerPosition.JUNGLE,
+                teamId = "cloud9"
+            ),
+            Player(
+                id = "player_cloud9_loki",
+                name = "Lee Sang-min",
+                nickname = "Loki",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/98/C9_Loki_2025_Split_1.png/revision/latest?cb=20250121144457",
+                position = PlayerPosition.MID,
+                teamId = "cloud9"
+            ),
+            Player(
+                id = "player_cloud9_zven",
+                name = "Jesper Svenningsen",
+                nickname = "Zven",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/86/C9_Zven_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250121144458",
+                position = PlayerPosition.ADC,
+                teamId = "cloud9"
+            ),
+            Player(
+                id = "player_cloud9_vulcan",
+                name = "Philippe Laflamme",
+                nickname = "Vulcan",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/dc/C9_Vulcan_2025_Split_1.png/revision/latest?cb=20250121144459",
+                position = PlayerPosition.SUPPORT,
+                teamId = "cloud9"
+            ),
+
+            //100 Thieves
+            Player(
+                id = "player_100thieves_sniper",
+                name = "Rayan Shoura",
+                nickname = "Sniper",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/fc/100_Sniper_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240923220459",
+                position = PlayerPosition.TOP,
+                teamId = "100thieves"
+            ),
+            Player(
+                id = "player_100thieves_river",
+                name = "Kim Dong-woo",
+                nickname = "River",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f0/100_River_2024_Split_2.png/revision/latest?cb=20240923220400",
+                position = PlayerPosition.JUNGLE,
+                teamId = "100thieves"
+            ),
+            Player(
+                id = "player_100thieves_quid",
+                name = "Lim Hyeon-seung",
+                nickname = "Quid",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/20/100_Quid_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240923220321",
+                position = PlayerPosition.MID,
+                teamId = "100thieves"
+            ),
+            Player(
+                id = "player_100thieves_fbi",
+                name = "Ian Victor Huang",
+                nickname = "FBI",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/9e/NRG_FBI_2023_Split_2.png/revision/latest/scale-to-width-down/220?cb=20230624094632",
+                position = PlayerPosition.ADC,
+                teamId = "100thieves"
+            ),
+            Player(
+                id = "player_100thieves_eyla",
+                name = "Bill Nguyen",
+                nickname = "Eyla",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/2b/100_Eyla_2024_Split_2.png/revision/latest?cb=20240923220426",
+                position = PlayerPosition.SUPPORT,
+                teamId = "100thieves"
+            ),
+
+            //Fly Quest
+            Player(
+                id = "player_flyquest_bwipo",
+                name = "Gabriël Rau",
+                nickname = "Bwipo",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/05/FLY_Bwipo_2024_Split_2.png/revision/latest?cb=20240923220159",
+                position = PlayerPosition.TOP,
+                teamId = "flyquest"
+            ),
+            Player(
+                id = "player_flyquest_inspired",
+                name = "Kacper Słoma",
+                nickname = "Inspired",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/ca/FLY_Inspired_2024_Split_2.png/revision/latest?cb=20240923220235",
+                position = PlayerPosition.JUNGLE,
+                teamId = "flyquest"
+            ),
+            Player(
+                id = "player_flyquest_quad",
+                name = "Song Su-hyeong",
+                nickname = "Quad",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/1c/FLY_Quad_2024_Split_2.png/revision/latest?cb=20240923220132",
+                position = PlayerPosition.MID,
+                teamId = "flyquest"
+            ),
+            Player(
+                id = "player_flyquest_massu",
+                name = "Fahad Abdulmalek",
+                nickname = "Massu",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/0b/FLY_Massu_2024_Split_2.png/revision/latest?cb=20240923220111",
+                position = PlayerPosition.ADC,
+                teamId = "flyquest"
+            ),
+            Player(
+                id = "player_flyquest_busio",
+                name = "Alan Cwalina",
+                nickname = "Busio",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/3c/FLY_Busio_2024_Split_2.png/revision/latest?cb=20240923220252",
+                position = PlayerPosition.SUPPORT,
+                teamId = "flyquest"
+            ),
+
+            //Team Liquid
+            Player(
+                id = "player_teamliquid_impact",
+                name = "Jeong Eon-young",
+                nickname = "Impact",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/0b/TL_Impact_2025_Split_1.png/revision/latest?cb=20250311032414",
+                position = PlayerPosition.TOP,
+                teamId = "teamliquid"
+            ),
+            Player(
+                id = "player_teamliquid_umti",
+                name = "Um Sung-hyeon",
+                nickname = "UmTi",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/e6/TL_UmTi_2025_Split_1.png/revision/latest?cb=20250311032359",
+                position = PlayerPosition.JUNGLE,
+                teamId = "teamliquid"
+            ),
+            Player(
+                id = "player_teamliquid_apa",
+                name = "Eain Stearns",
+                nickname = "APA",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/11/TL_APA_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250311032347",
+                position = PlayerPosition.MID,
+                teamId = "teamliquid"
+            ),
+            Player(
+                id = "player_teamliquid_yeon",
+                name = "Sean Sung",
+                nickname = "Yeon",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/48/TL_Yeon_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250311032323",
+                position = PlayerPosition.ADC,
+                teamId = "teamliquid"
+            ),
+            Player(
+                id = "player_teamliquid_corejj",
+                name = "Jo Yong-in",
+                nickname = "CoreJJ",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/10/TL_CoreJJ_2025_Split_1.png/revision/latest?cb=20250311032305",
+                position = PlayerPosition.SUPPORT,
+                teamId = "teamliquid"
+            ),
+
+            //Shopify Rebellion
+            Player(
+                id = "player_shopify_fudge",
+                name = "Ibrahim Allami",
+                nickname = "Fudge",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/c2/SR_Fudge_2025_Split_1.png/revision/latest?cb=20250221144256",
+                position = PlayerPosition.TOP,
+                teamId = "shopify"
+            ),
+            Player(
+                id = "player_shopify_contractz",
+                name = "Juan Arturo Garcia",
+                nickname = "Contractz",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b2/SR_Contractz_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144259",
+                position = PlayerPosition.JUNGLE,
+                teamId = "shopify"
+            ),
+            Player(
+                id = "player_shopify_palafox",
+                name = "Cristian Palafox",
+                nickname = "Palafox",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/de/SR_Palafox_2025_Split_1.png/revision/latest?cb=20250221144300",
+                position = PlayerPosition.TOP,
+                teamId = "shopify"
+            ),
+            Player(
+                id = "player_shopify_bvoy",
+                name = "Ju Yeong-hoon",
+                nickname = "Bvoy",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/bd/SR_Bvoy_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144255",
+                position = PlayerPosition.ADC,
+                teamId = "shopify"
+            ),
+            Player(
+                id = "player_shopify_ceos",
+                name = "Denilson Oliveira Gonçalves",
+                nickname = "Ceos",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/26/SR_Ceos_2025_Split_1.png/revision/latest?cb=20250221144258",
+                position = PlayerPosition.SUPPORT,
+                teamId = "shopify"
+            ),
+
+            //Dignitas
+            Player(
+                id = "player_dignitas_srtty",
+                name = "Jett Michael Joye",
+                nickname = "Srtty",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/91/DIG_Srtty_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144311",
+                position = PlayerPosition.TOP,
+                teamId = "dignitas"
+            ),
+            Player(
+                id = "player_dignitas_sheiden",
+                name = "Jade Libut",
+                nickname = "Sheiden",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/88/EG_Sheiden_2023_Split_2.png/revision/latest/scale-to-width-down/220?cb=20230729193651",
+                position = PlayerPosition.JUNGLE,
+                teamId = "dignitas"
+            ),
+            Player(
+                id = "player_dignitas_keine",
+                name = "Kim Joon-cheol",
+                nickname = "Keine",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/2f/DIG_Keine_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144307",
+                position = PlayerPosition.MID,
+                teamId = "dignitas"
+            ),
+            Player(
+                id = "player_dignitas_tomo",
+                name = "Frank Lam",
+                nickname = "Tomo",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/6/65/DIG_Tomo_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144309",
+                position = PlayerPosition.ADC,
+                teamId = "dignitas"
+            ),
+            Player(
+                id = "player_dignitas_isles",
+                name = "Jonah Rosario",
+                nickname = "Isles",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/94/DIG_Isles_2025_Split_1.png/revision/latest?cb=20250221144308",
+                position = PlayerPosition.SUPPORT,
+                teamId = "dignitas"
+            ),
+
+            //LYON
+            Player(
+                id = "player_lyon_licorice",
+                name = "Eric Ritchie",
+                nickname = "Licorice",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/de/LYON_Licorice_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144304",
+                position = PlayerPosition.TOP,
+                teamId = "lyon"
+            ),
+            Player(
+                id = "player_lyon_oddielan",
+                name = "Sebastián Alonso Niño Zavaleta",
+                nickname = "Oddielan",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/cb/LYON_Oddielan_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144302",
+                position = PlayerPosition.JUNGLE,
+                teamId = "lyon"
+            ),
+            Player(
+                id = "player_lyon_saint",
+                name = "Kang Sung-in",
+                nickname = "Saint",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/0c/LYON_Saint_2025_Split_1.png/revision/latest?cb=20250221144306",
+                position = PlayerPosition.MID,
+                teamId = "lyon"
+            ),
+            Player(
+                id = "player_lyon_hena",
+                name = "Park Jeung-hwan",
+                nickname = "Hena",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/fa/FOX_Hena_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240618144641",
+                position = PlayerPosition.ADC,
+                teamId = "lyon"
+            ),
+            Player(
+                id = "player_lyon_lyonz",
+                name = "Pedro Luis Peralta",
+                nickname = "Lyonz",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/5b/LYON_Lyonz_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144303",
+                position = PlayerPosition.SUPPORT,
+                teamId = "lyon"
+            ),
+
+            //Disguised
+            Player(
+                id = "player_disguised_castle",
+                name = "Cho Hyeon-seong",
+                nickname = "Castle",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/0b/DSG_Castle_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144314",
+                position = PlayerPosition.TOP,
+                teamId = "disguised"
+            ),
+            Player(
+                id = "player_disguised_exyu",
+                name = "Lawrence Lin Xu",
+                nickname = "eXyu",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/28/DSG_eXyu_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144316",
+                position = PlayerPosition.JUNGLE,
+                teamId = "disguised"
+            ),
+            Player(
+                id = "player_disguised_abbedagge",
+                name = "Felix Braun",
+                nickname = "Abbedagge",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/4c/DSG_Abbedagge_2025_Split_1.png/revision/latest?cb=20250221144317",
+                position = PlayerPosition.MID,
+                teamId = "disguised"
+            ),
+            Player(
+                id = "player_disguised_scaryjerry",
+                name = "Jeremiah Leathe",
+                nickname = "ScaryJerry",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/30/DSG_ScaryJerry_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250221144315",
+                position = PlayerPosition.ADC,
+                teamId = "disguised"
+            ),
+            Player(
+                id = "player_disguised_huhi",
+                name = "Choi Jae-hyun",
+                nickname = "huhi",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/6/63/DSG_huhi_2025_Split_1.png/revision/latest?cb=20250221144319",
+                position = PlayerPosition.SUPPORT,
+                teamId = "disguised"
+            )
         )
     }
 }
