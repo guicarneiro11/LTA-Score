@@ -20,7 +20,21 @@ class MatchRepositoryImpl(
     private val playersDataSource: PlayersStaticDataSource
 ) : MatchRepository {
 
-    private val split2StartDate = Instant.parse("2025-04-01T00:00:00Z")
+    private val leagueDateRanges = mapOf(
+        "lta_s" to Pair(
+            Instant.parse("2025-04-05T00:00:00Z"),
+            Instant.parse("2025-06-15T23:59:59Z")
+        ),
+        "lta_n" to Pair(
+            Instant.parse("2025-04-05T00:00:00Z"),
+            Instant.parse("2025-06-16T23:59:59Z")
+        ),
+        "cd" to Pair(
+            Instant.parse("2025-03-17T00:00:00Z"),
+            Instant.parse("2025-06-09T23:59:59Z")
+        )
+    )
+
     private val matchVods = mutableMapOf<String, String>()
 
     override suspend fun getMatches(leagueSlug: String): Flow<List<Match>> {
@@ -99,18 +113,25 @@ class MatchRepositoryImpl(
 
     override suspend fun refreshMatches(leagueSlug: String) {
         try {
-
             val scheduleResponse = api.getSchedule(leagueSlug)
 
             val matches = scheduleResponse.data?.schedule?.events?.mapNotNull { event ->
                 if (event.type != "match") return@mapNotNull null
 
                 val matchDate = Instant.parse(event.startTime)
-                val isSplit2 = matchDate > split2StartDate ||
-                        isSplit2BlockName(event.blockName)
 
-                if (!isSplit2) {
-                    println("Ignorando partida do Split 1: ${event.blockName} em ${event.startTime}")
+                val dateRange = leagueDateRanges[leagueSlug]
+                val isInDateRange = if (dateRange != null) {
+                    matchDate >= dateRange.first && matchDate <= dateRange.second
+                } else {
+                    val isSplit2 = leagueSlug != "cd" && (matchDate > Instant.parse("2025-04-01T00:00:00Z") ||
+                            isSplit2BlockName(event.blockName))
+                    val isSplit1CD = leagueSlug == "cd" && matchDate >= Instant.parse("2025-03-17T00:00:00Z")
+                    isSplit2 || isSplit1CD
+                }
+
+                if (!isInDateRange) {
+                    println("Ignorando partida fora do intervalo de datas: ${event.blockName} em ${event.startTime}")
                     return@mapNotNull null
                 }
 

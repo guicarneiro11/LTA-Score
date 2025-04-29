@@ -31,7 +31,8 @@ data class MatchesUiState(
     ),
     val selectedLeagueIndex: Int = 0,
     val error: String? = null,
-    val ltaCrossLogo: String? = null
+    val ltaCrossLogo: String? = null,
+    val splitTitle: String = "Split 2 – 2025"
 )
 
 class MatchesViewModel(
@@ -43,6 +44,11 @@ class MatchesViewModel(
     val uiState: StateFlow<MatchesUiState> = _uiState.asStateFlow()
 
     init {
+        val initialLeagueSlug = _uiState.value.availableLeagues[_uiState.value.selectedLeagueIndex].slug
+        val initialSplitTitle = if (initialLeagueSlug == "cd") "Split 1 – 2025" else "Split 2 – 2025"
+
+        _uiState.value = _uiState.value.copy(splitTitle = initialSplitTitle)
+
         loadMatches()
         loadLtaCrossLogo()
     }
@@ -99,7 +105,16 @@ class MatchesViewModel(
 
     fun selectLeague(index: Int) {
         if (index != _uiState.value.selectedLeagueIndex) {
-            _uiState.value = _uiState.value.copy(selectedLeagueIndex = index)
+            val leagueSlug = _uiState.value.availableLeagues[index].slug
+            val splitTitle = when (leagueSlug) {
+                "cd" -> "Split 1 – 2025"
+                else -> "Split 2 – 2025"
+            }
+
+            _uiState.value = _uiState.value.copy(
+                selectedLeagueIndex = index,
+                splitTitle = splitTitle
+            )
             loadMatches()
         }
     }

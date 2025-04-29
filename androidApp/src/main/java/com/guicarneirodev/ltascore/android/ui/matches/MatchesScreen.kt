@@ -52,16 +52,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.viewmodels.MatchFilter
 import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
-import androidx.core.net.toUri
-import com.guicarneirodev.ltascore.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
