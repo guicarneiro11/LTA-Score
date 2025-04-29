@@ -93,6 +93,19 @@ class EditProfileViewModel(
                     TeamFilterItem("disguised", "Disguised", "DSG", "")
                 )
 
+                // Nova lista para times do Circuito Desafiante
+                val circuitoTeamsDefault = listOf(
+                    TeamFilterItem("los", "Los Grandes", "LOS", ""),
+                    TeamFilterItem("flamengo", "Flamengo Redragon", "FLA", ""),
+                    TeamFilterItem("ratz", "RATZ", "RATZ", ""),
+                    TeamFilterItem("dopamina", "Dopamina E-Sport", "DPM", ""),
+                    TeamFilterItem("stellae", "Stellae Gaming", "STE", ""),
+                    TeamFilterItem("rise", "Rise Gaming", "RISE", ""),
+                    TeamFilterItem("kabum-idl", "KaBuM! IDL", "KBM", ""),
+                    TeamFilterItem("corinthians", "Corinthians Esports", "SCCP", "")
+                    // Não incluímos RED Academy e Keyd Academy pois já temos as versões principais
+                )
+
                 val teamMap = mutableMapOf<String, TeamFilterItem>()
 
                 try {
@@ -150,6 +163,43 @@ class EditProfileViewModel(
                         }
                     }
 
+                    // Adicionar lógica para carregar as partidas do Circuito Desafiante
+                    try {
+                        val matchesCircuito = matchRepository.getMatches("cd").first()
+
+                        matchesCircuito.forEach { match ->
+                            match.teams.forEach { team ->
+                                val internalId = when(team.code) {
+                                    "LOS" -> "los"
+                                    "FLA" -> "flamengo"
+                                    "RATZ" -> "ratz"
+                                    "DPM" -> "dopamina"
+                                    "STE" -> "stellae"
+                                    "RISE" -> "rise"
+                                    "KBM" -> "kabum-idl"
+                                    "SCCP" -> "corinthians"
+                                    "RED" -> "red-kalunga-academy" // Não será exibido separadamente
+                                    "VKS" -> "keyd-academy" // Não será exibido separadamente
+                                    else -> team.id
+                                }
+
+                                // Ignoramos os times de academias que já têm times principais
+                                if (internalId != "red-kalunga-academy" && internalId != "keyd-academy" &&
+                                    !teamMap.containsKey(internalId)) {
+                                    teamMap[internalId] = TeamFilterItem(
+                                        id = internalId,
+                                        name = team.name,
+                                        code = team.code,
+                                        imageUrl = team.imageUrl
+                                    )
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Se falhar ao carregar partidas do Circuito, continuamos com os times padrão
+                        println("Falha ao carregar partidas do Circuito Desafiante: ${e.message}")
+                    }
+
                     val ltaSulTeams = ltaSulTeamsDefault.map { defaultTeam ->
                         teamMap[defaultTeam.id] ?: defaultTeam
                     }
@@ -158,7 +208,15 @@ class EditProfileViewModel(
                         teamMap[defaultTeam.id] ?: defaultTeam
                     }
 
-                    val allTeams = ltaSulTeams + ltaNorteTeams
+                    val circuitoTeams = circuitoTeamsDefault.map { defaultTeam ->
+                        teamMap[defaultTeam.id] ?: defaultTeam
+                    }.filter { circuitoTeam ->
+                        // Filtramos apenas os times que NÃO têm representação na LTA
+                        !ltaSulTeams.any { it.id == circuitoTeam.id } &&
+                                !ltaNorteTeams.any { it.id == circuitoTeam.id }
+                    }
+
+                    val allTeams = ltaSulTeams + ltaNorteTeams + circuitoTeams
 
                     _uiState.value = _uiState.value.copy(
                         availableTeams = allTeams,

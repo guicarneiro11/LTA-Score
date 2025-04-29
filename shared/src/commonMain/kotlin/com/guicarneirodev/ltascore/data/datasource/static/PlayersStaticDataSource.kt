@@ -19,7 +19,6 @@ class PlayersStaticDataSource {
     fun getPlayersByTeamIdAndDate(teamId: String, matchDate: Instant, blockName: String): List<Player> {
         val allTeamPlayers = playersByTeamId[teamId] ?: emptyList()
 
-        // Lógica existente para Isurus Estral (Burdol/Summit)
         if (teamId == "isurus-estral") {
             val isWeek1 = blockName.contains("Semana 1", ignoreCase = true) ||
                     blockName.contains("Week 1", ignoreCase = true)
@@ -46,7 +45,6 @@ class PlayersStaticDataSource {
             }
         }
 
-        // Lógica existente para RED
         if (teamId == "red") {
             val aegisStartDate = Instant.parse("2025-04-21T00:00:00Z")
 
@@ -79,6 +77,98 @@ class PlayersStaticDataSource {
                 return allTeamPlayers.filter {
                     it.id != "player_corinthians_xico" && it.id != "player_corinthians_telas"
                 }
+            }
+        }
+
+        if (teamId == "kabum-idl") {
+            val rangerStartDate = Instant.parse("2025-04-08T00:00:00Z")
+            val wizStartDate = Instant.parse("2025-04-22T00:00:00Z")
+
+            println("Partida KaBuM! IDL de ${matchDate}, verificando elenco")
+
+            if (matchDate < rangerStartDate) {
+                println("Retornando time KaBuM! IDL com Seize na jungle (até 07/04)")
+                return allTeamPlayers.filter {
+                    it.id != "player_kabum_ranger" && it.id != "player_kabum_wiz"
+                }
+            }
+            else if (matchDate < wizStartDate) {
+                println("Retornando time KaBuM! IDL com Ranger na jungle (de 08/04 até 21/04)")
+                return allTeamPlayers.filter {
+                    it.id != "player_kabum_seize" && it.id != "player_kabum_wiz"
+                }
+            }
+            else {
+                println("Retornando time KaBuM! IDL com Wiz na jungle (a partir de 22/04)")
+                return allTeamPlayers.filter {
+                    it.id != "player_kabum_seize" && it.id != "player_kabum_ranger"
+                }
+            }
+        }
+
+        if (teamId == "dopamina") {
+            val forlinStartDate = Instant.parse("2025-04-08T00:00:00Z")
+
+            println("Partida Dopamina de ${matchDate}, verificando elenco")
+
+            if (matchDate < forlinStartDate) {
+                println("Retornando time Dopamina com Ayel no top (até 31/03/2025)")
+                return allTeamPlayers.filter { it.id != "player_dopamina_forlin" }
+            }
+            else {
+                println("Retornando time Dopamina com Forlin no top (a partir de 08/04/2025)")
+                return allTeamPlayers.filter { it.id != "player_dopamina_ayel" }
+            }
+        }
+
+        if (teamId == "ratz") {
+            val drakeHeroStartDate = Instant.parse("2025-03-24T00:00:00Z")
+            val beenieStartDate = Instant.parse("2025-04-01T00:00:00Z")
+
+            println("Partida RATZ de ${matchDate}, verificando elenco")
+
+            if (matchDate < drakeHeroStartDate) {
+                println("Retornando time RATZ com Soweto na jungle e Buero no ADC (até 23/03)")
+                return allTeamPlayers.filter { it.id != "player_ratz_drakehero" && it.id != "player_ratz_beenie" }
+            }
+            else if (matchDate < beenieStartDate) {
+                println("Retornando time RATZ com DrakeHero na jungle e Soweto no ADC (de 24/03 até 31/03)")
+                return allTeamPlayers.filter { it.id != "player_ratz_beenie" && it.id != "player_ratz_buero" }
+            }
+            else {
+                println("Retornando time RATZ com DrakeHero na jungle e Beenie no ADC (a partir de 01/04)")
+                return allTeamPlayers.filter { it.id != "player_ratz_buero" && it.id != "player_ratz_soweto" }
+            }
+        }
+
+        if (teamId == "red-kalunga-academy") {
+            val aegisStartDate = Instant.parse("2025-04-21T00:00:00Z")
+
+            val useAegis = matchDate >= aegisStartDate
+
+            println("Partida RED Academy de ${matchDate}, useAegis: $useAegis")
+
+            return if (useAegis) {
+                println("Retornando time RED Academy com Aegis (a partir de 21/04)")
+                allTeamPlayers.filter { it.id != "player_red_academy_doom" }
+            } else {
+                println("Retornando time RED Academy com DOOM (até 20/04)")
+                allTeamPlayers.filter { it.id != "player_red_academy_aegis" }
+            }
+        }
+
+        if (teamId == "rise") {
+            val neroStartDate = Instant.parse("2025-04-15T00:00:00Z")
+
+            println("Partida Rise Gaming de ${matchDate}, verificando elenco")
+
+            if (matchDate < neroStartDate) {
+                println("Retornando time Rise Gaming com ThayT na jungle (até 08/04)")
+                return allTeamPlayers.filter { it.id != "player_rise_nero" }
+            }
+            else {
+                println("Retornando time Rise Gaming com Nero na jungle (a partir de 15/04)")
+                return allTeamPlayers.filter { it.id != "player_rise_thayt" }
             }
         }
 
@@ -782,16 +872,16 @@ class PlayersStaticDataSource {
             Player(
                 id = "player_corinthians_tyrin",
                 name = "William Portugal",
-                nickname = "Tyrin",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Tyrin_2025_Split_1.png/220px-Tyrin_2025_Split_1.png",
+                nickname = "tyrin",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/5b/SCCP_tyrin_2025_Split_1.png/revision/latest/scale-to-width-down/1024?cb=20250401151747",
                 position = PlayerPosition.TOP,
                 teamId = "corinthians"
             ),
             Player(
                 id = "player_corinthians_sting",
                 name = "Luís Gustavo Dirami Martins",
-                nickname = "Sting",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Sting_2025_Split_1.png/220px-Sting_2025_Split_1.png",
+                nickname = "stiNg",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/1a/SCCP_stiNg_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250401151633",
                 position = PlayerPosition.JUNGLE,
                 teamId = "corinthians"
             ),
@@ -799,7 +889,7 @@ class PlayersStaticDataSource {
                 id = "player_corinthians_xico",
                 name = "Francisco Costa",
                 nickname = "Xico",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Xico_2025_Split_1.png/220px-Xico_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f7/GSNS_Xico_2024_Split_2.png/revision/latest?cb=20240816123903",
                 position = PlayerPosition.MID,
                 teamId = "corinthians"
             ),
@@ -807,7 +897,7 @@ class PlayersStaticDataSource {
                 id = "player_corinthians_leleko",
                 name = "Leandro Hideki Aihara",
                 nickname = "Leleko",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Leleko_2025_Split_1.png/220px-Leleko_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/95/SCCP_Leleko_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250401151411",
                 position = PlayerPosition.MID,
                 teamId = "corinthians"
             ),
@@ -815,7 +905,7 @@ class PlayersStaticDataSource {
                 id = "player_corinthians_trigo",
                 name = "Matheus Trigo Nobrega",
                 nickname = "Trigo",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Trigo_2025_Split_1.png/220px-Trigo_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/16/SCCP_Trigo_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250401151531",
                 position = PlayerPosition.ADC,
                 teamId = "corinthians"
             ),
@@ -823,7 +913,7 @@ class PlayersStaticDataSource {
                 id = "player_corinthians_telas",
                 name = "Telas",
                 nickname = "Telas",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Telas_2025_Split_1.png/220px-Telas_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/a/a9/VKS_Telas_AC_2024.png/revision/latest/scale-to-width-down/1024?cb=20240916201655",
                 position = PlayerPosition.SUPPORT,
                 teamId = "corinthians"
             ),
@@ -831,7 +921,7 @@ class PlayersStaticDataSource {
                 id = "player_corinthians_manel",
                 name = "Manuel",
                 nickname = "Manel",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Manel_2025_Split_1.png/220px-Manel_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/30/SCCP_Manel_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250401151500",
                 position = PlayerPosition.SUPPORT,
                 teamId = "corinthians"
             ),
@@ -841,7 +931,7 @@ class PlayersStaticDataSource {
                 id = "player_dopamina_ayel",
                 name = "Marcelo Mello Zanini",
                 nickname = "Ayel",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Ayel_2025_Split_1.png/220px-Ayel_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/45/Ayel_CBOL%C3%83O_2024.jpg/revision/latest/scale-to-width-down/220?cb=20241209004301",
                 position = PlayerPosition.TOP,
                 teamId = "dopamina"
             ),
@@ -849,7 +939,7 @@ class PlayersStaticDataSource {
                 id = "player_dopamina_forlin",
                 name = "Leonardo Pereira",
                 nickname = "Forlin",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Forlin_2025_Split_1.png/220px-Forlin_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/c7/FX_Forlin_2024_Split_2.png/revision/latest/scale-to-width-down/1000?cb=20240604202230",
                 position = PlayerPosition.TOP,
                 teamId = "dopamina"
             ),
@@ -857,7 +947,7 @@ class PlayersStaticDataSource {
                 id = "player_dopamina_dizin",
                 name = "Ronald Silva de Paula",
                 nickname = "Dizin",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Dizin_2025_Split_1.png/220px-Dizin_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/a/a7/INTZ_Dizin_2024_Split_2.png/revision/latest?cb=20240604014145",
                 position = PlayerPosition.JUNGLE,
                 teamId = "dopamina"
             ),
@@ -865,7 +955,7 @@ class PlayersStaticDataSource {
                 id = "player_dopamina_envy",
                 name = "Bruno Farias",
                 nickname = "Envy",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Envy_2025_Split_1.png/220px-Envy_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/6/6d/DPM_Envy_2025_Split_1.png/revision/latest/scale-to-width-down/1000?cb=20250319170036",
                 position = PlayerPosition.MID,
                 teamId = "dopamina"
             ),
@@ -873,20 +963,402 @@ class PlayersStaticDataSource {
                 id = "player_dopamina_kojima",
                 name = "Caio Yuiti Kojima",
                 nickname = "Kojima",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Kojima_2025_Split_1.png/220px-Kojima_2025_Split_1.png",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/d9/DPM_Kojima_2025_Split_1.png/revision/latest/scale-to-width-down/1000?cb=20250319165954",
                 position = PlayerPosition.ADC,
                 teamId = "dopamina"
             ),
             Player(
                 id = "player_dopamina_bulecha",
                 name = "Lucas Adriel",
-                nickname = "Bulecha",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Bulecha_2025_Split_1.png/220px-Bulecha_2025_Split_1.png",
+                nickname = "Bulas",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/ed/LOUD_Bulecha_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240604204635",
                 position = PlayerPosition.SUPPORT,
                 teamId = "dopamina"
+            ),
+
+            // Flamengo
+            Player(
+                id = "player_flamengo_yupps",
+                name = "Yuri Gabriel Petermann",
+                nickname = "Yupps",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/e1/FLA_Yupps_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319171008",
+                position = PlayerPosition.TOP,
+                teamId = "flamengo"
+            ),
+            Player(
+                id = "player_flamengo_yampi",
+                name = "Yan Christian Petermann",
+                nickname = "Yampi",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/56/FLA_Yampi_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319171113",
+                position = PlayerPosition.JUNGLE,
+                teamId = "flamengo"
+            ),
+            Player(
+                id = "player_flamengo_piloto",
+                name = "Elvis Vergara",
+                nickname = "Piloto",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/11/FLA_Pilot_2025_Split_1.png/revision/latest/scale-to-width-down/1024?cb=20250319171342",
+                position = PlayerPosition.MID,
+                teamId = "flamengo"
+            ),
+            Player(
+                id = "player_flamengo_ninjakiwi",
+                name = "Yudi Leonardo Miyashiro",
+                nickname = "Ninjakiwi",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/57/FLA_NinjaKiwi_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319171505",
+                position = PlayerPosition.ADC,
+                teamId = "flamengo"
+            ),
+            Player(
+                id = "player_flamengo_momochi",
+                name = "Gabriel Sousa",
+                nickname = "Momochi",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/53/FLA_Momochi_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319171544",
+                position = PlayerPosition.SUPPORT,
+                teamId = "flamengo"
+            ),
+
+            // Kabum IDL
+            Player(
+                id = "player_kabum_hirit",
+                name = "Shin Tae-min",
+                nickname = "HiRit",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/db/KBM_IDL_HiRit_2025_Split_1.png/revision/latest/scale-to-width-down/1000?cb=20250319174148",
+                position = PlayerPosition.TOP,
+                teamId = "kabum-idl"
+            ),
+            Player(
+                id = "player_kabum_seize",
+                name = "Kim Chan-hee",
+                nickname = "Seize",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b2/KBM_IDL_Seize_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319174958",
+                position = PlayerPosition.JUNGLE,
+                teamId = "kabum-idl"
+            ),
+            Player(
+                id = "player_kabum_ranger",
+                name = "Filipe Brombilla de Bairros",
+                nickname = "Ranger",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/7c/KBM_IDL_Ranger_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319174302",
+                position = PlayerPosition.JUNGLE,
+                teamId = "kabum-idl"
+            ),
+            Player(
+                id = "player_kabum_wiz",
+                name = "Na Yoo-joon",
+                nickname = "Wiz",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/53/LOUD_Wiz_LTA_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250213192557",
+                position = PlayerPosition.JUNGLE,
+                teamId = "kabum-idl"
+            ),
+            Player(
+                id = "player_kabum_hauz",
+                name = "Bruno Augusto Felberge Ferreira",
+                nickname = "Hauz",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f2/KBM_IDL_Hauz_2025_Split_1.png/revision/latest/scale-to-width-down/1000?cb=20250319174010",
+                position = PlayerPosition.MID,
+                teamId = "kabum-idl"
+            ),
+            Player(
+                id = "player_kabum_scuro",
+                name = "Gabriel Scuro",
+                nickname = "scuro",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/84/KBM_IDL_Scuro_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319174736",
+                position = PlayerPosition.ADC,
+                teamId = "kabum-idl"
+            ),
+            Player(
+                id = "player_kabum_damage",
+                name = "Yan Sales Neves",
+                nickname = "Damage",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/3f/KBM_IDL_Damage_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319174057",
+                position = PlayerPosition.SUPPORT,
+                teamId = "kabum-idl"
+            ),
+
+            // LOS
+            Player(
+                id = "player_los_supercleber",
+                name = "Cleber Nantes",
+                nickname = "SuperCleber",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/17/LOS_SuperCleber_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319180358",
+                position = PlayerPosition.TOP,
+                teamId = "los"
+            ),
+            Player(
+                id = "player_los_stiner",
+                name = "Vinicius Dias",
+                nickname = "StineR",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/31/LOS_Stiner_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319180324",
+                position = PlayerPosition.JUNGLE,
+                teamId = "los"
+            ),
+            Player(
+                id = "player_los_mg",
+                name = "Lee Ji-hoon",
+                nickname = "M G",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b5/LOS_MG_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319180057",
+                position = PlayerPosition.MID,
+                teamId = "los"
+            ),
+            Player(
+                id = "player_los_netuno",
+                name = "Lucas Flores Fensterseifer",
+                nickname = "Netuno",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/82/LOS_Netuno_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319180242",
+                position = PlayerPosition.ADC,
+                teamId = "los"
+            ),
+            Player(
+                id = "player_los_sanghyeon",
+                name = "Jeong Sang-hyeon",
+                nickname = "sanghyeon",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/99/LOS_Sanghyeon_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319180135",
+                position = PlayerPosition.SUPPORT,
+                teamId = "los"
+            ),
+
+            // RATZ
+            Player(
+                id = "player_ratz_kiari",
+                name = "Thiago Luiz Soares",
+                nickname = "Kiari",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/d4/RATZ_Kiari_2025_Split_1.png/revision/latest/scale-to-width-down/1000?cb=20250319181952",
+                position = PlayerPosition.TOP,
+                teamId = "ratz"
+            ),
+            Player(
+                id = "player_ratz_soweto",
+                name = "Leonardo Alencar",
+                nickname = "Soweto",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/df/RATZ_Soweto_2025_Split_1.png/revision/latest/scale-to-width-down/1000?cb=20250319181235",
+                position = PlayerPosition.JUNGLE,
+                teamId = "ratz"
+            ),
+            Player(
+                id = "player_ratz_drakehero",
+                name = "Luciano Junior Paes",
+                nickname = "Drakehero",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/81/RATZ_Drakehero_2025_Split_2.png/revision/latest/scale-to-width-down/1000?cb=20250319181611",
+                position = PlayerPosition.JUNGLE,
+                teamId = "ratz"
+            ),
+            Player(
+                id = "player_ratz_lynkez",
+                name = "Leonardo Cassuci",
+                nickname = "Lynkez",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/48/RISE_Lynkez_2024_Split_2.png/revision/latest?cb=20240723025120",
+                position = PlayerPosition.MID,
+                teamId = "ratz"
+            ),
+            Player(
+                id = "player_ratz_buero",
+                name = "Daniel Nunes de Jesus",
+                nickname = "Buero",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/01/RATZ_Buero_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319181833",
+                position = PlayerPosition.ADC,
+                teamId = "ratz"
+            ),
+            Player(
+                id = "player_ratz_beenie",
+                name = "Pedro Lucas Rodrigues",
+                nickname = "Beenie",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/0b/LEV_Beenie_2024_Closing.png/revision/latest?cb=20240613052705",
+                position = PlayerPosition.ADC,
+                teamId = "ratz"
+            ),
+            Player(
+                id = "player_ratz_krastyel",
+                name = "Marcos Henrique Ferraz",
+                nickname = "Krastyel",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/b4/KBM_Krastyel_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240604193952",
+                position = PlayerPosition.SUPPORT,
+                teamId = "ratz"
+            ),
+
+            // RED Academy
+            Player(
+                id = "player_red_academy_zynts",
+                name = "Matheus Emanuel",
+                nickname = "zynts",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/78/RED_Zynts_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319184040",
+                position = PlayerPosition.TOP,
+                teamId = "red-kalunga-academy"
+            ),
+            Player(
+                id = "player_red_academy_doom",
+                name = "Raí Yamada",
+                nickname = "DOOM",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/2b/RED_DOOM_LTA_2025_Split_2.png/revision/latest/scale-to-width-down/220?cb=20250408222002",
+                position = PlayerPosition.JUNGLE,
+                teamId = "red-kalunga-academy"
+            ),
+            Player(
+                id = "player_red_academy_aegis",
+                name = "Gabriel Vinicius Saes de Lemos",
+                nickname = "Aegis",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/85/RED_Aegis_2025_Split_2.png/revision/latest/scale-to-width-down/220?cb=20250408221920",
+                position = PlayerPosition.JUNGLE,
+                teamId = "red-kalunga-academy"
+            ),
+            Player(
+                id = "player_red_academy_grevthar",
+                name = "Daniel Xavier Ferreira",
+                nickname = "Grevthar",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/99/RED_Grevthar_2025_Split_2.png/revision/latest/scale-to-width-down/220?cb=20250319183537",
+                position = PlayerPosition.MID,
+                teamId = "red-kalunga-academy"
+            ),
+            Player(
+                id = "player_red_academy_rabelo",
+                name = "Guilherme Rabelo Muniz",
+                nickname = "Rabelo",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/6/63/RED_Rabelo_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319183825",
+                position = PlayerPosition.ADC,
+                teamId = "red-kalunga-academy"
+            ),
+            Player(
+                id = "player_red_academy_uzent",
+                name = "Matheus Ferreira",
+                nickname = "uZent",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/4/43/RED_uZent_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319183952",
+                position = PlayerPosition.SUPPORT,
+                teamId = "red-kalunga-academy"
+            ),
+
+            // Rise Gaming
+            Player(
+                id = "player_rise_makes",
+                name = "Gabriel Nemeth Ramos",
+                nickname = "Makes",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f2/RISE_Makes_2025_Split_1.png/revision/latest/scale-to-width-down/1000?cb=20250319191431",
+                position = PlayerPosition.TOP,
+                teamId = "rise"
+            ),
+            Player(
+                id = "player_rise_thayt",
+                name = "Erick da Rosa Silva",
+                nickname = "ThayT",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/08/RISE_ThayT_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319191511",
+                position = PlayerPosition.JUNGLE,
+                teamId = "rise"
+            ),
+            Player(
+                id = "player_rise_nero",
+                name = "Otávio Augusto Moura Ribeiro",
+                nickname = "Nero",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/92/LOS_Nero_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240604022705",
+                position = PlayerPosition.JUNGLE,
+                teamId = "rise"
+            ),
+            Player(
+                id = "player_rise_anyyy",
+                name = "Ruan Silva",
+                nickname = "Anyyy",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/98/LOUD_Anyyy.png/revision/latest?cb=20240409232320",
+                position = PlayerPosition.MID,
+                teamId = "rise"
+            ),
+            Player(
+                id = "player_rise_aikawa",
+                name = "Kalil Hoyer Kayatt",
+                nickname = "Aikawa",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/7a/FUR_Aikawa_2024_Split_2.png/revision/latest/scale-to-width-down/220?cb=20240723201650",
+                position = PlayerPosition.ADC,
+                teamId = "rise"
+            ),
+            Player(
+                id = "player_rise_zay",
+                name = "Vinicius Argolo Viana",
+                nickname = "Zay",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/5/5f/RISE_Zay_2025_Split_1.png/revision/latest/scale-to-width-down/1024?cb=20250319191348",
+                position = PlayerPosition.SUPPORT,
+                teamId = "rise"
+            ),
+
+            // Stellae Gaming
+            Player(
+                id = "player_stellae_zekas",
+                name = "César Berteli França",
+                nickname = "ZekaS",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/7/7c/STE_Zekas_2025_Split_1.png/revision/latest/scale-to-width-down/1024?cb=20250319193549",
+                position = PlayerPosition.TOP,
+                teamId = "stellae"
+            ),
+            Player(
+                id = "player_stellae_mewkyo",
+                name = "Mateus Henrique Ferraz Muniz",
+                nickname = "Mewkyo",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/03/STE_Mewkyo_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319202228",
+                position = PlayerPosition.JUNGLE,
+                teamId = "stellae"
+            ),
+            Player(
+                id = "player_stellae_aithusa",
+                name = "Lucas Mantese",
+                nickname = "Aithusa",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/1a/STE_Aithusa_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319193655",
+                position = PlayerPosition.MID,
+                teamId = "stellae"
+            ),
+            Player(
+                id = "player_stellae_celo",
+                name = "Marcelo Leite",
+                nickname = "Celo",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/8/8a/STE_Celo_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319193837",
+                position = PlayerPosition.ADC,
+                teamId = "stellae"
+            ),
+            Player(
+                id = "player_stellae_cavalo",
+                name = "Alexandre Fernandes",
+                nickname = "Cavalo",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/6/65/STE_Cavalo_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319193759",
+                position = PlayerPosition.SUPPORT,
+                teamId = "stellae"
+            ),
+
+            // Vivo Keyd Stars Academy
+            Player(
+                id = "player_keyd_academy_xyno",
+                name = "Carlos Felipe Ferreira",
+                nickname = "xyno",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/f/f4/VKS_Xyno_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319200722",
+                position = PlayerPosition.TOP,
+                teamId = "keyd-academy"
+            ),
+            Player(
+                id = "player_keyd_academy_sarolu",
+                name = "Victor Satoru Noguchi",
+                nickname = "sarolu",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/35/VKS_Sarolu_2025_Split_1.png/revision/latest/scale-to-width-down/1024?cb=20250319200118",
+                position = PlayerPosition.JUNGLE,
+                teamId = "keyd-academy"
+            ),
+            Player(
+                id = "player_keyd_academy_qats",
+                name = "Thiago Augusto Fernandes Barros de Freitas",
+                nickname = "Qats",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/c/c2/VKS_Qats_2025_Split_1.png/revision/latest?cb=20250319200040",
+                position = PlayerPosition.MID,
+                teamId = "keyd-academy"
+            ),
+            Player(
+                id = "player_keyd_academy_smiley",
+                name = "Ludvig Erik Hugo Granquist",
+                nickname = "Smiley",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/d/dd/VKS_Smiley_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319200218",
+                position = PlayerPosition.ADC,
+                teamId = "keyd-academy"
+            ),
+            Player(
+                id = "player_keyd_academy_scamber",
+                name = "Pedro Lemos Soares Maximiniano",
+                nickname = "scamber",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/14/VKS_Scamber_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319200604",
+                position = PlayerPosition.SUPPORT,
+                teamId = "keyd-academy"
             )
-
-
         )
     }
 }
