@@ -46,6 +46,7 @@ class PlayersStaticDataSource {
             }
         }
 
+        // Lógica existente para RED
         if (teamId == "red") {
             val aegisStartDate = Instant.parse("2025-04-21T00:00:00Z")
 
@@ -62,11 +63,31 @@ class PlayersStaticDataSource {
             }
         }
 
+        if (teamId == "corinthians") {
+            val rosterChangeDate = Instant.parse("2025-03-24T00:00:00Z")
+
+            println("Partida Corinthians de ${matchDate}, verificando elenco")
+
+            if (matchDate < rosterChangeDate) {
+                println("Retornando time Corinthians com Xico (mid) e Telas (suporte)")
+                return allTeamPlayers.filter {
+                    it.id != "player_corinthians_leleko" && it.id != "player_corinthians_manel"
+                }
+            }
+            else {
+                println("Retornando time Corinthians com Leleko (mid) e Manel (suporte)")
+                return allTeamPlayers.filter {
+                    it.id != "player_corinthians_xico" && it.id != "player_corinthians_telas"
+                }
+            }
+        }
+
         return allTeamPlayers
     }
 
     companion object {
         private val allPlayers = listOf(
+            // LTA Sul
             // paiN Gaming
             Player(
                 id = "player_pain_wizer",
@@ -754,7 +775,118 @@ class PlayersStaticDataSource {
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/6/63/DSG_huhi_2025_Split_1.png/revision/latest?cb=20250221144319",
                 position = PlayerPosition.SUPPORT,
                 teamId = "disguised"
+            ),
+
+            // Circuito Desafiante
+            // Corinthians
+            Player(
+                id = "player_corinthians_tyrin",
+                name = "William Portugal",
+                nickname = "Tyrin",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Tyrin_2025_Split_1.png/220px-Tyrin_2025_Split_1.png",
+                position = PlayerPosition.TOP,
+                teamId = "corinthians"
+            ),
+            Player(
+                id = "player_corinthians_sting",
+                name = "Luís Gustavo Dirami Martins",
+                nickname = "Sting",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Sting_2025_Split_1.png/220px-Sting_2025_Split_1.png",
+                position = PlayerPosition.JUNGLE,
+                teamId = "corinthians"
+            ),
+            Player(
+                id = "player_corinthians_xico",
+                name = "Francisco Costa",
+                nickname = "Xico",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Xico_2025_Split_1.png/220px-Xico_2025_Split_1.png",
+                position = PlayerPosition.MID,
+                teamId = "corinthians"
+            ),
+            Player(
+                id = "player_corinthians_leleko",
+                name = "Leandro Hideki Aihara",
+                nickname = "Leleko",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Leleko_2025_Split_1.png/220px-Leleko_2025_Split_1.png",
+                position = PlayerPosition.MID,
+                teamId = "corinthians"
+            ),
+            Player(
+                id = "player_corinthians_trigo",
+                name = "Matheus Trigo Nobrega",
+                nickname = "Trigo",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Trigo_2025_Split_1.png/220px-Trigo_2025_Split_1.png",
+                position = PlayerPosition.ADC,
+                teamId = "corinthians"
+            ),
+            Player(
+                id = "player_corinthians_telas",
+                name = "Telas",
+                nickname = "Telas",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Telas_2025_Split_1.png/220px-Telas_2025_Split_1.png",
+                position = PlayerPosition.SUPPORT,
+                teamId = "corinthians"
+            ),
+            Player(
+                id = "player_corinthians_manel",
+                name = "Manuel",
+                nickname = "Manel",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Manel_2025_Split_1.png/220px-Manel_2025_Split_1.png",
+                position = PlayerPosition.SUPPORT,
+                teamId = "corinthians"
+            ),
+
+            // Dopamina
+            Player(
+                id = "player_dopamina_ayel",
+                name = "Marcelo Mello Zanini",
+                nickname = "Ayel",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Ayel_2025_Split_1.png/220px-Ayel_2025_Split_1.png",
+                position = PlayerPosition.TOP,
+                teamId = "dopamina"
+            ),
+            Player(
+                id = "player_dopamina_forlin",
+                name = "Leonardo Pereira",
+                nickname = "Forlin",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Forlin_2025_Split_1.png/220px-Forlin_2025_Split_1.png",
+                position = PlayerPosition.TOP,
+                teamId = "dopamina"
+            ),
+            Player(
+                id = "player_dopamina_dizin",
+                name = "Ronald Silva de Paula",
+                nickname = "Dizin",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Dizin_2025_Split_1.png/220px-Dizin_2025_Split_1.png",
+                position = PlayerPosition.JUNGLE,
+                teamId = "dopamina"
+            ),
+            Player(
+                id = "player_dopamina_envy",
+                name = "Bruno Farias",
+                nickname = "Envy",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Envy_2025_Split_1.png/220px-Envy_2025_Split_1.png",
+                position = PlayerPosition.MID,
+                teamId = "dopamina"
+            ),
+            Player(
+                id = "player_dopamina_kojima",
+                name = "Caio Yuiti Kojima",
+                nickname = "Kojima",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Kojima_2025_Split_1.png/220px-Kojima_2025_Split_1.png",
+                position = PlayerPosition.ADC,
+                teamId = "dopamina"
+            ),
+            Player(
+                id = "player_dopamina_bulecha",
+                name = "Lucas Adriel",
+                nickname = "Bulecha",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/thumb/Bulecha_2025_Split_1.png/220px-Bulecha_2025_Split_1.png",
+                position = PlayerPosition.SUPPORT,
+                teamId = "dopamina"
             )
+
+
         )
     }
 }
