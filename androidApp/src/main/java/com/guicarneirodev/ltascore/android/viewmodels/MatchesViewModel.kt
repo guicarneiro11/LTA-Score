@@ -26,7 +26,8 @@ data class MatchesUiState(
     val filter: MatchFilter = MatchFilter.ALL,
     val availableLeagues: List<League> = listOf(
         League("LTA South", "lta_s"),
-        League("LTA North", "lta_n")
+        League("LTA North", "lta_n"),
+        League("Circuito Desafiante", "cd")
     ),
     val selectedLeagueIndex: Int = 0,
     val error: String? = null,

@@ -32,7 +32,7 @@ class GetFriendsFeedUseCase(
                         FriendVoteHistoryItem(
                             baseVote = vote,
                             friendId = currentUser.id,
-                            friendUsername = "${currentUser.username} (você)"
+                            friendUsername = "${currentUser.username} (you)"
                         )
                     }
 

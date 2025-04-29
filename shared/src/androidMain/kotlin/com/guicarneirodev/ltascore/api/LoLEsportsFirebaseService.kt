@@ -37,6 +37,7 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
         val leagueId = when (leagueSlug) {
             "lta_s" -> "113475181634818701"
             "lta_n" -> "113470291645289904"
+            "cd" -> "105549980953490846"
             else -> throw IllegalArgumentException("Liga não suportada: $leagueSlug")
         }
 

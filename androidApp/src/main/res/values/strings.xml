@@ -66,6 +66,7 @@
     <string name="watch_vod">Watch VOD</string>
     <string name="lta_south">LTA South</string>
     <string name="lta_north">LTA North</string>
+    <string name="circuito_desafiante">Circuito Desafiante</string>
 
     <!-- Match Summary Screen -->
     <string name="match_ratings">Match Ratings</string>

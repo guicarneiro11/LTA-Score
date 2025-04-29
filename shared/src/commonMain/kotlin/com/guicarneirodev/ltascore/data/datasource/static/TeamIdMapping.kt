@@ -20,7 +20,19 @@ object TeamIdMapping {
         "98767991877340524" to "cloud9-kia",
         "99294153828264740" to "100-thieves",
         "110428362822825796" to "disguised",
-        "99566405941863385" to "lyon"
+        "99566405941863385" to "lyon",
+
+        // Circuito Desafiante
+        "105550001032913831" to "red-kalunga-academy",
+        "109485335453835911" to "keyd-academy",
+        "109480204628225868" to "los",
+        "109546466354141671" to "flamengo",
+        "114148730209204377" to "ratz",
+        "114148673565223449" to "dopamina",
+        "114148748659161269" to "stellae",
+        "112489375097659332" to "rise",
+        "105549995617170853" to "kabum-idl",
+        "114148623959237019" to "corinthians"
     )
 
     private val teamCodeToInternalMap = mapOf(
@@ -42,7 +54,19 @@ object TeamIdMapping {
         "C9" to "cloud9-kia",
         "100T" to "100-thieves",
         "DSG" to "disguised",
-        "LYON" to "lyon"
+        "LYON" to "lyon",
+
+        // Circuito Desafiante
+        "RED" to "red-kalunga-academy",
+        "VKS" to "keyd-academy",
+        "LOS" to "los",
+        "FLA" to "flamengo",
+        "RATZ" to "ratz",
+        "DPM" to "dopamina",
+        "STE" to "stellae",
+        "RISE" to "rise",
+        "KBM" to "kabum-idl",
+        "SCCP" to "corinthians"
     )
 
     fun getInternalTeamId(apiTeamId: String?, teamCode: String?): String {

@@ -157,6 +157,7 @@ fun MatchesScreen(
                             text = when(league.name) {
                                 "LTA Sul" -> stringResource(R.string.lta_south)
                                 "LTA Norte" -> stringResource(R.string.lta_north)
+                                "Circuito Desafiante" -> stringResource(R.string.circuito_desafiante)
                                 else -> league.name
                             },
                             fontWeight = if (index == uiState.selectedLeagueIndex) FontWeight.Bold else FontWeight.Normal
