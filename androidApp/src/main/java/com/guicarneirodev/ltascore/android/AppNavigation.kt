@@ -20,6 +20,7 @@ import com.guicarneirodev.ltascore.android.ui.auth.ResetPasswordScreen
 import com.guicarneirodev.ltascore.android.ui.friends.FriendsFeedScreen
 import com.guicarneirodev.ltascore.android.ui.history.VoteHistoryScreen
 import com.guicarneirodev.ltascore.android.ui.matches.MatchesScreen
+import com.guicarneirodev.ltascore.android.ui.notification.NotificationSettingsScreen
 import com.guicarneirodev.ltascore.android.ui.profile.EditProfileScreen
 import com.guicarneirodev.ltascore.android.ui.profile.ProfileScreen
 import com.guicarneirodev.ltascore.android.ui.ranking.RankingScreen
@@ -57,6 +58,8 @@ sealed class Screen(val route: String) {
     object MatchSummary : Screen("match_summary/{matchId}") {
         fun createRoute(matchId: String) = "match_summary/$matchId"
     }
+
+    object NotificationSettings : Screen("notification_settings")
 }
 
 @Composable
@@ -285,6 +288,22 @@ fun AppNavigation(
             }
 
             VoteHistoryScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.NotificationSettings.route) {
+            LaunchedEffect(isLoggedIn) {
+                if (!isLoggedIn) {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.NotificationSettings.route) { inclusive = true }
+                    }
+                }
+            }
+
+            NotificationSettingsScreen(
                 onBackClick = {
                     navController.popBackStack()
                 }
