@@ -175,6 +175,9 @@ fun AppNavigation(
                 onNavigateToEditProfile = {
                     navController.navigate(Screen.EditProfile.route)
                 },
+                onNavigateToNotificationSettings = {
+                    navController.navigate(Screen.NotificationSettings.route)
+                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Matches.route) { inclusive = true }

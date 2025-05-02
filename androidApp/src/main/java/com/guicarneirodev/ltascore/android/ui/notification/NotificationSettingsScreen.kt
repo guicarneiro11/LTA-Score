@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,13 +21,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import com.guicarneirodev.ltascore.android.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.viewmodels.NotificationSettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -38,7 +38,7 @@ fun NotificationSettingsScreen(
     viewModel: NotificationSettingsViewModel = koinViewModel(),
     onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState(initial = NotificationSettingsViewModel.NotificationSettingsUiState())
 
     Column(
         modifier = Modifier
@@ -52,15 +52,15 @@ fun NotificationSettingsScreen(
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = stringResource(R.string.back)
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.close)
                     )
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = LTAThemeColors.PrimaryGold,
-                titleContentColor = Color.White,
-                navigationIconContentColor = Color.White
+                containerColor = LTAThemeColors.CardBackground,
+                titleContentColor = LTAThemeColors.TextPrimary,
+                navigationIconContentColor = LTAThemeColors.TextPrimary
             )
         )
 

@@ -261,4 +261,5 @@
     <string name="match_live_body">A partida entre %1$s e %2$s começou</string>
     <string name="match_result_title">%1$s venceu %2$s</string>
     <string name="match_result_body">%1$s ganhou por %3$s-%4$s contra %2$s</string>
+    <string name="notification_settings_desc">Gerencie alertas de partidas e outras notificações</string>
 </resources>

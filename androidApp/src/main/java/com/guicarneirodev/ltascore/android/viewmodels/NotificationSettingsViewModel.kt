@@ -1,5 +1,19 @@
 package com.guicarneirodev.ltascore.android.viewmodels
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestore
+import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.android.data.repository.NotificationTokenRepository
+import com.guicarneirodev.ltascore.android.util.StringResources
+import com.guicarneirodev.ltascore.domain.repository.UserRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+
 class NotificationSettingsViewModel(
     private val tokenRepository: NotificationTokenRepository,
     private val userRepository: UserRepository
@@ -36,13 +50,12 @@ class NotificationSettingsViewModel(
 
                     if (prefsDoc.exists()) {
                         _uiState.value = _uiState.value.copy(
-                            matchNotifications = prefsDoc.getBoolean("matchNotifications") ?: true,
-                            liveMatchNotifications = prefsDoc.getBoolean("liveMatchNotifications") ?: true,
-                            resultNotifications = prefsDoc.getBoolean("resultNotifications") ?: true,
+                            matchNotifications = prefsDoc.getBoolean("matchNotifications") != false,
+                            liveMatchNotifications = prefsDoc.getBoolean("liveMatchNotifications") != false,
+                            resultNotifications = prefsDoc.getBoolean("resultNotifications") != false,
                             isLoading = false
                         )
                     } else {
-                        // Register with default values if no preferences exist
                         tokenRepository.registerUserForNotifications(user.id)
                         _uiState.value = _uiState.value.copy(isLoading = false)
                     }

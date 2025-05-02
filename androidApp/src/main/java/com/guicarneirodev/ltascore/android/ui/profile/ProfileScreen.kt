@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Button
@@ -92,6 +93,7 @@ fun ProfileScreen(
     onNavigateToMatchHistory: () -> Unit,
     onNavigateToRanking: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
+    onNavigateToNotificationSettings: () -> Unit,
     onLogout: () -> Unit,
     onBackClick: () -> Unit,
     forceUpdate: Long = System.currentTimeMillis(),
@@ -312,7 +314,8 @@ fun ProfileScreen(
             item {
                 ProfileOptionsSection(
                     onNavigateToMatchHistory = onNavigateToMatchHistory,
-                    onNavigateToRanking = onNavigateToRanking
+                    onNavigateToRanking = onNavigateToRanking,
+                    onNavigateToNotificationSettings = onNavigateToNotificationSettings
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -696,7 +699,8 @@ fun FriendItem(
 @Composable
 fun ProfileOptionsSection(
     onNavigateToMatchHistory: () -> Unit,
-    onNavigateToRanking: () -> Unit
+    onNavigateToRanking: () -> Unit,
+    onNavigateToNotificationSettings: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -716,6 +720,13 @@ fun ProfileOptionsSection(
                 fontWeight = FontWeight.Bold,
                 color = LTAThemeColors.TextPrimary,
                 modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            ProfileOptionItem(
+                icon = Icons.Default.Notifications,
+                title = stringResource(R.string.notification_settings),
+                subtitle = stringResource(R.string.notification_settings_desc),
+                onClick = onNavigateToNotificationSettings
             )
 
             ProfileOptionItem(

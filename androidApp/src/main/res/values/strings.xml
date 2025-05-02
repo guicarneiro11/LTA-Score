@@ -261,4 +261,5 @@
     <string name="match_live_body">The match between %1$s and %2$s has started</string>
     <string name="match_result_title">%1$s defeated %2$s</string>
     <string name="match_result_body">%1$s won %3$s-%4$s against %2$s</string>
+    <string name="notification_settings_desc">Manage match alerts and other notifications</string>
 </resources>
