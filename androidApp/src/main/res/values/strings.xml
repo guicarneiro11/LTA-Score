@@ -67,6 +67,8 @@
     <string name="lta_south">LTA South</string>
     <string name="lta_north">LTA North</string>
     <string name="circuito_desafiante">Circuito Desafiante</string>
+    <string name="vote">Vote</string>
+    <string name="your_prediction">Your guess</string>
 
     <!-- Match Summary Screen -->
     <string name="match_ratings">Match Ratings</string>

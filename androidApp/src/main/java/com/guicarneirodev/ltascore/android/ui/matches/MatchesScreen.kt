@@ -366,6 +366,12 @@ fun MatchesScreen(
                                 onVodClick = { vodUrl ->
                                     val intent = Intent(Intent.ACTION_VIEW, vodUrl.toUri())
                                     context.startActivity(intent)
+                                },
+                                predictionStats = uiState.matchPredictions[match.id],
+                                userPrediction = uiState.userPredictions[match.id],
+                                isLoadingPrediction = uiState.predictionsLoading[match.id] == true,
+                                onPredictTeam = { teamId ->
+                                    viewModel.submitPrediction(match.id, teamId)
                                 }
                             )
                         }

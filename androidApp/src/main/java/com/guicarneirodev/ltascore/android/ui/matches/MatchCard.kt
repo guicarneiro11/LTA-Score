@@ -5,9 +5,9 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import com.guicarneirodev.ltascore.android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,9 +27,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,14 +44,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.domain.models.Match
+import com.guicarneirodev.ltascore.domain.models.MatchPredictionStats
 import com.guicarneirodev.ltascore.domain.models.MatchState
 
 @Composable
 fun MatchCard(
     match: Match,
     onClick: () -> Unit,
-    onVodClick: (String) -> Unit
+    onVodClick: (String) -> Unit,
+    predictionStats: MatchPredictionStats? = null,
+    userPrediction: String? = null,
+    isLoadingPrediction: Boolean = false,
+    onPredictTeam: (String) -> Unit = {}
 ) {
     println("MatchCard: match.id=${match.id}, hasVod=${match.hasVod}, vodUrl=${match.vodUrl}")
 
@@ -102,37 +109,100 @@ fun MatchCard(
                         .padding(end = 8.dp),
                     contentAlignment = Alignment.CenterEnd
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        LogoImage(
-                            imageUrl = match.teams[0].imageUrl,
-                            name = match.teams[0].name,
-                            code = match.teams[0].code
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Column(
-                            horizontalAlignment = Alignment.End,
-                            modifier = Modifier.width(50.dp)
+                    Column(horizontalAlignment = Alignment.End) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            Text(
-                                text = match.teams[0].code,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = LTAThemeColors.TextPrimary,
-                                textAlign = TextAlign.End
+                            LogoImage(
+                                imageUrl = match.teams[0].imageUrl,
+                                name = match.teams[0].name,
+                                code = match.teams[0].code
                             )
 
-                            Text(
-                                text = match.teams[0].result.gameWins.toString(),
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = LTAThemeColors.TextPrimary,
-                                textAlign = TextAlign.End
-                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                modifier = Modifier.width(50.dp)
+                            ) {
+                                Text(
+                                    text = match.teams[0].code,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LTAThemeColors.TextPrimary,
+                                    textAlign = TextAlign.End
+                                )
+
+                                Text(
+                                    text = match.teams[0].result.gameWins.toString(),
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LTAThemeColors.TextPrimary,
+                                    textAlign = TextAlign.End
+                                )
+                            }
+                        }
+
+                        // Adicionar componente de previsão para partidas futuras
+                        if (match.state == MatchState.UNSTARTED) {
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            val team0Id = match.teams[0].id
+                            val team0Percent = predictionStats?.percentages?.get(team0Id) ?: 0
+                            val isTeam0Predicted = userPrediction == team0Id
+
+                            if (isTeam0Predicted) {
+                                // Já votou nesse time
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp)
+                                        .height(24.dp)
+                                        .background(
+                                            LTAThemeColors.PrimaryGold.copy(alpha = 0.2f),
+                                            RoundedCornerShape(4.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "$team0Percent%",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = LTAThemeColors.PrimaryGold,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            } else {
+                                // Pode votar nesse time
+                                Button(
+                                    onClick = { onPredictTeam(team0Id) },
+                                    enabled = !isLoadingPrediction,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(24.dp),
+                                    contentPadding = PaddingValues(0.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = LTAThemeColors.CardBackground,
+                                        contentColor = LTAThemeColors.TextSecondary,
+                                        disabledContainerColor = LTAThemeColors.CardBackground.copy(alpha = 0.5f),
+                                        disabledContentColor = LTAThemeColors.TextDisabled
+                                    ),
+                                    border = BorderStroke(1.dp, LTAThemeColors.TextSecondary)
+                                ) {
+                                    if (isLoadingPrediction) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(16.dp),
+                                            color = LTAThemeColors.TextSecondary,
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Text(
+                                            text = if (team0Percent > 0) "$team0Percent%" else stringResource(R.string.vote),
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -155,38 +225,101 @@ fun MatchCard(
                         .padding(start = 8.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.width(50.dp)
+                    Column(horizontalAlignment = Alignment.Start) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
                         ) {
-                            Text(
-                                text = match.teams[1].code,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = LTAThemeColors.TextPrimary,
-                                textAlign = TextAlign.Start
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.Start,
+                                modifier = Modifier.width(50.dp)
+                            ) {
+                                Text(
+                                    text = match.teams[1].code,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LTAThemeColors.TextPrimary,
+                                    textAlign = TextAlign.Start
+                                )
 
-                            Text(
-                                text = match.teams[1].result.gameWins.toString(),
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = LTAThemeColors.TextPrimary,
-                                textAlign = TextAlign.Start
+                                Text(
+                                    text = match.teams[1].result.gameWins.toString(),
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LTAThemeColors.TextPrimary,
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            LogoImage(
+                                imageUrl = match.teams[1].imageUrl,
+                                name = match.teams[1].name,
+                                code = match.teams[1].code
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                        // Adicionar componente de previsão para partidas futuras
+                        if (match.state == MatchState.UNSTARTED) {
+                            Spacer(modifier = Modifier.height(4.dp))
 
-                        LogoImage(
-                            imageUrl = match.teams[1].imageUrl,
-                            name = match.teams[1].name,
-                            code = match.teams[1].code
-                        )
+                            val team1Id = match.teams[1].id
+                            val team1Percent = predictionStats?.percentages?.get(team1Id) ?: 0
+                            val isTeam1Predicted = userPrediction == team1Id
+
+                            if (isTeam1Predicted) {
+                                // Já votou nesse time
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp)
+                                        .height(24.dp)
+                                        .background(
+                                            LTAThemeColors.PrimaryGold.copy(alpha = 0.2f),
+                                            RoundedCornerShape(4.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "$team1Percent%",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = LTAThemeColors.PrimaryGold,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            } else {
+                                // Pode votar nesse time
+                                Button(
+                                    onClick = { onPredictTeam(team1Id) },
+                                    enabled = !isLoadingPrediction,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(24.dp),
+                                    contentPadding = PaddingValues(0.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = LTAThemeColors.CardBackground,
+                                        contentColor = LTAThemeColors.TextSecondary,
+                                        disabledContainerColor = LTAThemeColors.CardBackground.copy(alpha = 0.5f),
+                                        disabledContentColor = LTAThemeColors.TextDisabled
+                                    ),
+                                    border = BorderStroke(1.dp, LTAThemeColors.TextSecondary)
+                                ) {
+                                    if (isLoadingPrediction) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(16.dp),
+                                            color = LTAThemeColors.TextSecondary,
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Text(
+                                            text = if (team1Percent > 0) "$team1Percent%" else stringResource(R.string.vote),
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -5,6 +5,7 @@ package com.guicarneirodev.ltascore.android.di
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseFriendshipRepository
+import com.guicarneirodev.ltascore.android.data.repository.FirebaseMatchPredictionRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseRankingRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseTeamFeedRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseUserRepository
@@ -28,6 +29,7 @@ import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSourc
 import com.guicarneirodev.ltascore.data.repository.AndroidMatchSyncRepository
 import com.guicarneirodev.ltascore.data.repository.MatchRepositoryImpl
 import com.guicarneirodev.ltascore.domain.repository.FriendshipRepository
+import com.guicarneirodev.ltascore.domain.repository.MatchPredictionRepository
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import com.guicarneirodev.ltascore.domain.repository.MatchSyncRepository
 import com.guicarneirodev.ltascore.domain.repository.RankingRepository
@@ -42,6 +44,7 @@ import com.guicarneirodev.ltascore.domain.usecases.GetMatchesUseCase
 import com.guicarneirodev.ltascore.domain.usecases.GetPlayerRankingUseCase
 import com.guicarneirodev.ltascore.domain.usecases.GetUserVoteHistoryUseCase
 import com.guicarneirodev.ltascore.domain.usecases.ManageFriendshipsUseCase
+import com.guicarneirodev.ltascore.domain.usecases.ManageMatchPredictionsUseCase
 import com.guicarneirodev.ltascore.domain.usecases.ShareVoteToTeamFeedUseCase
 import com.guicarneirodev.ltascore.domain.usecases.SubmitPlayerVoteUseCase
 import org.koin.android.ext.koin.androidContext
@@ -65,6 +68,7 @@ val appModule = module {
     single<VoteSocialRepository> { FirebaseVoteSocialRepository(get(), get()) }
     single<TeamFeedRepository> { FirebaseTeamFeedRepository(get(), get()) }
     single<MatchSyncRepository> { AndroidMatchSyncRepository(get(), get()) }
+    single<MatchPredictionRepository> { FirebaseMatchPredictionRepository(get()) }
 
     single { NotificationTokenRepository() }
     single { UserPreferencesRepository(androidContext()) }
@@ -78,8 +82,9 @@ val appModule = module {
     single { ManageFriendshipsUseCase(get()) }
     single { GetFriendsFeedUseCase(get(), get(), get()) }
     single { ShareVoteToTeamFeedUseCase(get(), get(), get()) }
+    single { ManageMatchPredictionsUseCase(get(), get()) }
 
-    viewModel { MatchesViewModel(get(), get()) }
+    viewModel { MatchesViewModel(get(), get(), get()) }
     viewModel { VotingViewModel(get(), get(), get(), get()) }
     viewModel { MatchSummaryViewModel(get(), get(), get(), get()) }
     viewModel { AuthViewModel(get(), get(), get()) }

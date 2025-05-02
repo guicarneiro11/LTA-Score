@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.domain.models.MatchPredictionStats
+import com.guicarneirodev.ltascore.domain.usecases.ManageMatchPredictionsUseCase
 
 enum class MatchFilter {
     ALL, UPCOMING, LIVE, COMPLETED
@@ -32,12 +34,16 @@ data class MatchesUiState(
     val selectedLeagueIndex: Int = 0,
     val error: String? = null,
     val ltaCrossLogo: String? = null,
-    val splitTitle: String = "Split 2 – 2025"
+    val splitTitle: String = "Split 2 – 2025",
+    val matchPredictions: Map<String, MatchPredictionStats> = emptyMap(),
+    val userPredictions: Map<String, String> = emptyMap(),
+    val predictionsLoading: Map<String, Boolean> = emptyMap()
 )
 
 class MatchesViewModel(
     private val getMatchesUseCase: GetMatchesUseCase,
-    private val loLEsportsApi: LoLEsportsApi
+    private val loLEsportsApi: LoLEsportsApi,
+    private val manageMatchPredictionsUseCase: ManageMatchPredictionsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MatchesUiState())
@@ -91,6 +97,12 @@ class MatchesViewModel(
                         filteredMatches = filterMatches(matches, _uiState.value.filter),
                         error = if (matches.isEmpty()) StringResources.getString(R.string.no_match_found) else null
                     )
+
+                    val upcomingMatches = matches.filter { it.state == MatchState.UNSTARTED }
+                    upcomingMatches.forEach { match ->
+                        loadMatchPredictionStats(match.id)
+                        loadUserPrediction(match.id)
+                    }
                 }
             } catch (e: Exception) {
                 println("ViewModel: Erro ao carregar partidas: ${e.message}")
@@ -134,6 +146,60 @@ class MatchesViewModel(
             MatchFilter.UPCOMING -> matches.filter { it.state == MatchState.UNSTARTED }
             MatchFilter.LIVE -> matches.filter { it.state == MatchState.INPROGRESS }
             MatchFilter.COMPLETED -> matches.filter { it.state == MatchState.COMPLETED }
+        }
+    }
+
+    fun submitPrediction(matchId: String, teamId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                predictionsLoading = _uiState.value.predictionsLoading + (matchId to true)
+            )
+
+            try {
+                manageMatchPredictionsUseCase.submitPrediction(matchId, teamId).fold(
+                    onSuccess = {
+                        _uiState.value = _uiState.value.copy(
+                            userPredictions = _uiState.value.userPredictions + (matchId to teamId),
+                            predictionsLoading = _uiState.value.predictionsLoading + (matchId to false)
+                        )
+
+                        loadMatchPredictionStats(matchId)
+                    },
+                    onFailure = { error ->
+                        println("Erro ao submeter palpite: ${error.message}")
+                        _uiState.value = _uiState.value.copy(
+                            predictionsLoading = _uiState.value.predictionsLoading + (matchId to false)
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                println("Erro ao submeter palpite: ${e.message}")
+                _uiState.value = _uiState.value.copy(
+                    predictionsLoading = _uiState.value.predictionsLoading + (matchId to false)
+                )
+            }
+        }
+    }
+
+    fun loadMatchPredictionStats(matchId: String) {
+        viewModelScope.launch {
+            manageMatchPredictionsUseCase.getMatchPredictionStats(matchId).collect { stats ->
+                _uiState.value = _uiState.value.copy(
+                    matchPredictions = _uiState.value.matchPredictions + (matchId to stats)
+                )
+            }
+        }
+    }
+
+    fun loadUserPrediction(matchId: String) {
+        viewModelScope.launch {
+            manageMatchPredictionsUseCase.getUserPrediction(matchId).collect { prediction ->
+                if (prediction != null) {
+                    _uiState.value = _uiState.value.copy(
+                        userPredictions = _uiState.value.userPredictions + (matchId to prediction.predictedTeamId)
+                    )
+                }
+            }
         }
     }
 }
