@@ -237,4 +237,28 @@
     <string name="vote_submit_fail">Failed to submit votes. Try again.</string>
     <string name="not_authenticated_or_match">User not authenticated or match not found</string>
     <string name="vote_submit_error">Error submitting votes: %s</string>
+
+    <!-- Notification Settings -->
+    <string name="notification_settings">Notification Settings</string>
+    <string name="notification_preferences">Notification Preferences</string>
+    <string name="match_start_notifications">Match Start Notifications</string>
+    <string name="match_start_notifications_desc">Get notified when matches are about to start</string>
+    <string name="live_match_notifications">Live Match Notifications</string>
+    <string name="live_match_notifications_desc">Get notified when matches go live</string>
+    <string name="result_notifications">Result Notifications</string>
+    <string name="result_notifications_desc">Get notified when matches are completed with results</string>
+    <string name="not_logged_in">You need to be logged in to manage notifications</string>
+    <string name="load_preferences_error">Error loading notification preferences: %s</string>
+
+    <!-- Notification Channels -->
+    <string name="match_updates_channel_name">Match Updates</string>
+    <string name="match_updates_channel_description">Notifications about match status changes and results</string>
+
+    <!-- Notification Messages -->
+    <string name="match_starting_title">%1$s vs %2$s is starting!</string>
+    <string name="match_starting_body">The match between %1$s and %2$s is about to begin</string>
+    <string name="match_live_title">%1$s vs %2$s is LIVE</string>
+    <string name="match_live_body">The match between %1$s and %2$s has started</string>
+    <string name="match_result_title">%1$s defeated %2$s</string>
+    <string name="match_result_body">%1$s won %3$s-%4$s against %2$s</string>
 </resources>

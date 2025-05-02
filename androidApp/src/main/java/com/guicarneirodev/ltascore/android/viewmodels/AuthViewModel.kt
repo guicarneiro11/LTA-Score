@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.android.data.repository.NotificationTokenRepository
 
 data class LoginUiState(
     val isLoading: Boolean = false,
@@ -176,11 +177,12 @@ class AuthViewModel(
             try {
                 val result = userRepository.signIn(email, password)
                 result.fold(
-                    onSuccess = {
+                    onSuccess = { user ->
                         _loginUiState.value = _loginUiState.value.copy(
                             isLoading = false,
                             isLoggedIn = true
                         )
+                        registerForNotifications(user.id)
                     },
                     onFailure = { e ->
                         _loginUiState.value = _loginUiState.value.copy(
@@ -286,6 +288,17 @@ class AuthViewModel(
             e.message?.contains("Weak password") == true ->
                 StringResources.getString(R.string.weak_password)
             else -> StringResources.getStringFormatted(R.string.auth_error, e.message ?: "")
+        }
+    }
+
+    private fun registerForNotifications(userId: String) {
+        viewModelScope.launch {
+            try {
+                val tokenRepository = NotificationTokenRepository()
+                tokenRepository.registerUserForNotifications(userId)
+            } catch (e: Exception) {
+                println("Failed to register for notifications: ${e.message}")
+            }
         }
     }
 }

@@ -237,4 +237,28 @@
     <string name="vote_submit_fail">Falha ao enviar votos. Tente novamente.</string>
     <string name="not_authenticated_or_match">Usuário não autenticado ou partida não encontrada</string>
     <string name="vote_submit_error">Erro ao enviar votos: %s</string>
+
+    <!-- Notification Settings -->
+    <string name="notification_settings">Configurações de Notificações</string>
+    <string name="notification_preferences">Preferências de Notificação</string>
+    <string name="match_start_notifications">Notificações de Início</string>
+    <string name="match_start_notifications_desc">Receba alertas quando partidas estiverem prestes a começar</string>
+    <string name="live_match_notifications">Notificações de Partidas ao Vivo</string>
+    <string name="live_match_notifications_desc">Receba alertas quando partidas começarem ao vivo</string>
+    <string name="result_notifications">Notificações de Resultados</string>
+    <string name="result_notifications_desc">Receba alertas quando partidas forem concluídas com resultados</string>
+    <string name="not_logged_in">Você precisa estar logado para gerenciar notificações</string>
+    <string name="load_preferences_error">Erro ao carregar preferências de notificação: %s</string>
+
+    <!-- Notification Channels -->
+    <string name="match_updates_channel_name">Atualizações de Partidas</string>
+    <string name="match_updates_channel_description">Notificações sobre mudanças de status e resultados de partidas</string>
+
+    <!-- Notification Messages -->
+    <string name="match_starting_title">%1$s vs %2$s vai começar!</string>
+    <string name="match_starting_body">A partida entre %1$s e %2$s está prestes a começar</string>
+    <string name="match_live_title">%1$s vs %2$s está AO VIVO</string>
+    <string name="match_live_body">A partida entre %1$s e %2$s começou</string>
+    <string name="match_result_title">%1$s venceu %2$s</string>
+    <string name="match_result_body">%1$s ganhou por %3$s-%4$s contra %2$s</string>
 </resources>

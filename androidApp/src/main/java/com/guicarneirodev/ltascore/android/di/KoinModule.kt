@@ -23,9 +23,11 @@ import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.data.datasource.local.MatchLocalDataSource
 import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.data.repository.AndroidMatchSyncRepository
 import com.guicarneirodev.ltascore.data.repository.MatchRepositoryImpl
 import com.guicarneirodev.ltascore.domain.repository.FriendshipRepository
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
+import com.guicarneirodev.ltascore.domain.repository.MatchSyncRepository
 import com.guicarneirodev.ltascore.domain.repository.RankingRepository
 import com.guicarneirodev.ltascore.domain.repository.TeamFeedRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
@@ -60,6 +62,7 @@ val appModule = module {
     single<FriendshipRepository> { FirebaseFriendshipRepository(get(), get()) }
     single<VoteSocialRepository> { FirebaseVoteSocialRepository(get(), get()) }
     single<TeamFeedRepository> { FirebaseTeamFeedRepository(get(), get()) }
+    single<MatchSyncRepository> { AndroidMatchSyncRepository(get(), get()) }
 
     single { UserPreferencesRepository(androidContext()) }
 

@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation("dev.gitlive:firebase-functions:1.8.0")
+    implementation(libs.firebase.messaging)
 
     // Testes
     testImplementation(libs.kotest.runner)
@@ -91,6 +92,7 @@ dependencies {
     testImplementation(libs.kotlin.test)
 
     implementation(libs.material.icons.extended)
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }
 
 tasks.withType<Test>().configureEach {

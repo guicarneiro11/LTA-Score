@@ -46,6 +46,7 @@ kotlin {
             // Firebase Functions
             implementation("dev.gitlive:firebase-functions:1.8.0")
             implementation("com.google.code.gson:gson:2.10.1")
+            implementation(libs.firebase.firestore)
         }
 
         commonTest.dependencies {
@@ -56,7 +57,6 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.android)
 
-            // Firebase
             implementation("dev.gitlive:firebase-functions:1.8.0")
         }
 
