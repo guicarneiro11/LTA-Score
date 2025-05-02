@@ -78,6 +78,7 @@ dependencies {
 
     // DataStore
     implementation(libs.datastore.preferences)
+    implementation(libs.datastore.preferences.core)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

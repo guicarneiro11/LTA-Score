@@ -10,6 +10,7 @@ import com.guicarneirodev.ltascore.android.data.repository.FirebaseTeamFeedRepos
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseUserRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteSocialRepository
+import com.guicarneirodev.ltascore.android.data.repository.NotificationTokenRepository
 import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
@@ -17,6 +18,7 @@ import com.guicarneirodev.ltascore.android.viewmodels.FriendsFeedViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.NotificationSettingsViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.RankingViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.VoteHistoryViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
@@ -64,6 +66,7 @@ val appModule = module {
     single<TeamFeedRepository> { FirebaseTeamFeedRepository(get(), get()) }
     single<MatchSyncRepository> { AndroidMatchSyncRepository(get(), get()) }
 
+    single { NotificationTokenRepository() }
     single { UserPreferencesRepository(androidContext()) }
 
     single { GetMatchesUseCase(get()) }
@@ -85,4 +88,5 @@ val appModule = module {
     viewModel { FriendsViewModel(get()) }
     viewModel { FriendsFeedViewModel(get(), get(), get(), get()) }
     viewModel { EditProfileViewModel(get(), get(), get()) }
+    viewModel { NotificationSettingsViewModel(get(), get()) }
 }

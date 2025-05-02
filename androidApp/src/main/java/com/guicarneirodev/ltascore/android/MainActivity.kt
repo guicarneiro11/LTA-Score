@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkAndRegisterFcmToken() {
+        // Only proceed if user is logged in
         FirebaseAuth.getInstance().currentUser?.uid?.let { userId ->
             lifecycleScope.launch {
                 try {
@@ -82,7 +83,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Deprecated("Deprecated in Java")
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,

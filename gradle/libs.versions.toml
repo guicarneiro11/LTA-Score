@@ -54,7 +54,8 @@ lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-com
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 
 # DataStore
-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version = "1.0.0" }
+datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version = "1.0.0" }
 
 # Firebase
 firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
