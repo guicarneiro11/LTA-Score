@@ -1,6 +1,5 @@
 package com.guicarneirodev.ltascore.android.ui.matches
 
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +51,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
@@ -364,10 +362,6 @@ fun MatchesScreen(
                             MatchCard(
                                 match = match,
                                 onClick = { onMatchClick(match.id) },
-                                onVodClick = { vodUrl ->
-                                    val intent = Intent(Intent.ACTION_VIEW, vodUrl.toUri())
-                                    context.startActivity(intent)
-                                },
                                 predictionStats = uiState.matchPredictions[match.id],
                                 userPrediction = uiState.userPredictions[match.id],
                                 isLoadingPrediction = uiState.predictionsLoading[match.id] == true,

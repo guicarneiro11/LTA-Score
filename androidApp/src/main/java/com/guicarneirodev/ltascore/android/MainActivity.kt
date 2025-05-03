@@ -29,7 +29,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Request notification permission
         requestNotificationPermission()
 
         setContent {
@@ -47,7 +46,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // You could also check and handle FCM token registration here
         checkAndRegisterFcmToken()
     }
 
@@ -63,14 +61,13 @@ class MainActivity : ComponentActivity() {
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(notificationPermission),
-                    100 // Request code
+                    100
                 )
             }
         }
     }
 
     private fun checkAndRegisterFcmToken() {
-        // Only proceed if user is logged in
         FirebaseAuth.getInstance().currentUser?.uid?.let { userId ->
             lifecycleScope.launch {
                 try {

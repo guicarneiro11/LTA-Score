@@ -85,12 +85,6 @@ class MatchesViewModel(
                 getMatchesUseCase(leagueSlug).collect { matches ->
                     println("ViewModel: Recebidas ${matches.size} partidas")
 
-                    val matchesWithVods = matches.filter { it.vodUrl != null }
-                    println("ViewModel: Partidas com VODs: ${matchesWithVods.size}")
-                    matchesWithVods.forEach { match ->
-                        println("Partida ${match.id} tem VOD: ${match.vodUrl}")
-                    }
-
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         matches = matches,
@@ -158,11 +152,8 @@ class MatchesViewModel(
             try {
                 manageMatchPredictionsUseCase.submitPrediction(matchId, teamId).fold(
                     onSuccess = {
-                        // This is important - reload the user prediction status
-                        // If vote was removed, this will return null
                         loadUserPrediction(matchId)
 
-                        // Also reload prediction stats to update percentages
                         loadMatchPredictionStats(matchId)
 
                         _uiState.value = _uiState.value.copy(

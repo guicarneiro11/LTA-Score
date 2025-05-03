@@ -35,8 +35,6 @@ class MatchRepositoryImpl(
         )
     )
 
-    private val matchVods = mutableMapOf<String, String>()
-
     override suspend fun getMatches(leagueSlug: String): Flow<List<Match>> {
         return flow {
             emit(localDataSource.getMatches(leagueSlug))
@@ -158,13 +156,6 @@ class MatchRepositoryImpl(
                     )
                 }
 
-                val vodUrl = matchVods[matchId]
-                val hasVod = matchDto.flags.contains("hasVod") || vodUrl != null
-
-                if (hasVod) {
-                    println("🎬 Partida ${matchDto.id} tem VOD: $vodUrl")
-                }
-
                 Match(
                     id = matchId,
                     startTime = matchDate,
@@ -173,17 +164,11 @@ class MatchRepositoryImpl(
                     leagueName = event.league.name,
                     leagueSlug = event.league.slug,
                     teams = teams,
-                    bestOf = matchDto.strategy.count,
-                    hasVod = hasVod,
-                    vodUrl = vodUrl
+                    bestOf = matchDto.strategy.count
                 )
             } ?: emptyList()
 
             localDataSource.saveMatches(matches)
-
-            val matchesWithVod = matches.filter { it.vodUrl != null }
-            println("Total de partidas com VOD: ${matchesWithVod.size} de ${matches.size}")
-
         } catch (e: Exception) {
             println("Erro ao atualizar partidas: ${e.message}")
             throw e
