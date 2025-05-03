@@ -109,6 +109,45 @@ class MatchesViewModel(
         }
     }
 
+    fun getVodUrlForMatch(matchId: String, callback: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val eventDetails = loLEsportsApi.getMatch(matchId)
+
+                val event = eventDetails.data?.event
+
+                if (event?.match?.games?.isNotEmpty() == true) {
+                    val game = event.match.games.firstOrNull()
+
+                    if (game?.vods?.isNotEmpty() == true) {
+                        val ptBrVod = game.vods.find { it.locale == "pt-BR" }
+
+                        if (ptBrVod != null && ptBrVod.parameter != null) {
+                            val youtubeUrl = "https://www.youtube.com/watch?v=${ptBrVod.parameter}"
+                            callback(youtubeUrl)
+                            return@launch
+                        } else {
+                            val anyVod = game.vods.firstOrNull()
+                            if (anyVod != null && anyVod.parameter != null) {
+                                val youtubeUrl = "https://www.youtube.com/watch?v=${anyVod.parameter}"
+                                callback(youtubeUrl)
+                                return@launch
+                            }
+                        }
+                    }
+                }
+
+                println("Não foi possível encontrar o VOD para a partida: $matchId")
+                callback(null)
+
+            } catch (e: Exception) {
+                println("Erro ao buscar detalhes do evento: ${e.message}")
+                e.printStackTrace()
+                callback(null)
+            }
+        }
+    }
+
     fun selectLeague(index: Int) {
         if (index != _uiState.value.selectedLeagueIndex) {
             val leagueSlug = _uiState.value.availableLeagues[index].slug

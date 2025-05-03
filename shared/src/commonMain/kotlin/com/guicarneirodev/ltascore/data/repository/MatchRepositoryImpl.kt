@@ -156,6 +156,8 @@ class MatchRepositoryImpl(
                     )
                 }
 
+                val hasVod = matchDto.flags.contains("hasVod")
+
                 Match(
                     id = matchId,
                     startTime = matchDate,
@@ -164,7 +166,9 @@ class MatchRepositoryImpl(
                     leagueName = event.league.name,
                     leagueSlug = event.league.slug,
                     teams = teams,
-                    bestOf = matchDto.strategy.count
+                    bestOf = matchDto.strategy.count,
+                    hasVod = hasVod,
+                    vodUrl = null
                 )
             } ?: emptyList()
 

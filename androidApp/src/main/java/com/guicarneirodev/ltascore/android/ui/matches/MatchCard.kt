@@ -53,6 +53,7 @@ import com.guicarneirodev.ltascore.domain.models.MatchState
 fun MatchCard(
     match: Match,
     onClick: () -> Unit,
+    onWatchVodClick: ((String) -> Unit)? = null,
     predictionStats: MatchPredictionStats? = null,
     userPrediction: String? = null,
     isLoadingPrediction: Boolean = false,
@@ -348,6 +349,36 @@ fun MatchCard(
                         .fillMaxWidth()
                         .padding(top = 8.dp)
                 )
+            }
+
+            // Adiciona o botão "Assistir VOD" para partidas concluídas
+            if (match.state == MatchState.COMPLETED && onWatchVodClick != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { onWatchVodClick(match.id) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LTAThemeColors.TertiaryGold
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.watch_vod),
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }

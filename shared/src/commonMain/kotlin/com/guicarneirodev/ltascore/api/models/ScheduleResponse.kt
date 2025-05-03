@@ -16,7 +16,8 @@ data class ApiError(
 
 @Serializable
 data class ScheduleData(
-    val schedule: Schedule? = null
+    val schedule: Schedule? = null,
+    val event: EventDetail? = null
 )
 
 @Serializable
@@ -44,7 +45,66 @@ data class Event(
 @Serializable
 data class League(
     val name: String = "",
-    val slug: String = ""
+    val slug: String = "",
+    val image: String = "",
+    val id: String = ""
+)
+
+// Modelo para detalhes de um evento específico
+@Serializable
+data class EventDetail(
+    val id: String = "",
+    val type: String = "",
+    val tournament: Tournament? = null,
+    val league: League = League(),
+    val match: MatchDetailDTO = MatchDetailDTO()
+)
+
+@Serializable
+data class Tournament(
+    val id: String = ""
+)
+
+@Serializable
+data class MatchDetailDTO(
+    val strategy: Strategy = Strategy(),
+    val teams: List<TeamDTO> = emptyList(),
+    val games: List<GameDTO> = emptyList()
+)
+
+@Serializable
+data class GameDTO(
+    val number: Int = 0,
+    val id: String = "",
+    val state: String = "",
+    val teams: List<GameTeamDTO> = emptyList(),
+    val vods: List<VodDTO> = emptyList()
+)
+
+@Serializable
+data class GameTeamDTO(
+    val id: String = "",
+    val side: String = ""
+)
+
+@Serializable
+data class VodDTO(
+    val id: String = "",
+    val parameter: String? = null,
+    val locale: String = "",
+    val mediaLocale: MediaLocaleDTO? = null,
+    val provider: String = "",
+    val offset: Int = 0,
+    val firstFrameTime: String? = null,
+    val startMillis: Long? = null,
+    val endMillis: Long? = null
+)
+
+@Serializable
+data class MediaLocaleDTO(
+    val locale: String = "",
+    val englishName: String = "",
+    val translatedName: String = ""
 )
 
 @Serializable

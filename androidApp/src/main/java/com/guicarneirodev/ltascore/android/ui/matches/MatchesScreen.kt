@@ -1,5 +1,8 @@
 package com.guicarneirodev.ltascore.android.ui.matches
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +23,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,6 +45,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,6 +79,71 @@ fun MatchesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    // Estado para o diálogo de VOD
+    var showVodDialog by remember { mutableStateOf(false) }
+    var currentMatchId by remember { mutableStateOf<String?>(null) }
+    var isLoadingVod by remember { mutableStateOf(false) }
+
+    // Função para lidar com o clique no botão de VOD
+    val handleWatchVodClick = { matchId: String ->
+        currentMatchId = matchId
+        showVodDialog = true
+    }
+
+    if (showVodDialog && currentMatchId != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showVodDialog = false
+                currentMatchId = null
+            },
+            title = { Text(stringResource(R.string.exit_app_title)) },
+            text = { Text(stringResource(R.string.exit_app_message)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        isLoadingVod = true
+                        showVodDialog = false
+
+                        viewModel.getVodUrlForMatch(currentMatchId!!) { vodUrl ->
+                            isLoadingVod = false
+                            if (vodUrl != null) {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(vodUrl))
+                                context.startActivity(intent)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Vídeo não disponível no momento",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.yes))
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        showVodDialog = false
+                        currentMatchId = null
+                    }
+                ) {
+                    Text(stringResource(R.string.no))
+                }
+            }
+        )
+    }
+
+    if (isLoadingVod) {
+        AlertDialog(
+            onDismissRequest = { isLoadingVod = false },
+            title = { Text("Carregando") },
+            text = { Text("Buscando o vídeo da partida...") },
+            confirmButton = {}
+        )
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadMatches()
@@ -362,6 +434,9 @@ fun MatchesScreen(
                             MatchCard(
                                 match = match,
                                 onClick = { onMatchClick(match.id) },
+                                onWatchVodClick = if (match.state == MatchState.COMPLETED && match.hasVod) {
+                                    handleWatchVodClick
+                                } else null,
                                 predictionStats = uiState.matchPredictions[match.id],
                                 userPrediction = uiState.userPredictions[match.id],
                                 isLoadingPrediction = uiState.predictionsLoading[match.id] == true,
