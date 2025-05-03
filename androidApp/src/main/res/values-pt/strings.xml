@@ -69,6 +69,8 @@
     <string name="circuito_desafiante">Circuitão</string>
     <string name="vote">Votar</string>
     <string name="your_prediction">Seu palpite</string>
+    <string name="week_title">%1$s - Faça seus palpites</string>
+    <string name="votes_percentage_format">Votos: %1$d%%</string>
 
     <!-- Match Summary Screen -->
     <string name="match_ratings">Avaliações da Partida</string>

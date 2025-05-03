@@ -158,12 +158,16 @@ class MatchesViewModel(
             try {
                 manageMatchPredictionsUseCase.submitPrediction(matchId, teamId).fold(
                     onSuccess = {
+                        // This is important - reload the user prediction status
+                        // If vote was removed, this will return null
+                        loadUserPrediction(matchId)
+
+                        // Also reload prediction stats to update percentages
+                        loadMatchPredictionStats(matchId)
+
                         _uiState.value = _uiState.value.copy(
-                            userPredictions = _uiState.value.userPredictions + (matchId to teamId),
                             predictionsLoading = _uiState.value.predictionsLoading + (matchId to false)
                         )
-
-                        loadMatchPredictionStats(matchId)
                     },
                     onFailure = { error ->
                         println("Erro ao submeter palpite: ${error.message}")
@@ -197,6 +201,13 @@ class MatchesViewModel(
                 if (prediction != null) {
                     _uiState.value = _uiState.value.copy(
                         userPredictions = _uiState.value.userPredictions + (matchId to prediction.predictedTeamId)
+                    )
+                } else {
+                    val updatedPredictions = _uiState.value.userPredictions.toMutableMap()
+                    updatedPredictions.remove(matchId)
+
+                    _uiState.value = _uiState.value.copy(
+                        userPredictions = updatedPredictions
                     )
                 }
             }

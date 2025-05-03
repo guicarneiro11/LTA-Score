@@ -5,8 +5,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,7 +57,8 @@ fun MatchCard(
     predictionStats: MatchPredictionStats? = null,
     userPrediction: String? = null,
     isLoadingPrediction: Boolean = false,
-    onPredictTeam: (String) -> Unit = {}
+    onPredictTeam: (String) -> Unit = {},
+    weekTitle: String = match.blockName
 ) {
     println("MatchCard: match.id=${match.id}, hasVod=${match.hasVod}, vodUrl=${match.vodUrl}")
 
@@ -78,8 +79,8 @@ fun MatchCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = match.blockName,
-                    style = MaterialTheme.typography.labelMedium,
+                    text = weekTitle,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = LTAThemeColors.TextSecondary,
                     fontWeight = FontWeight.Medium
                 )
@@ -144,7 +145,7 @@ fun MatchCard(
                             }
                         }
 
-                        // Adicionar componente de previsão para partidas futuras
+                        // Componente de previsão para partidas futuras
                         if (match.state == MatchState.UNSTARTED) {
                             Spacer(modifier = Modifier.height(4.dp))
 
@@ -152,55 +153,39 @@ fun MatchCard(
                             val team0Percent = predictionStats?.percentages?.get(team0Id) ?: 0
                             val isTeam0Predicted = userPrediction == team0Id
 
-                            if (isTeam0Predicted) {
-                                // Já votou nesse time
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 4.dp)
-                                        .height(24.dp)
-                                        .background(
-                                            LTAThemeColors.PrimaryGold.copy(alpha = 0.2f),
-                                            RoundedCornerShape(4.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp)
+                                    .height(24.dp)
+                                    .background(
+                                        if (isTeam0Predicted) LTAThemeColors.PrimaryGold.copy(alpha = 0.2f)
+                                        else LTAThemeColors.CardBackground.copy(alpha = 0.8f),
+                                        RoundedCornerShape(4.dp)
+                                    )
+                                    .clickable(enabled = !isLoadingPrediction) { onPredictTeam(team0Id) }
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isTeam0Predicted) LTAThemeColors.PrimaryGold.copy(alpha = 0.5f)
+                                        else LTAThemeColors.TextSecondary.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isLoadingPrediction && userPrediction == null) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        color = LTAThemeColors.TextSecondary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
                                     Text(
-                                        text = "$team0Percent%",
+                                        text = stringResource(R.string.votes_percentage_format, team0Percent),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = LTAThemeColors.PrimaryGold,
+                                        color = if (isTeam0Predicted) LTAThemeColors.PrimaryGold
+                                        else LTAThemeColors.TextSecondary,
                                         fontWeight = FontWeight.Bold
                                     )
-                                }
-                            } else {
-                                // Pode votar nesse time
-                                Button(
-                                    onClick = { onPredictTeam(team0Id) },
-                                    enabled = !isLoadingPrediction,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(24.dp),
-                                    contentPadding = PaddingValues(0.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = LTAThemeColors.CardBackground,
-                                        contentColor = LTAThemeColors.TextSecondary,
-                                        disabledContainerColor = LTAThemeColors.CardBackground.copy(alpha = 0.5f),
-                                        disabledContentColor = LTAThemeColors.TextDisabled
-                                    ),
-                                    border = BorderStroke(1.dp, LTAThemeColors.TextSecondary)
-                                ) {
-                                    if (isLoadingPrediction) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(16.dp),
-                                            color = LTAThemeColors.TextSecondary,
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else {
-                                        Text(
-                                            text = if (team0Percent > 0) "$team0Percent%" else stringResource(R.string.vote),
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
                                 }
                             }
                         }
@@ -260,7 +245,7 @@ fun MatchCard(
                             )
                         }
 
-                        // Adicionar componente de previsão para partidas futuras
+                        // Componente de previsão para partidas futuras
                         if (match.state == MatchState.UNSTARTED) {
                             Spacer(modifier = Modifier.height(4.dp))
 
@@ -268,55 +253,40 @@ fun MatchCard(
                             val team1Percent = predictionStats?.percentages?.get(team1Id) ?: 0
                             val isTeam1Predicted = userPrediction == team1Id
 
-                            if (isTeam1Predicted) {
-                                // Já votou nesse time
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 4.dp)
-                                        .height(24.dp)
-                                        .background(
-                                            LTAThemeColors.PrimaryGold.copy(alpha = 0.2f),
-                                            RoundedCornerShape(4.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                            // Box clicável para votos do segundo time
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp)
+                                    .height(24.dp)
+                                    .background(
+                                        if (isTeam1Predicted) LTAThemeColors.PrimaryGold.copy(alpha = 0.2f)
+                                        else LTAThemeColors.CardBackground.copy(alpha = 0.8f),
+                                        RoundedCornerShape(4.dp)
+                                    )
+                                    .clickable(enabled = !isLoadingPrediction) { onPredictTeam(team1Id) }
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isTeam1Predicted) LTAThemeColors.PrimaryGold.copy(alpha = 0.5f)
+                                        else LTAThemeColors.TextSecondary.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isLoadingPrediction && userPrediction == null) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        color = LTAThemeColors.TextSecondary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
                                     Text(
-                                        text = "$team1Percent%",
+                                        text = stringResource(R.string.votes_percentage_format, team1Percent),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = LTAThemeColors.PrimaryGold,
+                                        color = if (isTeam1Predicted) LTAThemeColors.PrimaryGold
+                                        else LTAThemeColors.TextSecondary,
                                         fontWeight = FontWeight.Bold
                                     )
-                                }
-                            } else {
-                                // Pode votar nesse time
-                                Button(
-                                    onClick = { onPredictTeam(team1Id) },
-                                    enabled = !isLoadingPrediction,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(24.dp),
-                                    contentPadding = PaddingValues(0.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = LTAThemeColors.CardBackground,
-                                        contentColor = LTAThemeColors.TextSecondary,
-                                        disabledContainerColor = LTAThemeColors.CardBackground.copy(alpha = 0.5f),
-                                        disabledContentColor = LTAThemeColors.TextDisabled
-                                    ),
-                                    border = BorderStroke(1.dp, LTAThemeColors.TextSecondary)
-                                ) {
-                                    if (isLoadingPrediction) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(16.dp),
-                                            color = LTAThemeColors.TextSecondary,
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else {
-                                        Text(
-                                            text = if (team1Percent > 0) "$team1Percent%" else stringResource(R.string.vote),
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
                                 }
                             }
                         }

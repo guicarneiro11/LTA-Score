@@ -22,20 +22,47 @@ class FirebaseMatchPredictionRepository(
 
     override suspend fun submitPrediction(prediction: MatchPrediction): Result<Unit> {
         return try {
+            val existingPredictions = predictionsCollection
+                .whereEqualTo("userId", prediction.userId)
+                .whereEqualTo("matchId", prediction.matchId)
+                .get()
+                .await()
+
+            if (!existingPredictions.isEmpty) {
+                val existingDoc = existingPredictions.documents.first()
+                val existingTeamId = existingDoc.getString("predictedTeamId")
+
+                if (existingTeamId == prediction.predictedTeamId) {
+                    predictionsCollection.document(existingDoc.id)
+                        .delete()
+                        .await()
+
+                    return Result.success(Unit)
+                } else {
+                    println("User changing vote from $existingTeamId to ${prediction.predictedTeamId}")
+                    predictionsCollection.document(existingDoc.id)
+                        .delete()
+                        .await()
+                }
+            }
+
+            val predictionId = "${prediction.userId}_${prediction.matchId}"
             val predictionData = hashMapOf(
-                "id" to prediction.id,
+                "id" to predictionId,
                 "matchId" to prediction.matchId,
                 "userId" to prediction.userId,
                 "predictedTeamId" to prediction.predictedTeamId,
                 "timestamp" to Date.from(prediction.timestamp.toJavaInstant())
             )
 
-            predictionsCollection.document(prediction.id)
+            predictionsCollection.document(predictionId)
                 .set(predictionData)
                 .await()
 
             Result.success(Unit)
         } catch (e: Exception) {
+            println("Error in submitPrediction: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }

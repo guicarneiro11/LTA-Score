@@ -7,19 +7,6 @@ import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Clock
-import kotlin.random.Random
-
-private fun generateUUID(): String {
-    val bytes = List(16) { Random.nextInt(0, 256).toByte() }
-    val hexChars = "0123456789abcdef"
-
-    return bytes.joinToString("") { byte ->
-        val i = byte.toInt() and 0xFF
-        val hi = hexChars[i ushr 4]
-        val lo = hexChars[i and 0x0F]
-        "$hi$lo"
-    }
-}
 
 class ManageMatchPredictionsUseCase(
     private val predictionRepository: MatchPredictionRepository,
@@ -30,8 +17,12 @@ class ManageMatchPredictionsUseCase(
             val currentUser = userRepository.getCurrentUser().first()
                 ?: return Result.failure(Exception("Usuário não autenticado"))
 
+            println("Submitting prediction: matchId=$matchId, teamId=$teamId, userId=${currentUser.id}")
+
+            val predictionId = "${currentUser.id}_${matchId}"
+
             val prediction = MatchPrediction(
-                id = generateUUID(),
+                id = predictionId,
                 matchId = matchId,
                 userId = currentUser.id,
                 predictedTeamId = teamId,
@@ -40,6 +31,7 @@ class ManageMatchPredictionsUseCase(
 
             predictionRepository.submitPrediction(prediction)
         } catch (e: Exception) {
+            println("Error in ManageMatchPredictionsUseCase: ${e.message}")
             Result.failure(e)
         }
     }

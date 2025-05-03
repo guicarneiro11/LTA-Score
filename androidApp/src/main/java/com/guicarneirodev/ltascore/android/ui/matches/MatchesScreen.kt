@@ -59,6 +59,7 @@ import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.viewmodels.MatchFilter
 import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
+import com.guicarneirodev.ltascore.domain.models.MatchState
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
@@ -372,6 +373,11 @@ fun MatchesScreen(
                                 isLoadingPrediction = uiState.predictionsLoading[match.id] == true,
                                 onPredictTeam = { teamId ->
                                     viewModel.submitPrediction(match.id, teamId)
+                                },
+                                weekTitle = if (match.state == MatchState.UNSTARTED) {
+                                    stringResource(R.string.week_title, match.blockName)
+                                } else {
+                                    match.blockName
                                 }
                             )
                         }
