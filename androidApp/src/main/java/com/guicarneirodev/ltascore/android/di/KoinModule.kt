@@ -93,5 +93,5 @@ val appModule = module {
     viewModel { FriendsViewModel(get()) }
     viewModel { FriendsFeedViewModel(get(), get(), get(), get()) }
     viewModel { EditProfileViewModel(get(), get(), get()) }
-    viewModel { NotificationSettingsViewModel(get(), get()) }
+    viewModel { NotificationSettingsViewModel(get(), get(), get()) }
 }

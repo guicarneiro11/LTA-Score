@@ -12,6 +12,7 @@ import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.guicarneirodev.ltascore.android.di.appModule
 import com.guicarneirodev.ltascore.android.util.StringResources
+import com.guicarneirodev.ltascore.android.workers.LiveMatchSyncWorker
 import com.guicarneirodev.ltascore.android.workers.MatchSyncWorker
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -51,11 +52,22 @@ class LTAScore : Application() {
             .setConstraints(constraints)
             .build()
 
+        val liveMatchSyncRequest = PeriodicWorkRequestBuilder<LiveMatchSyncWorker>(2, TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .build()
+
         WorkManager.getInstance(this)
             .enqueueUniquePeriodicWork(
                 "match_sync",
                 ExistingPeriodicWorkPolicy.KEEP,
                 syncRequest
+            )
+
+        WorkManager.getInstance(this)
+            .enqueueUniquePeriodicWork(
+                "live_match_sync",
+                ExistingPeriodicWorkPolicy.KEEP,
+                liveMatchSyncRequest
             )
 
         Log.d("LTAScore", "Sincronização periódica de partidas agendada")

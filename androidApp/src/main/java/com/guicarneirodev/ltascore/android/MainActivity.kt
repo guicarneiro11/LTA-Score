@@ -67,6 +67,18 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun checkNotificationDiagnostics() {
+        lifecycleScope.launch {
+            try {
+                val tokenRepository = NotificationTokenRepository()
+                val diagnostics = tokenRepository.verifyTokensForNotifications()
+                Log.d("NotificationDiagnostics", "Tokens diagnóstico: $diagnostics")
+            } catch (e: Exception) {
+                Log.e("NotificationDiagnostics", "Falha ao verificar tokens: ${e.message}")
+            }
+        }
+    }
+
     private fun checkAndRegisterFcmToken() {
         FirebaseAuth.getInstance().currentUser?.uid?.let { userId ->
             lifecycleScope.launch {
@@ -80,6 +92,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Deprecated(
+        "This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)} passing\n      in a {@link RequestMultiplePermissions} object for the {@link ActivityResultContract} and\n      handling the result in the {@link ActivityResultCallback#onActivityResult(Object) callback}."
+    )
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,

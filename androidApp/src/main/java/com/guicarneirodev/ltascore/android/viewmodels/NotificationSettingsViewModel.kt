@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.data.repository.NotificationTokenRepository
 import com.guicarneirodev.ltascore.android.util.StringResources
+import com.guicarneirodev.ltascore.domain.repository.MatchSyncRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class NotificationSettingsViewModel(
+    private val matchSyncRepository: MatchSyncRepository,
     private val tokenRepository: NotificationTokenRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
@@ -24,10 +26,29 @@ class NotificationSettingsViewModel(
         val matchNotifications: Boolean = true,
         val liveMatchNotifications: Boolean = true,
         val resultNotifications: Boolean = true,
-        val error: String? = null
+        val error: String? = null,
+        val success: String? = null
     )
 
-    private val _uiState = MutableStateFlow(NotificationSettingsUiState())
+    private val _matchState = MutableStateFlow("UNSTARTED")
+    val matchState = _matchState.asStateFlow()
+
+    fun updateMatchId(id: String) {
+        _matchId.value = id
+    }
+
+    fun updateMatchState(state: String) {
+        _matchState.value = state
+    }
+
+    private val _matchId = MutableStateFlow("114217106692001382")
+    val matchId = _matchId.asStateFlow()
+
+    private val _uiState = MutableStateFlow(NotificationSettingsUiState(
+        success = "Teste de notificação enviado"
+    )
+
+    )
     val uiState: StateFlow<NotificationSettingsUiState> = _uiState.asStateFlow()
 
     init {
@@ -92,6 +113,44 @@ class NotificationSettingsViewModel(
         _uiState.value = _uiState.value.copy(resultNotifications = enabled)
     }
 
+    fun forceUpdateMatch(matchId: String, newState: String) {
+        viewModelScope.launch {
+            try {
+                matchSyncRepository.forceUpdateMatchState(matchId, newState)
+                _uiState.value = _uiState.value.copy(
+                    success = "Estado da partida atualizado para $newState"
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = "Erro ao atualizar estado: ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun forceUpdateMatchState() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            try {
+                matchSyncRepository.forceUpdateMatchState(
+                    matchId.value,
+                    matchState.value
+                )
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    success = "Estado da partida ${matchId.value} atualizado para ${matchState.value}"
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Erro ao atualizar estado: ${e.message}"
+                )
+            }
+        }
+    }
+
     private fun updatePreference(update: suspend (String) -> Unit) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -112,6 +171,34 @@ class NotificationSettingsViewModel(
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = e.message
+                )
+            }
+        }
+    }
+
+    fun sendTestNotification() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            try {
+                val userId = userRepository.getCurrentUser().first()?.id
+
+                if (userId != null) {
+                    tokenRepository.sendTestNotification(userId)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        success = "Teste de notificação enviado"
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Usuário não autenticado"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Erro ao enviar notificação de teste: ${e.message}"
                 )
             }
         }

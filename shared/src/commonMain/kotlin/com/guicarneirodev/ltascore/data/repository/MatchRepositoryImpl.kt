@@ -137,7 +137,11 @@ class MatchRepositoryImpl(
                 val matchId = matchDto.id
 
                 val teams = matchDto.teams.map { teamDto ->
-                    val internalTeamId = TeamIdMapping.getInternalTeamId(teamDto.id, teamDto.code)
+                    val internalTeamId = TeamIdMapping.getInternalTeamId(
+                        teamDto.id,
+                        teamDto.code,
+                        leagueSlug
+                    )
 
                     val players = playersDataSource.getPlayersByTeamIdAndDate(
                         internalTeamId,

@@ -8,7 +8,10 @@ export const monitorMatchStateChanges = functions.firestore
         const novoEstado = change.after.data().state;
         const matchId = context.params.matchId;
 
+        console.log(`[DEBUG] Partida ${matchId}: Estado anterior=${estadoAnterior}, Novo estado=${novoEstado}`);
+
         if (estadoAnterior === novoEstado) {
+            console.log(`[DEBUG] Estados iguais, ignorando`);
             return null;
         }
 
@@ -16,13 +19,17 @@ export const monitorMatchStateChanges = functions.firestore
         const time1 = dadosDaPartida.teams[0];
         const time2 = dadosDaPartida.teams[1];
 
-        if (estadoAnterior === 'UNSTARTED' && novoEstado === 'INPROGRESS') {
+        if (estadoAnterior === "UNSTARTED" && novoEstado === "INPROGRESS") {
+            console.log(`[DEBUG] Transição de UNSTARTED para INPROGRESS detectada`);
+
             const titulo = `${time1.code} vs ${time2.code} está começando!`;
             const corpo = `A partida entre ${time1.name} e ${time2.name} está ao vivo!`;
             await enviarNotificacoesParaUsuariosInscritos(matchId, titulo, corpo, 'liveMatchNotifications');
         }
 
-        else if (estadoAnterior === 'INPROGRESS' && novoEstado === 'COMPLETED') {
+        else if (estadoAnterior === "INPROGRESS" && novoEstado === "COMPLETED") {
+            console.log(`[DEBUG] Transição de INPROGRESS para COMPLETED detectada`);
+
             let codigoVencedor, codigoPerdedor, placar;
             if (time1.result && time1.result.outcome === 'WIN') {
                 codigoVencedor = time1.code;
@@ -38,12 +45,17 @@ export const monitorMatchStateChanges = functions.firestore
             const corpo = `${codigoVencedor} ganhou por ${placar} contra ${codigoPerdedor}!`;
             await enviarNotificacoesParaUsuariosInscritos(matchId, titulo, corpo, 'resultNotifications');
         }
+        else {
+            console.log(`[DEBUG] Transição não reconhecida: ${estadoAnterior} -> ${novoEstado}`);
+        }
 
         return null;
     });
 
 async function enviarNotificacoesParaUsuariosInscritos(matchId: string, titulo: string, corpo: string, tipoDePreferencia: string) {
     try {
+        console.log(`[DEBUG] Buscando usuários inscritos para ${tipoDePreferencia}`);
+
         const snapshot = await admin.firestore().collection('user_tokens')
             .where(tipoDePreferencia, '==', true)
             .get();
@@ -53,6 +65,7 @@ async function enviarNotificacoesParaUsuariosInscritos(matchId: string, titulo: 
             return;
         }
 
+        // Coletar os tokens
         const tokens: string[] = [];
         snapshot.forEach(doc => {
             const token = doc.data().token;
@@ -61,36 +74,46 @@ async function enviarNotificacoesParaUsuariosInscritos(matchId: string, titulo: 
             }
         });
 
+        console.log(`Encontrados ${tokens.length} tokens para notificação`);
+
         if (tokens.length === 0) {
             console.log('Nenhum token válido encontrado');
             return;
         }
 
-        const mensagem = {
-            notification: {
-                title: titulo,
-                body: corpo,
-            },
-            data: {
-                matchId: matchId,
-                click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            },
-            tokens: tokens,
-        };
+        // Enviar individualmente para cada token
+        console.log(`Enviando para ${tokens.length} tokens`);
+        const sucessos: string[] = [];
+        const falhas: string[] = [];
 
-        const resposta = await admin.messaging().sendMulticast(mensagem);
-        console.log(`${resposta.successCount} mensagens foram enviadas com sucesso`);
+        // Usando apenas o método send() que é mais amplamente disponível
+        for (const token of tokens) {
+            try {
+                const mensagem = {
+                    notification: {
+                        title: titulo,
+                        body: corpo,
+                    },
+                    data: {
+                        matchId: matchId,
+                        click_action: 'FLUTTER_NOTIFICATION_CLICK',
+                    },
+                    token: token
+                };
 
-        if (resposta.failureCount > 0) {
-            const tokensComFalha: string[] = [];
-            resposta.responses.forEach((resp, idx) => {
-                if (!resp.success) {
-                    tokensComFalha.push(tokens[idx]);
-                }
-            });
-            console.log('Lista de tokens que causaram falhas:', tokensComFalha);
+                await admin.messaging().send(mensagem);
+                sucessos.push(token);
+                console.log(`Notificação enviada com sucesso para ${token.substring(0, 10)}...`);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error(`Erro ao enviar para token ${token.substring(0, 10)}...: ${errorMessage}`);
+                falhas.push(token);
+            }
         }
-    } catch (erro) {
-        console.error('Erro ao enviar notificações:', erro);
+
+        console.log(`${sucessos.length} mensagens enviadas com sucesso, ${falhas.length} falhas`);
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`Erro ao enviar notificações: ${errorMessage}`);
     }
 }

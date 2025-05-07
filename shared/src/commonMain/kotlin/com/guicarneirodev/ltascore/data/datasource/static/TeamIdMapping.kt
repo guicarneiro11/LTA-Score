@@ -57,8 +57,6 @@ object TeamIdMapping {
         "LYON" to "lyon",
 
         // Circuito Desafiante
-        "RED" to "red-kalunga-academy",
-        "VKS" to "keyd-academy",
         "LOS" to "los",
         "FLA" to "flamengo",
         "RATZ" to "ratz",
@@ -69,7 +67,22 @@ object TeamIdMapping {
         "SCCP" to "corinthians"
     )
 
-    fun getInternalTeamId(apiTeamId: String?, teamCode: String?): String {
+    fun getInternalTeamId(apiTeamId: String?, teamCode: String?, leagueSlug: String? = null): String {
+        if (teamCode != null) {
+            if (leagueSlug == "cd") {
+                when (teamCode) {
+                    "RED" -> return "red-kalunga-academy"
+                    "VKS" -> return "keyd-academy"
+                }
+            }
+            else if (leagueSlug == "lta_s") {
+                when (teamCode) {
+                    "RED" -> return "red"
+                    "VKS" -> return "keyd"
+                }
+            }
+        }
+
         apiTeamId?.let { id ->
             apiIdToInternalMap[id]?.let { return it }
         }
@@ -78,7 +91,7 @@ object TeamIdMapping {
             teamCodeToInternalMap[code]?.let { return it }
         }
 
-        println("Alerta: Não foi possível mapear o time. ID: $apiTeamId, Código: $teamCode")
+        println("Alerta: Não foi possível mapear o time. ID: $apiTeamId, Código: $teamCode, Liga: $leagueSlug")
         return "unknown-team"
     }
 }
