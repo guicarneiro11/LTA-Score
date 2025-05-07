@@ -10,17 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -29,14 +23,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.guicarneirodev.ltascore.android.BuildConfig
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.viewmodels.NotificationSettingsViewModel
@@ -49,8 +39,6 @@ fun NotificationSettingsScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState(initial = NotificationSettingsViewModel.NotificationSettingsUiState())
-    val matchId by viewModel.matchId.collectAsState()
-    val matchState by viewModel.matchState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -120,106 +108,6 @@ fun NotificationSettingsScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 16.dp)
             )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        if (BuildConfig.DEBUG) {
-            Text(
-                text = "Depuração",
-                style = MaterialTheme.typography.titleLarge,
-                color = LTAThemeColors.TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = { viewModel.sendTestNotification() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LTAThemeColors.CardBackground,
-                    contentColor = LTAThemeColors.PrimaryGold
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Testar Notificação")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Testar Mudança de Estado",
-                style = MaterialTheme.typography.titleMedium,
-                color = LTAThemeColors.TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            OutlinedTextField(
-                value = matchId,
-                onValueChange = { viewModel.updateMatchId(it) },
-                label = { Text("ID da Partida") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            var expanded by remember { mutableStateOf(false) }
-            val states = listOf("UNSTARTED", "INPROGRESS", "COMPLETED")
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = matchState,
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    states.forEach { state ->
-                        DropdownMenuItem(
-                            text = { Text(state) },
-                            onClick = {
-                                viewModel.updateMatchState(state)
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = { viewModel.forceUpdateMatchState() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = LTAThemeColors.CardBackground,
-                    contentColor = LTAThemeColors.SecondaryRed
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Forçar Mudança de Estado")
-            }
-
-            if (uiState.success != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = uiState.success!!,
-                    color = LTAThemeColors.Success,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
         }
     }
 }
