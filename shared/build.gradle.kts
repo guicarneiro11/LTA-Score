@@ -44,8 +44,8 @@ kotlin {
             implementation(libs.koin.core)
 
             // Firebase Functions
-            implementation("dev.gitlive:firebase-functions:1.8.0")
-            implementation("com.google.code.gson:gson:2.10.1")
+            implementation(libs.firebase.functions)
+            implementation(libs.gson)
             implementation(libs.firebase.firestore)
         }
 
@@ -57,7 +57,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.android)
 
-            implementation("dev.gitlive:firebase-functions:1.8.0")
+            implementation(libs.firebase.functions)
         }
 
         iosMain.dependencies {

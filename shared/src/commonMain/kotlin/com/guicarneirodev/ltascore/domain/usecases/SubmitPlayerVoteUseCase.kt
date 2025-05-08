@@ -1,6 +1,6 @@
 package com.guicarneirodev.ltascore.domain.usecases
 
-import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.domain.models.UserVoteHistoryItem
 import com.guicarneirodev.ltascore.domain.models.Vote
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.first
 class SubmitPlayerVoteUseCase(
     private val voteRepository: VoteRepository,
     private val matchRepository: MatchRepository,
-    private val playersDataSource: PlayersStaticDataSource
+    private val playersDataSource: PlayersDataSource
 ) {
     suspend operator fun invoke(
         matchId: String,

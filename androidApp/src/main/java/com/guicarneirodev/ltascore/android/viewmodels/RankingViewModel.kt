@@ -3,7 +3,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.guicarneirodev.ltascore.android.util.StringResources
-import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
 import com.guicarneirodev.ltascore.domain.models.RankingFilter
@@ -35,7 +35,7 @@ data class TeamFilterItem(
 
 class RankingViewModel(
     private val getPlayerRankingUseCase: GetPlayerRankingUseCase,
-    private val playersDataSource: PlayersStaticDataSource
+    private val playersDataSource: PlayersDataSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RankingUiState())

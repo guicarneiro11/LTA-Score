@@ -2,7 +2,7 @@ package com.guicarneirodev.ltascore.android.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.UserVoteHistoryItem
 import com.guicarneirodev.ltascore.domain.models.Vote
@@ -23,7 +23,7 @@ import java.util.Date
 
 class FirebaseVoteRepository(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
-    private val playersStaticDataSource: PlayersStaticDataSource
+    private val playersDataSource: PlayersDataSource
 ) : VoteRepository {
 
     private val votesCollection = firestore.collection("votes")
@@ -517,7 +517,7 @@ class FirebaseVoteRepository(
 
     private fun getPlayerMetadata(playerId: String): PlayerMetadata? {
         try {
-            val player = playersStaticDataSource.getPlayerById(playerId)
+            val player = playersDataSource.getPlayerById(playerId)
 
             return player?.let {
                 PlayerMetadata(

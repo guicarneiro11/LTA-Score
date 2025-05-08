@@ -25,7 +25,7 @@ import com.guicarneirodev.ltascore.android.viewmodels.VoteHistoryViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.data.datasource.local.MatchLocalDataSource
-import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.data.repository.AndroidMatchSyncRepository
 import com.guicarneirodev.ltascore.data.repository.MatchRepositoryImpl
 import com.guicarneirodev.ltascore.domain.repository.FriendshipRepository
@@ -57,7 +57,7 @@ val appModule = module {
 
     single { LoLEsportsApi() }
 
-    single { PlayersStaticDataSource() }
+    single { PlayersDataSource() }
     single { MatchLocalDataSource() }
 
     single<MatchRepository> { MatchRepositoryImpl(get(), get(), get()) }

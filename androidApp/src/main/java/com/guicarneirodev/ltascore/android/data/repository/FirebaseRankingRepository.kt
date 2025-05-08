@@ -2,7 +2,7 @@ package com.guicarneirodev.ltascore.android.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.guicarneirodev.ltascore.data.datasource.local.MatchLocalDataSource
-import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.domain.models.MatchState
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.PlayerRankingItem
@@ -21,7 +21,7 @@ import java.util.Date
 
 class FirebaseRankingRepository(
     firestore: FirebaseFirestore,
-    private val playersDataSource: PlayersStaticDataSource,
+    private val playersDataSource: PlayersDataSource,
     private val matchLocalDataSource: MatchLocalDataSource
 ) : RankingRepository {
 

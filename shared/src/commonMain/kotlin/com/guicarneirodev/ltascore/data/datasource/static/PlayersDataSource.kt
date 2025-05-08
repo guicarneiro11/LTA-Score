@@ -4,7 +4,7 @@ import com.guicarneirodev.ltascore.domain.models.Player
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import kotlinx.datetime.Instant
 
-class PlayersStaticDataSource {
+class PlayersDataSource {
 
     private val playersByTeamId: Map<String, List<Player>> by lazy {
         allPlayers.groupBy { it.teamId }

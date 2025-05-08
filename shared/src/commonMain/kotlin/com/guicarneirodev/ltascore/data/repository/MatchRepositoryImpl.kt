@@ -2,7 +2,7 @@ package com.guicarneirodev.ltascore.data.repository
 
 import com.guicarneirodev.ltascore.api.LoLEsportsApi
 import com.guicarneirodev.ltascore.data.datasource.local.MatchLocalDataSource
-import com.guicarneirodev.ltascore.data.datasource.static.PlayersStaticDataSource
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.data.datasource.static.TeamIdMapping
 import com.guicarneirodev.ltascore.domain.models.Match
 import com.guicarneirodev.ltascore.domain.models.MatchState
@@ -17,7 +17,7 @@ import kotlinx.datetime.Instant
 class MatchRepositoryImpl(
     private val api: LoLEsportsApi,
     private val localDataSource: MatchLocalDataSource,
-    private val playersDataSource: PlayersStaticDataSource
+    private val playersDataSource: PlayersDataSource
 ) : MatchRepository {
 
     private val leagueDateRanges = mapOf(
