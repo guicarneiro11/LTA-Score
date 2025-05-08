@@ -47,18 +47,51 @@ class PlayersDataSource {
 
         if (teamId == "red") {
             val aegisStartDate = Instant.parse("2025-04-21T00:00:00Z")
+            val grevtharStartDate = Instant.parse("2025-05-10T00:00:00Z")
 
             val useAegis = matchDate >= aegisStartDate
+            val useGrevthar = matchDate >= grevtharStartDate
 
-            println("Partida RED de ${matchDate}, useAegis: $useAegis")
+            println("Partida RED de ${matchDate}, useAegis: $useAegis, useGrevthar: $useGrevthar")
 
-            return if (useAegis) {
-                println("Retornando time RED com Aegis (a partir de 21/04)")
-                allTeamPlayers.filter { it.id != "player_red_doom" }
-            } else {
-                println("Retornando time RED com DOOM (até 20/04)")
-                allTeamPlayers.filter { it.id != "player_red_aegis" }
+            val filteredPlayers = allTeamPlayers.filter { player ->
+                val keepPlayer = when (player.id) {
+                    "player_red_aegis" -> useAegis
+                    "player_red_doom" -> !useAegis
+                    "player_red_grevthar" -> useGrevthar
+                    "player_red_mago" -> !useGrevthar
+                    else -> true
+                }
+                keepPlayer
             }
+
+            return filteredPlayers
+        }
+
+        if (teamId == "red-kalunga-academy") {
+            val aegisStartDate = Instant.parse("2025-04-21T00:00:00Z")
+            val kazeStartDate = Instant.parse("2025-05-12T00:00:00Z")
+            val grevtharStartDate = Instant.parse("2025-05-10T00:00:00Z")
+
+            val useAegis = matchDate >= aegisStartDate
+            val useKaze = matchDate >= kazeStartDate
+            val useGrevthar = matchDate >= grevtharStartDate
+
+            println("Partida RED Academy de ${matchDate}, useAegis: $useAegis, useKaze: $useKaze")
+
+            val filteredPlayers = allTeamPlayers.filter { player ->
+                val keepPlayer = when (player.id) {
+                    "player_red_academy_aegis" -> !useAegis
+                    "player_red_academy_doom" -> useAegis
+                    "player_red_academy_kaze" -> useKaze
+                    "player_red_academy_grevthar" -> !useKaze && !useGrevthar
+                    "player_red_academy_mago" -> !useKaze && useGrevthar
+                    else -> true
+                }
+                keepPlayer
+            }
+
+            return filteredPlayers
         }
 
         if (teamId == "corinthians") {
@@ -138,22 +171,6 @@ class PlayersDataSource {
             else {
                 println("Retornando time RATZ com DrakeHero na jungle e Beenie no ADC (a partir de 01/04)")
                 return allTeamPlayers.filter { it.id != "player_ratz_buero" && it.id != "player_ratz_soweto" }
-            }
-        }
-
-        if (teamId == "red-kalunga-academy") {
-            val aegisStartDate = Instant.parse("2025-04-21T00:00:00Z")
-
-            val useAegis = matchDate >= aegisStartDate
-
-            println("Partida RED Academy de ${matchDate}, useAegis: $useAegis")
-
-            return if (useAegis) {
-                println("Retornando time RED Academy com Aegis (a partir de 21/04)")
-                allTeamPlayers.filter { it.id != "player_red_academy_doom" }
-            } else {
-                println("Retornando time RED Academy com DOOM (até 20/04)")
-                allTeamPlayers.filter { it.id != "player_red_academy_aegis" }
             }
         }
 
