@@ -472,6 +472,14 @@ class PlayersStaticDataSource {
                 teamId = "red"
             ),
             Player(
+                id = "player_red_grevthar",
+                name = "Daniel Xavier Ferreira",
+                nickname = "Grevthar",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/9/99/RED_Grevthar_2025_Split_2.png/revision/latest/scale-to-width-down/220?cb=20250319183537",
+                position = PlayerPosition.MID,
+                teamId = "red"
+            ),
+            Player(
                 id = "player_red_brance",
                 name = "Diego Amaral",
                 nickname = "Brance",
@@ -1210,6 +1218,22 @@ class PlayersStaticDataSource {
                 teamId = "red-kalunga-academy"
             ),
             Player(
+                id = "player_red_academy_mago",
+                name = "Jean Carl Dias",
+                nickname = "Mago",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/2/29/RED_Mago_2025_Split_2.png/revision/latest?cb=20250405203827",
+                position = PlayerPosition.MID,
+                teamId = "red-kalunga-academy"
+            ),
+            Player(
+                id = "player_red_academy_kaze",
+                name = "Lucas Fe",
+                nickname = "Kaze",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/b/bb/ISG_Kaze_2024_Closing.png/revision/latest?cb=20240613041201",
+                position = PlayerPosition.MID,
+                teamId = "red-kalunga-academy"
+            ),
+            Player(
                 id = "player_red_academy_rabelo",
                 name = "Guilherme Rabelo Muniz",
                 nickname = "Rabelo",
@@ -1217,6 +1241,7 @@ class PlayersStaticDataSource {
                 position = PlayerPosition.ADC,
                 teamId = "red-kalunga-academy"
             ),
+
             Player(
                 id = "player_red_academy_uzent",
                 name = "Matheus Ferreira",
