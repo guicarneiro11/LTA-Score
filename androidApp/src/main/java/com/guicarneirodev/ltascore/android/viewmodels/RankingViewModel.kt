@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
 import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.domain.models.TeamFilterItem
 
 data class RankingUiState(
     val isLoading: Boolean = false,
@@ -24,13 +25,6 @@ data class RankingUiState(
     val availableTeams: List<TeamFilterItem> = emptyList(),
     val error: String? = null,
     val searchQuery: String = ""
-)
-
-data class TeamFilterItem(
-    val id: String,
-    val name: String,
-    val code: String,
-    val imageUrl: String
 )
 
 class RankingViewModel(

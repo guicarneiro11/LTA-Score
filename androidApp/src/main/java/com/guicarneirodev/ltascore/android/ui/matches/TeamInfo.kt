@@ -21,6 +21,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.data.datasource.static.TeamLogoMapper
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -31,9 +32,41 @@ fun LogoImage(
     name: String,
     code: String
 ) {
+    // Extrair o ID do time a partir do código ou nome, se necessário
+    val teamId = when(code) {
+        "LOUD" -> "loud"
+        "PAIN" -> "pain-gaming"
+        "IE" -> "isurus-estral"
+        "LEV" -> "leviatan"
+        "FUR" -> "furia"
+        "VKS" -> "keyd"
+        "RED" -> "red"
+        "FXW7" -> "fxw7"
+        "C9" -> "cloud9-kia"
+        "100T" -> "100-thieves"
+        "FLY" -> "flyquest"
+        "TL" -> "team-liquid-honda"
+        "SR" -> "shopify-rebellion"
+        "DIG" -> "dignitas"
+        "LYON" -> "lyon"
+        "DSG" -> "disguised"
+        "LOS" -> "los"
+        "FLA" -> "flamengo"
+        "RATZ" -> "ratz"
+        "DPM" -> "dopamina"
+        "STE" -> "stellae"
+        "RISE" -> "rise"
+        "KBM" -> "kabum-idl"
+        "SCCP" -> "corinthians"
+        else -> null
+    }
+
+    // Usar a URL estática do logo em vez da URL da API
+    val staticLogoUrl = TeamLogoMapper.getTeamLogoUrl(teamId)
+
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
-            .data(imageUrl)
+            .data(staticLogoUrl) // Use a URL estática em vez de imageUrl da API
             .crossfade(true)
             .diskCachePolicy(CachePolicy.ENABLED)
             .memoryCachePolicy(CachePolicy.ENABLED)

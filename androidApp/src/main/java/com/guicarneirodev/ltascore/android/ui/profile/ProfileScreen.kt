@@ -5,7 +5,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -36,7 +35,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Button
-import com.guicarneirodev.ltascore.android.R
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -64,13 +62,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
 import com.guicarneirodev.ltascore.android.data.cache.UserEvents
 import com.guicarneirodev.ltascore.android.ui.friends.social.FriendRequestsSection
@@ -79,8 +77,8 @@ import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsManagementUiState
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
-import com.guicarneirodev.ltascore.android.viewmodels.TeamFilterItem
 import com.guicarneirodev.ltascore.domain.models.Friendship
+import com.guicarneirodev.ltascore.domain.models.TeamFilterItem
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -137,17 +135,6 @@ fun ProfileScreen(
     LaunchedEffect(key1 = Unit) {
         authViewModel.refreshCurrentUser()
     }
-
-    val teamColors = mapOf(
-        "loud" to Color(0xFF33CC33),
-        "pain-gaming" to Color(0xFFFFD700),
-        "isurus-estral" to Color(0xFF0066CC),
-        "leviatan" to Color(0xFFCCCCCC),
-        "furia" to Color(0xFF000000),
-        "keyd" to Color(0xFFFFFFFF),
-        "red" to Color(0xFFFF0000),
-        "fxw7" to Color(0xFF9966CC)
-    )
 
     Scaffold(
         topBar = {
@@ -225,7 +212,6 @@ fun ProfileScreen(
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
                                 color = LTAThemeColors.CardBackground,
-                                border = BorderStroke(2.dp, teamColors[effectiveTeamId] ?: LTAThemeColors.PrimaryGold),
                                 modifier = Modifier.clickable(onClick = onNavigateToEditProfile)
                             ) {
                                 Row(

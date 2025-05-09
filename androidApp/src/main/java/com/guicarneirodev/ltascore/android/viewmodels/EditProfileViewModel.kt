@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.data.datasource.static.TeamLogoMapper
+import com.guicarneirodev.ltascore.domain.models.TeamFilterItem
 
 data class EditProfileUiState(
     val isLoading: Boolean = false,
@@ -71,6 +73,7 @@ class EditProfileViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
+                // Definir os times padrão com IDs internos
                 val ltaSulTeamsDefault = listOf(
                     TeamFilterItem("loud", "LOUD", "LOUD", ""),
                     TeamFilterItem("pain-gaming", "paiN Gaming", "PAIN", ""),
@@ -93,7 +96,6 @@ class EditProfileViewModel(
                     TeamFilterItem("disguised", "Disguised", "DSG", "")
                 )
 
-                // Nova lista para times do Circuito Desafiante
                 val circuitoTeamsDefault = listOf(
                     TeamFilterItem("los", "Los Grandes", "LOS", ""),
                     TeamFilterItem("flamengo", "Flamengo Redragon", "FLA", ""),
@@ -103,131 +105,47 @@ class EditProfileViewModel(
                     TeamFilterItem("rise", "Rise Gaming", "RISE", ""),
                     TeamFilterItem("kabum-idl", "KaBuM! IDL", "KBM", ""),
                     TeamFilterItem("corinthians", "Corinthians Esports", "SCCP", "")
-                    // Não incluímos RED Academy e Keyd Academy pois já temos as versões principais
                 )
 
-                val teamMap = mutableMapOf<String, TeamFilterItem>()
-
-                try {
-                    val matchesSul = matchRepository.getMatches("lta_s").first()
-
-                    matchesSul.forEach { match ->
-                        match.teams.forEach { team ->
-                            val internalId = when(team.code) {
-                                "LOUD" -> "loud"
-                                "PAIN" -> "pain-gaming"
-                                "IE" -> "isurus-estral"
-                                "LEV" -> "leviatan"
-                                "FUR" -> "furia"
-                                "VKS" -> "keyd"
-                                "RED" -> "red"
-                                "FXW7" -> "fxw7"
-                                else -> team.id
-                            }
-
-                            if (!teamMap.containsKey(internalId)) {
-                                teamMap[internalId] = TeamFilterItem(
-                                    id = internalId,
-                                    name = team.name,
-                                    code = team.code,
-                                    imageUrl = team.imageUrl
-                                )
-                            }
-                        }
-                    }
-
-                    val matchesNorte = matchRepository.getMatches("lta_n").first()
-
-                    matchesNorte.forEach { match ->
-                        match.teams.forEach { team ->
-                            val internalId = when(team.code) {
-                                "C9" -> "cloud9-kia"
-                                "100T" -> "100-thieves"
-                                "FLY" -> "flyquest"
-                                "TL" -> "team-liquid-honda"
-                                "SR" -> "shopify-rebellion"
-                                "DIG" -> "dignitas"
-                                "LYON" -> "lyon"
-                                "DSG" -> "disguised"
-                                else -> team.id
-                            }
-
-                            if (!teamMap.containsKey(internalId)) {
-                                teamMap[internalId] = TeamFilterItem(
-                                    id = internalId,
-                                    name = team.name,
-                                    code = team.code,
-                                    imageUrl = team.imageUrl
-                                )
-                            }
-                        }
-                    }
-
-                    // Adicionar lógica para carregar as partidas do Circuito Desafiante
-                    try {
-                        val matchesCircuito = matchRepository.getMatches("cd").first()
-
-                        matchesCircuito.forEach { match ->
-                            match.teams.forEach { team ->
-                                val internalId = when(team.code) {
-                                    "LOS" -> "los"
-                                    "FLA" -> "flamengo"
-                                    "RATZ" -> "ratz"
-                                    "DPM" -> "dopamina"
-                                    "STE" -> "stellae"
-                                    "RISE" -> "rise"
-                                    "KBM" -> "kabum-idl"
-                                    "SCCP" -> "corinthians"
-                                    "RED" -> "red-kalunga-academy" // Não será exibido separadamente
-                                    "VKS" -> "keyd-academy" // Não será exibido separadamente
-                                    else -> team.id
-                                }
-
-                                // Ignoramos os times de academias que já têm times principais
-                                if (internalId != "red-kalunga-academy" && internalId != "keyd-academy" &&
-                                    !teamMap.containsKey(internalId)) {
-                                    teamMap[internalId] = TeamFilterItem(
-                                        id = internalId,
-                                        name = team.name,
-                                        code = team.code,
-                                        imageUrl = team.imageUrl
-                                    )
-                                }
-                            }
-                        }
-                    } catch (e: Exception) {
-                        // Se falhar ao carregar partidas do Circuito, continuamos com os times padrão
-                        println("Falha ao carregar partidas do Circuito Desafiante: ${e.message}")
-                    }
-
-                    val ltaSulTeams = ltaSulTeamsDefault.map { defaultTeam ->
-                        teamMap[defaultTeam.id] ?: defaultTeam
-                    }
-
-                    val ltaNorteTeams = ltaNorteTeamsDefault.map { defaultTeam ->
-                        teamMap[defaultTeam.id] ?: defaultTeam
-                    }
-
-                    val circuitoTeams = circuitoTeamsDefault.map { defaultTeam ->
-                        teamMap[defaultTeam.id] ?: defaultTeam
-                    }.filter { circuitoTeam ->
-                        // Filtramos apenas os times que NÃO têm representação na LTA
+                // Aplicar os logos estáticos para cada time
+                val ltaSulTeams = ltaSulTeamsDefault.map { TeamLogoMapper.updateTeamLogoUrl(it) }
+                val ltaNorteTeams = ltaNorteTeamsDefault.map { TeamLogoMapper.updateTeamLogoUrl(it) }
+                val circuitoTeams = circuitoTeamsDefault.map { TeamLogoMapper.updateTeamLogoUrl(it) }
+                    .filter { circuitoTeam ->
+                        // Filtrar times do Circuito que já existem na LTA
                         !ltaSulTeams.any { it.id == circuitoTeam.id } &&
                                 !ltaNorteTeams.any { it.id == circuitoTeam.id }
                     }
 
-                    val allTeams = ltaSulTeams + ltaNorteTeams + circuitoTeams
+                // Combinar todos os times
+                val allTeams = ltaSulTeams + ltaNorteTeams + circuitoTeams
 
-                    _uiState.value = _uiState.value.copy(
-                        availableTeams = allTeams,
-                        isLoading = false
-                    )
+                // Tentar obter dados atualizados para nomes, etc. (não para URLs de imagens)
+                try {
+                    // Esse trecho pode ser mantido se você quiser continuar obtendo dados atualizados
+                    // sobre nomes de times, etc. da API, mas não usaremos as URLs de imagem da API
+                    val matchesSul = matchRepository.getMatches("lta_s").first()
+                    val matchesNorte = matchRepository.getMatches("lta_n").first()
+                    val matchesCircuito = try {
+                        matchRepository.getMatches("cd").first()
+                    } catch (e: Exception) {
+                        emptyList()
+                    }
+
+                    // Aqui você pode processar esses dados se quiser atualizar nomes de times, etc.
+                    // Mas não usamos as URLs de logo da API em nenhum momento
+
+                    // Para simplificar, vamos apenas usar os dados padrão com as URLs estáticas
                 } catch (e: Exception) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = StringResources.getStringFormatted(R.string.team_load_error, e.message ?: "")
-                    )
+                    // Se falhar ao buscar da API, apenas continue com os dados padrão
+                    println("Aviso: Não foi possível obter dados atualizados da API: ${e.message}")
                 }
+
+                // Atualizar o estado com os times e seus logos estáticos
+                _uiState.value = _uiState.value.copy(
+                    availableTeams = allTeams,
+                    isLoading = false
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

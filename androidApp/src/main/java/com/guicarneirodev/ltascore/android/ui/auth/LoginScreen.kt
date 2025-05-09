@@ -2,7 +2,6 @@ package com.guicarneirodev.ltascore.android.ui.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import com.guicarneirodev.ltascore.android.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,7 +43,9 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
+import com.guicarneirodev.ltascore.data.datasource.static.TeamLogoMapper
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -73,23 +74,22 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        uiState.ltaCrossLogo?.let { logoUrl ->
-            SubcomposeAsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(logoUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = stringResource(R.string.app_name),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(LTAThemeColors.PrimaryGold),
-                loading = {
-                    Spacer(modifier = Modifier.size(80.dp))
-                },
-                modifier = Modifier.size(80.dp)
-            )
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(TeamLogoMapper.getLtaCrossLogo())
+                .crossfade(true)
+                .build(),
+            contentDescription = stringResource(R.string.app_name),
+            contentScale = ContentScale.Fit,
+            colorFilter = ColorFilter.tint(LTAThemeColors.PrimaryGold),
+            loading = {
+                Spacer(modifier = Modifier.size(80.dp))
+            },
+            modifier = Modifier.size(80.dp)
+        )
 
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+        Spacer(modifier = Modifier.height(8.dp))
+
 
         Text(
             text = stringResource(R.string.login_title),

@@ -49,10 +49,10 @@ import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
 import com.guicarneirodev.ltascore.android.ui.matches.LogoImage
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
-import com.guicarneirodev.ltascore.android.viewmodels.TeamFilterItem
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.domain.models.TeamFilterItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

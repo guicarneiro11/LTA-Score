@@ -64,6 +64,7 @@ import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.viewmodels.MatchFilter
 import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
+import com.guicarneirodev.ltascore.data.datasource.static.TeamLogoMapper
 import com.guicarneirodev.ltascore.domain.models.MatchState
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -80,12 +81,10 @@ fun MatchesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // Estado para o diálogo de VOD
     var showVodDialog by remember { mutableStateOf(false) }
     var currentMatchId by remember { mutableStateOf<String?>(null) }
     var isLoadingVod by remember { mutableStateOf(false) }
 
-    // Função para lidar com o clique no botão de VOD
     val handleWatchVodClick = { matchId: String ->
         currentMatchId = matchId
         showVodDialog = true
@@ -159,23 +158,20 @@ fun MatchesScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    uiState.ltaCrossLogo?.let { logoUrl ->
-                        SubcomposeAsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(logoUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "LTA Cross Logo",
-                            contentScale = ContentScale.Fit,
-                            colorFilter = ColorFilter.tint(Color.White),
-                            loading = {
-                                Spacer(modifier = Modifier.size(40.dp))
-                            },
-                            modifier = Modifier.size(40.dp)
-                        )
-
-                        Spacer(modifier = Modifier.width(12.dp))
-                    }
+                    SubcomposeAsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(TeamLogoMapper.getLtaCrossLogo())
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "LTA Cross Logo",
+                        contentScale = ContentScale.Fit,
+                        colorFilter = ColorFilter.tint(Color.White),
+                        loading = {
+                            Spacer(modifier = Modifier.size(40.dp))
+                        },
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
 
                     Text(
                         text = stringResource(R.string.matches_title),

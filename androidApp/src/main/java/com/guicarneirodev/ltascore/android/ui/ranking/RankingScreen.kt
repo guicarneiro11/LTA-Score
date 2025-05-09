@@ -67,7 +67,6 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.viewmodels.RankingViewModel
-import com.guicarneirodev.ltascore.android.viewmodels.TeamFilterItem
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import com.guicarneirodev.ltascore.domain.models.RankingFilter
 import org.koin.androidx.compose.koinViewModel
@@ -76,6 +75,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.guicarneirodev.ltascore.android.viewmodels.RankingUiState
 import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.domain.models.TeamFilterItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
