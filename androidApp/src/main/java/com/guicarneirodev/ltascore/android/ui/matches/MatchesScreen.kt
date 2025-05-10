@@ -1,7 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.matches
 
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -66,9 +65,15 @@ import com.guicarneirodev.ltascore.android.viewmodels.MatchFilter
 import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
 import com.guicarneirodev.ltascore.data.datasource.static.TeamLogoMapper
 import com.guicarneirodev.ltascore.domain.models.MatchState
+import com.guicarneirodev.ltascore.domain.repository.AdminRepository
+import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
+import kotlinx.coroutines.flow.first
+import org.koin.compose.koinInject
+import androidx.core.net.toUri
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +85,27 @@ fun MatchesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    var isAdmin by remember { mutableStateOf(false) }
+
+    val userRepository: UserRepository = koinInject()
+    val adminRepository: AdminRepository = koinInject()
+
+    LaunchedEffect(Unit) {
+        try {
+            val currentUser = userRepository.getCurrentUser().first()
+            if (currentUser != null) {
+                val userId = currentUser.id
+                android.util.Log.d("AdminCheck", "Verificando admin para usuário $userId")
+
+                adminRepository.isUserAdmin(userId).collectLatest { admin ->
+                    android.util.Log.d("AdminCheck", "Status de admin recebido: $admin")
+                    isAdmin = admin
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AdminCheck", "Erro: ${e.message}")
+        }
+    }
 
     var showVodDialog by remember { mutableStateOf(false) }
     var currentMatchId by remember { mutableStateOf<String?>(null) }
@@ -107,7 +133,7 @@ fun MatchesScreen(
                         viewModel.getVodUrlForMatch(currentMatchId!!) { vodUrl ->
                             isLoadingVod = false
                             if (vodUrl != null) {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(vodUrl))
+                                val intent = Intent(Intent.ACTION_VIEW, vodUrl.toUri())
                                 context.startActivity(intent)
                             } else {
                                 Toast.makeText(
@@ -301,6 +327,22 @@ fun MatchesScreen(
             )
         }
 
+        if (isAdmin) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Green.copy(alpha = 0.3f))
+                    .padding(8.dp)
+            ) {
+                Text(
+                    text = "Modo Admin Ativo",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+
         if (uiState.matches.isNotEmpty() || uiState.isLoading) {
             Row(
                 modifier = Modifier
@@ -443,7 +485,8 @@ fun MatchesScreen(
                                     stringResource(R.string.week_title, match.blockName)
                                 } else {
                                     match.blockName
-                                }
+                                },
+                                isAdmin = isAdmin
                             )
                         }
                     }

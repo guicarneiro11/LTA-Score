@@ -25,8 +25,8 @@ actual class LoLEsportsFirebaseService : LoLEsportsService {
 
     actual override suspend fun getSchedule(leagueSlug: String, language: String): ScheduleResponse {
         val leagueId = when (leagueSlug) {
-            "lta_s" -> "113475181634818701" // LTA Sul
-            "lta_n" -> "113475181634818702" // LTA Norte
+            "lta_s" -> "113475181634818701"
+            "lta_n" -> "113475181634818702"
             else -> throw IllegalArgumentException("Liga não suportada: $leagueSlug")
         }
 

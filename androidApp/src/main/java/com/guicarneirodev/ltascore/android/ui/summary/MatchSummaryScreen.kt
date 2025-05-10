@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -39,6 +40,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,15 +62,33 @@ import com.guicarneirodev.ltascore.domain.models.Player
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import org.koin.androidx.compose.koinViewModel
 import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.domain.repository.AdminRepository
+import com.guicarneirodev.ltascore.domain.repository.UserRepository
+import kotlinx.coroutines.flow.first
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MatchSummaryScreen(
     viewModel: MatchSummaryViewModel = koinViewModel(),
     matchId: String,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onAdminClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showAdminButton by remember { mutableStateOf(false) }
+
+    val userRepository: UserRepository = koinInject()
+    val adminRepository: AdminRepository = koinInject()
+
+    LaunchedEffect(Unit) {
+        val currentUser = userRepository.getCurrentUser().first()
+        if (currentUser != null) {
+            adminRepository.isUserAdmin(currentUser.id).collect { isAdmin ->
+                showAdminButton = isAdmin
+            }
+        }
+    }
 
     LaunchedEffect(matchId) {
         viewModel.loadMatch(matchId)
@@ -82,6 +104,16 @@ fun MatchSummaryScreen(
                     }
                 },
                 actions = {
+                    if (showAdminButton) {
+                        IconButton(onClick = { onAdminClick(matchId) }) {
+                            Icon(
+                                imageVector = Icons.Default.AdminPanelSettings,
+                                contentDescription = "Gerenciar Jogadores",
+                                tint = Color.White
+                            )
+                        }
+                    }
+
                     IconButton(onClick = { viewModel.loadMatch(matchId) }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Atualizar")
                     }
@@ -145,7 +177,7 @@ fun MatchSummaryScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.try_again),)
+                        Text(text = stringResource(R.string.try_again))
                     }
                 }
             }

@@ -4,7 +4,9 @@ package com.guicarneirodev.ltascore.android.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.guicarneirodev.ltascore.android.data.repository.FirebaseAdminRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseFriendshipRepository
+import com.guicarneirodev.ltascore.android.data.repository.FirebaseMatchPlayersRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseMatchPredictionRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseRankingRepository
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseTeamFeedRepository
@@ -13,6 +15,7 @@ import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteRepositor
 import com.guicarneirodev.ltascore.android.data.repository.FirebaseVoteSocialRepository
 import com.guicarneirodev.ltascore.android.data.repository.NotificationTokenRepository
 import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
+import com.guicarneirodev.ltascore.android.viewmodels.AdminViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.EditProfileViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsFeedViewModel
@@ -28,7 +31,9 @@ import com.guicarneirodev.ltascore.data.datasource.local.MatchLocalDataSource
 import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.data.repository.AndroidMatchSyncRepository
 import com.guicarneirodev.ltascore.data.repository.MatchRepositoryImpl
+import com.guicarneirodev.ltascore.domain.repository.AdminRepository
 import com.guicarneirodev.ltascore.domain.repository.FriendshipRepository
+import com.guicarneirodev.ltascore.domain.repository.MatchPlayersRepository
 import com.guicarneirodev.ltascore.domain.repository.MatchPredictionRepository
 import com.guicarneirodev.ltascore.domain.repository.MatchRepository
 import com.guicarneirodev.ltascore.domain.repository.MatchSyncRepository
@@ -69,6 +74,8 @@ val appModule = module {
     single<TeamFeedRepository> { FirebaseTeamFeedRepository(get(), get()) }
     single<MatchSyncRepository> { AndroidMatchSyncRepository(get(), get()) }
     single<MatchPredictionRepository> { FirebaseMatchPredictionRepository(get()) }
+    single<MatchPlayersRepository> { FirebaseMatchPlayersRepository(get()) }
+    single<AdminRepository> { FirebaseAdminRepository(get()) }
 
     single { NotificationTokenRepository() }
     single { UserPreferencesRepository(androidContext()) }
@@ -85,8 +92,8 @@ val appModule = module {
     single { ManageMatchPredictionsUseCase(get(), get()) }
 
     viewModel { MatchesViewModel(get(), get(), get()) }
-    viewModel { VotingViewModel(get(), get(), get(), get()) }
-    viewModel { MatchSummaryViewModel(get(), get(), get(), get()) }
+    viewModel { VotingViewModel(get(), get(), get(), get(), get()) }
+    viewModel { MatchSummaryViewModel(get(), get(), get(), get(), get()) }
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { RankingViewModel(get(), get()) }
     viewModel { VoteHistoryViewModel(get(), get()) }
@@ -94,4 +101,5 @@ val appModule = module {
     viewModel { FriendsFeedViewModel(get(), get(), get(), get()) }
     viewModel { EditProfileViewModel(get(), get(), get()) }
     viewModel { NotificationSettingsViewModel(get(), get(), get()) }
+    viewModel { AdminViewModel(get(), get(), get()) }
 }

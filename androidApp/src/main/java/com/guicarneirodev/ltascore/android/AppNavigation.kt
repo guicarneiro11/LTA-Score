@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.guicarneirodev.ltascore.android.data.cache.FavoriteTeamCache
 import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
+import com.guicarneirodev.ltascore.android.ui.admin.AdminMatchPlayersScreen
 import com.guicarneirodev.ltascore.android.ui.auth.LoginScreen
 import com.guicarneirodev.ltascore.android.ui.auth.RegisterScreen
 import com.guicarneirodev.ltascore.android.ui.auth.ResetPasswordScreen
@@ -30,6 +31,7 @@ import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
+import com.guicarneirodev.ltascore.domain.repository.AdminRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import kotlinx.coroutines.flow.first
@@ -51,8 +53,9 @@ sealed class Screen(val route: String) {
     object FriendsFeed : Screen("friends_feed")
     object EditProfile : Screen("edit_profile")
 
-    object Voting : Screen("voting/{matchId}") {
-        fun createRoute(matchId: String) = "voting/$matchId"
+    object Voting : Screen("voting/{matchId}?isAdmin={isAdmin}") {
+        fun createRoute(matchId: String, isAdmin: Boolean = false) =
+            "voting/$matchId?isAdmin=$isAdmin"
     }
 
     object MatchSummary : Screen("match_summary/{matchId}") {
@@ -60,6 +63,10 @@ sealed class Screen(val route: String) {
     }
 
     object NotificationSettings : Screen("notification_settings")
+
+    object AdminMatchPlayers : Screen("admin_match_players/{matchId}") {
+        fun createRoute(matchId: String) = "admin_match_players/$matchId"
+    }
 }
 
 @Composable
@@ -103,7 +110,8 @@ fun AppNavigation(
                         matchId = matchId,
                         userRepository = userRepository,
                         voteRepository = voteRepository,
-                        userPreferencesRepository = userPreferencesRepository
+                        userPreferencesRepository = userPreferencesRepository,
+
                     )
                 },
                 onProfileClick = {
@@ -112,6 +120,20 @@ fun AppNavigation(
                 onRankingClick = {
                     navController.navigate(Screen.Ranking.route)
                 }
+            )
+        }
+
+        composable(
+            route = Screen.AdminMatchPlayers.route,
+            arguments = listOf(navArgument("matchId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val matchId = backStackEntry.arguments?.getString("matchId") ?: ""
+
+            AdminMatchPlayersScreen(
+                matchId = matchId,
+                onBackClick = { navController.popBackStack() },
+                onNavigateToMatchSummary = { navController.navigate(Screen.MatchSummary.createRoute(it)) },
+                onNavigateToVoting = { navController.navigate(Screen.Voting.createRoute(it)) }
             )
         }
 
@@ -188,9 +210,7 @@ fun AppNavigation(
                         popUpTo(Screen.Matches.route) { inclusive = true }
                     }
                 },
-                // Novo parâmetro para uiState - pegando do viewModel
                 uiState = friendsViewModel.uiState.collectAsState().value,
-                // Novo parâmetro para visualizar feed
                 onViewFriendsFeed = {
                     navController.navigate(Screen.FriendsFeed.route)
                 }
@@ -216,7 +236,19 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Voting.route) { backStackEntry ->
+        composable(
+            route = Screen.Voting.route,
+            arguments = listOf(
+                navArgument("matchId") { type = NavType.StringType },
+                navArgument("isAdmin") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
+            )
+        ) { backStackEntry ->
+            val matchId = backStackEntry.arguments?.getString("matchId") ?: ""
+            val isAdmin = backStackEntry.arguments?.getBoolean("isAdmin") ?: false
+
             LaunchedEffect(isLoggedIn) {
                 if (!isLoggedIn) {
                     navController.navigate(Screen.Login.route) {
@@ -224,9 +256,6 @@ fun AppNavigation(
                     }
                 }
             }
-
-            val matchId = backStackEntry.arguments?.getString("matchId") ?: ""
-            val votingViewModel = koinViewModel<VotingViewModel>()
 
             LaunchedEffect(matchId, isLoggedIn) {
                 if (isLoggedIn) {
@@ -243,11 +272,9 @@ fun AppNavigation(
             }
 
             VotingScreen(
-                viewModel = votingViewModel,
                 matchId = matchId,
-                onBackClick = {
-                    navController.popBackStack()
-                },
+                isAdmin = isAdmin,
+                onBackClick = { navController.popBackStack() },
                 onVoteSubmitted = {
                     navController.navigate(Screen.MatchSummary.createRoute(matchId)) {
                         popUpTo(Screen.Matches.route) {
@@ -377,8 +404,14 @@ private fun navigateToMatchDetails(
             val currentUser = userRepository.getCurrentUser().first()
 
             if (currentUser != null) {
-                val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
+                val adminRepository = org.koin.core.context.GlobalContext.get().get<AdminRepository>()
+                val isAdmin = try {
+                    adminRepository.isUserAdmin(currentUser.id).first()
+                } catch (_: Exception) {
+                    false
+                }
 
+                val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
                 if (hasVotedLocally) {
                     navController.navigate(Screen.MatchSummary.createRoute(matchId))
                     return@launch
@@ -389,15 +422,12 @@ private fun navigateToMatchDetails(
 
                     if (hasVotedInFirestore) {
                         userPreferencesRepository.markMatchVoted(currentUser.id, matchId)
-                    }
-
-                    if (hasVotedInFirestore) {
                         navController.navigate(Screen.MatchSummary.createRoute(matchId))
                     } else {
-                        navController.navigate(Screen.Voting.createRoute(matchId))
+                        navController.navigate("voting/${matchId}?isAdmin=${isAdmin}")
                     }
                 } catch (_: Exception) {
-                    navController.navigate(Screen.Voting.createRoute(matchId))
+                    navController.navigate("voting/${matchId}?isAdmin=${isAdmin}")
                 }
             } else {
                 navController.navigate(Screen.Login.route)

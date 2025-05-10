@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.domain.models.Match
 import com.guicarneirodev.ltascore.domain.models.VoteSummary
+import com.guicarneirodev.ltascore.domain.repository.MatchPlayersRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import com.guicarneirodev.ltascore.domain.usecases.GetMatchByIdUseCase
@@ -28,12 +29,13 @@ class MatchSummaryViewModel(
     private val getMatchByIdUseCase: GetMatchByIdUseCase,
     private val voteRepository: VoteRepository,
     private val userRepository: UserRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val matchPlayersRepository: MatchPlayersRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MatchSummaryUiState(isLoading = true))
     val uiState: StateFlow<MatchSummaryUiState> = _uiState.asStateFlow()
-    
+
     fun loadMatch(matchId: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -69,6 +71,21 @@ class MatchSummaryViewModel(
                     return@launch
                 }
 
+                val participatingPlayerIds = matchPlayersRepository.getParticipatingPlayers(matchId).first()
+
+                val finalMatch = if (participatingPlayerIds.isNotEmpty()) {
+                    val filteredTeams = match.teams.map { team ->
+                        val filteredPlayers = team.players.filter { player ->
+                            participatingPlayerIds.contains(player.id)
+                        }
+                        val playersToUse = if (filteredPlayers.isEmpty()) team.players else filteredPlayers
+                        team.copy(players = playersToUse)
+                    }
+                    match.copy(teams = filteredTeams)
+                } else {
+                    match
+                }
+
                 val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
 
                 var userHasVoted = hasVotedLocally
@@ -94,7 +111,7 @@ class MatchSummaryViewModel(
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    match = match,
+                    match = finalMatch,
                     voteSummaries = voteSummaries,
                     userHasVoted = userHasVoted
                 )

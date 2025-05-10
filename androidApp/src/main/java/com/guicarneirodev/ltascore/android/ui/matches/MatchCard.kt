@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,12 +59,13 @@ fun MatchCard(
     userPrediction: String? = null,
     isLoadingPrediction: Boolean = false,
     onPredictTeam: (String) -> Unit = {},
-    weekTitle: String = match.blockName
+    weekTitle: String = match.blockName,
+    isAdmin: Boolean = false
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = match.state == MatchState.COMPLETED, onClick = onClick),
+            .clickable(enabled = isAdmin || match.state == MatchState.COMPLETED, onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
@@ -143,7 +145,6 @@ fun MatchCard(
                             }
                         }
 
-                        // Componente de previsão para partidas futuras
                         if (match.state == MatchState.UNSTARTED) {
                             Spacer(modifier = Modifier.height(4.dp))
 
@@ -243,7 +244,6 @@ fun MatchCard(
                             )
                         }
 
-                        // Componente de previsão para partidas futuras
                         if (match.state == MatchState.UNSTARTED) {
                             Spacer(modifier = Modifier.height(4.dp))
 
@@ -251,7 +251,6 @@ fun MatchCard(
                             val team1Percent = predictionStats?.percentages?.get(team1Id) ?: 0
                             val isTeam1Predicted = userPrediction == team1Id
 
-                            // Box clicável para votos do segundo time
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -351,7 +350,36 @@ fun MatchCard(
                 )
             }
 
-            // Adiciona o botão "Assistir VOD" para partidas concluídas
+            if (isAdmin && match.state != MatchState.COMPLETED) {
+                Surface(
+                    color = LTAThemeColors.PrimaryGold.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AdminPanelSettings,
+                            contentDescription = null,
+                            tint = LTAThemeColors.PrimaryGold,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Clique para gerenciar jogadores",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = LTAThemeColors.PrimaryGold,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
             if (match.state == MatchState.COMPLETED && onWatchVodClick != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
