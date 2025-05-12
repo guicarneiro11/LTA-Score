@@ -277,9 +277,17 @@ fun AdminMatchPlayersScreen(
                     }
 
                     Button(
-                        onClick = { viewModel.saveParticipatingPlayers(matchId) },
+                        onClick = {
+                            viewModel.saveParticipatingPlayers(matchId)
+                            if (!uiState.isSubmitting) {
+                                onNavigateToVoting(matchId)
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !uiState.isSubmitting
+                        enabled = !uiState.isSubmitting,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
                         if (uiState.isSubmitting) {
                             CircularProgressIndicator(
@@ -288,7 +296,7 @@ fun AdminMatchPlayersScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Salvar Jogadores Participantes")
+                            Text("Salvar e Gerenciar Votação")
                         }
                     }
 

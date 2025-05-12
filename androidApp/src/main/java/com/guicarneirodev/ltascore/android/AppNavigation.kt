@@ -31,9 +31,11 @@ import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
+import com.guicarneirodev.ltascore.domain.models.MatchState
 import com.guicarneirodev.ltascore.domain.repository.AdminRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
+import com.guicarneirodev.ltascore.domain.usecases.GetMatchByIdUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -409,6 +411,14 @@ private fun navigateToMatchDetails(
                     adminRepository.isUserAdmin(currentUser.id).first()
                 } catch (_: Exception) {
                     false
+                }
+
+                if (isAdmin) {
+                    val match = org.koin.core.context.GlobalContext.get().get<GetMatchByIdUseCase>()(matchId).first()
+                    if (match != null && match.state != MatchState.COMPLETED) {
+                        navController.navigate(Screen.AdminMatchPlayers.createRoute(matchId))
+                        return@launch
+                    }
                 }
 
                 val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
