@@ -100,7 +100,6 @@ fun AdminMatchPlayersScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Mostrar informações da partida
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(

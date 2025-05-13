@@ -81,7 +81,8 @@ fun MatchesScreen(
     viewModel: MatchesViewModel = koinViewModel(),
     onMatchClick: (String) -> Unit,
     onProfileClick: () -> Unit,
-    onRankingClick: () -> Unit
+    onRankingClick: () -> Unit,
+    onAdminClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -97,7 +98,7 @@ fun MatchesScreen(
                 val userId = currentUser.id
                 android.util.Log.d("AdminCheck", "Verificando admin para usuário $userId")
 
-                adminRepository.isUserAdmin(userId).collectLatest { admin ->
+                adminRepository.isUserAdmin(userId).collect { admin ->
                     android.util.Log.d("AdminCheck", "Status de admin recebido: $admin")
                     isAdmin = admin
                 }
@@ -486,7 +487,10 @@ fun MatchesScreen(
                                 } else {
                                     match.blockName
                                 },
-                                isAdmin = isAdmin
+                                isAdmin = isAdmin,
+                                onAdminClick = { matchId ->
+                                    onAdminClick(matchId)
+                                }
                             )
                         }
                     }

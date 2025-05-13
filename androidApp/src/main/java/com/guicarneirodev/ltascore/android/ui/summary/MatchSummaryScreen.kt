@@ -62,10 +62,6 @@ import com.guicarneirodev.ltascore.domain.models.Player
 import com.guicarneirodev.ltascore.domain.models.PlayerPosition
 import org.koin.androidx.compose.koinViewModel
 import com.guicarneirodev.ltascore.android.R
-import com.guicarneirodev.ltascore.domain.repository.AdminRepository
-import com.guicarneirodev.ltascore.domain.repository.UserRepository
-import kotlinx.coroutines.flow.first
-import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,18 +73,6 @@ fun MatchSummaryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAdminButton by remember { mutableStateOf(false) }
-
-    val userRepository: UserRepository = koinInject()
-    val adminRepository: AdminRepository = koinInject()
-
-    LaunchedEffect(Unit) {
-        val currentUser = userRepository.getCurrentUser().first()
-        if (currentUser != null) {
-            adminRepository.isUserAdmin(currentUser.id).collect { isAdmin ->
-                showAdminButton = isAdmin
-            }
-        }
-    }
 
     LaunchedEffect(matchId) {
         viewModel.loadMatch(matchId)

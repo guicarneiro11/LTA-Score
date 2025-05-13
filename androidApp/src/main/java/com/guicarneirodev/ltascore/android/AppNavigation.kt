@@ -30,12 +30,12 @@ import com.guicarneirodev.ltascore.android.ui.voting.VotingScreen
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
-import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
 import com.guicarneirodev.ltascore.domain.models.MatchState
 import com.guicarneirodev.ltascore.domain.repository.AdminRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
 import com.guicarneirodev.ltascore.domain.usecases.GetMatchByIdUseCase
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -113,8 +113,10 @@ fun AppNavigation(
                         userRepository = userRepository,
                         voteRepository = voteRepository,
                         userPreferencesRepository = userPreferencesRepository,
-
                     )
+                },
+                onAdminClick = { matchId ->
+                    navController.navigate(Screen.AdminMatchPlayers.createRoute(matchId))
                 },
                 onProfileClick = {
                     navController.navigate(Screen.Profile.route)
@@ -407,15 +409,30 @@ private fun navigateToMatchDetails(
 
             if (currentUser != null) {
                 val adminRepository = org.koin.core.context.GlobalContext.get().get<AdminRepository>()
-                val isAdmin = try {
-                    adminRepository.isUserAdmin(currentUser.id).first()
-                } catch (_: Exception) {
-                    false
+
+                var isAdmin = false
+                try {
+                    isAdmin = adminRepository.isUserAdmin(currentUser.id)
+                        .catch { e ->
+                            android.util.Log.e("NavigationDebug", "Erro capturado no flow: ${e.message}")
+                            emit(false)
+                        }
+                        .first()
+
+                    android.util.Log.d("NavigationDebug", "isAdmin: $isAdmin para usuário: ${currentUser.id}")
+                } catch (e: Exception) {
+                    android.util.Log.e("NavigationDebug", "Erro ao obter status admin: ${e.message}")
+                    isAdmin = false
                 }
 
                 if (isAdmin) {
-                    val match = org.koin.core.context.GlobalContext.get().get<GetMatchByIdUseCase>()(matchId).first()
+                    val matchUseCase = org.koin.core.context.GlobalContext.get().get<GetMatchByIdUseCase>()
+                    android.util.Log.d("NavigationDebug", "Obtendo match para admin: $matchId")
+                    val match = matchUseCase(matchId).first()
+
+                    android.util.Log.d("NavigationDebug", "Match encontrado: ${match != null}, estado: ${match?.state}")
                     if (match != null && match.state != MatchState.COMPLETED) {
+                        android.util.Log.d("NavigationDebug", "Navegando para AdminMatchPlayers")
                         navController.navigate(Screen.AdminMatchPlayers.createRoute(matchId))
                         return@launch
                     }
@@ -442,7 +459,8 @@ private fun navigateToMatchDetails(
             } else {
                 navController.navigate(Screen.Login.route)
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            android.util.Log.e("NavigationDebug", "Erro na navegação: ${e.message}")
             navController.navigate(Screen.Voting.createRoute(matchId))
         }
     }

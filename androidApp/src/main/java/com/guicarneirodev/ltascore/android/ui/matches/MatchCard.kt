@@ -60,7 +60,8 @@ fun MatchCard(
     isLoadingPrediction: Boolean = false,
     onPredictTeam: (String) -> Unit = {},
     weekTitle: String = match.blockName,
-    isAdmin: Boolean = false
+    isAdmin: Boolean = false,
+    onAdminClick: ((String) -> Unit)? = null
 ) {
     Card(
         modifier = Modifier
@@ -354,7 +355,9 @@ fun MatchCard(
                 Surface(
                     color = LTAThemeColors.PrimaryGold.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .clickable { onAdminClick?.invoke(match.id) }
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

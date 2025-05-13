@@ -3,6 +3,7 @@ package com.guicarneirodev.ltascore.android.data.repository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.guicarneirodev.ltascore.domain.repository.AdminRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 
@@ -25,7 +26,10 @@ class FirebaseAdminRepository(
         } catch (e: Exception) {
             android.util.Log.e("AdminRepository", "Erro ao verificar administrador: ${e.message}")
             e.printStackTrace()
-            emit(false)
+            throw e
         }
+    }.catch { exception ->
+        android.util.Log.e("AdminRepository", "Tratando exceção no flow: ${exception.message}")
+        emit(false)
     }
 }

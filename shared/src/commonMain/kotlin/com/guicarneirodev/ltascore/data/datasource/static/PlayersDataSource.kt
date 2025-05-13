@@ -1100,6 +1100,14 @@ class PlayersDataSource {
                 position = PlayerPosition.SUPPORT,
                 teamId = "kabum-idl"
             ),
+            Player(
+                id = "player_kabum_reaper",
+                name = "Matheus Silva Pessoa",
+                nickname = "Reaper",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/16/KBM_IDL_Reaper_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319174640",
+                position = PlayerPosition.SUPPORT,
+                teamId = "kabum-idl"
+            ),
 
             // LOS
             Player(
