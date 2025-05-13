@@ -16,6 +16,10 @@ class PlayersDataSource {
         return allPlayers.find { it.id == playerId }
     }
 
+    fun getAllPlayersByTeamId(teamId: String): List<Player> {
+        return playersByTeamId[teamId] ?: emptyList()
+    }
+
     fun getPlayersByTeamIdAndDate(teamId: String, matchDate: Instant, blockName: String): List<Player> {
         val allTeamPlayers = playersByTeamId[teamId] ?: emptyList()
 
@@ -116,27 +120,35 @@ class PlayersDataSource {
         if (teamId == "kabum-idl") {
             val rangerStartDate = Instant.parse("2025-04-08T00:00:00Z")
             val wizStartDate = Instant.parse("2025-04-22T00:00:00Z")
+            val reaperMatchDate = Instant.parse("2025-05-12T00:00:00Z")
+            val reaperMatchEndDate = Instant.parse("2025-05-13T00:00:00Z")
 
             println("Partida KaBuM! IDL de ${matchDate}, verificando elenco")
 
+            val useReaper = matchDate >= reaperMatchDate && matchDate < reaperMatchEndDate
+
+            val excludePlayers = mutableListOf<String>()
+
             if (matchDate < rangerStartDate) {
-                println("Retornando time KaBuM! IDL com Seize na jungle (até 07/04)")
-                return allTeamPlayers.filter {
-                    it.id != "player_kabum_ranger" && it.id != "player_kabum_wiz"
-                }
+                excludePlayers.add("player_kabum_ranger")
+                excludePlayers.add("player_kabum_wiz")
+            } else if (matchDate < wizStartDate) {
+                excludePlayers.add("player_kabum_seize")
+                excludePlayers.add("player_kabum_wiz")
+            } else {
+                excludePlayers.add("player_kabum_seize")
+                excludePlayers.add("player_kabum_ranger")
             }
-            else if (matchDate < wizStartDate) {
-                println("Retornando time KaBuM! IDL com Ranger na jungle (de 08/04 até 21/04)")
-                return allTeamPlayers.filter {
-                    it.id != "player_kabum_seize" && it.id != "player_kabum_wiz"
-                }
+
+            if (useReaper) {
+                println("Retornando time KaBuM! IDL com Reaper no ADC (apenas em 12/05)")
+                excludePlayers.add("player_kabum_scuro")
+            } else {
+                println("Retornando time KaBuM! IDL com scuro no ADC")
+                excludePlayers.add("player_kabum_reaper")
             }
-            else {
-                println("Retornando time KaBuM! IDL com Wiz na jungle (a partir de 22/04)")
-                return allTeamPlayers.filter {
-                    it.id != "player_kabum_seize" && it.id != "player_kabum_ranger"
-                }
-            }
+
+            return allTeamPlayers.filter { it.id !in excludePlayers }
         }
 
         if (teamId == "dopamina") {
@@ -1093,19 +1105,19 @@ class PlayersDataSource {
                 teamId = "kabum-idl"
             ),
             Player(
-                id = "player_kabum_damage",
-                name = "Yan Sales Neves",
-                nickname = "Damage",
-                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/3f/KBM_IDL_Damage_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319174057",
-                position = PlayerPosition.SUPPORT,
-                teamId = "kabum-idl"
-            ),
-            Player(
                 id = "player_kabum_reaper",
                 name = "Matheus Silva Pessoa",
                 nickname = "Reaper",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/1/16/KBM_IDL_Reaper_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319174640",
                 position = PlayerPosition.ADC,
+                teamId = "kabum-idl"
+            ),
+            Player(
+                id = "player_kabum_damage",
+                name = "Yan Sales Neves",
+                nickname = "Damage",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/3/3f/KBM_IDL_Damage_2025_Split_1.png/revision/latest/scale-to-width-down/220?cb=20250319174057",
+                position = PlayerPosition.SUPPORT,
                 teamId = "kabum-idl"
             ),
 

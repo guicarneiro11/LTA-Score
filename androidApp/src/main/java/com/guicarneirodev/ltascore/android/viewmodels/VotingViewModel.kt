@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.util.StringResources
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.domain.repository.MatchPlayersRepository
 import kotlinx.coroutines.delay
 
@@ -34,7 +35,8 @@ class VotingViewModel(
     private val submitPlayerVoteUseCase: SubmitPlayerVoteUseCase,
     private val userRepository: UserRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val matchPlayersRepository: MatchPlayersRepository
+    private val matchPlayersRepository: MatchPlayersRepository,
+    private val playersDataSource: PlayersDataSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VotingUiState())
@@ -52,14 +54,18 @@ class VotingViewModel(
 
                     val finalMatch = if (!isAdmin && participatingPlayerIds.isNotEmpty()) {
                         val filteredTeams = match.teams.map { team ->
-                            val filteredPlayers = team.players.filter { player ->
+                            val allTeamPlayers = playersDataSource.getAllPlayersByTeamId(team.id)
+
+                            val selectedPlayers = allTeamPlayers.filter { player ->
                                 participatingPlayerIds.contains(player.id)
                             }
-                            val playersToUse = if (filteredPlayers.isEmpty()) {
+
+                            val playersToUse = if (selectedPlayers.isEmpty()) {
                                 team.players
                             } else {
-                                filteredPlayers
+                                selectedPlayers
                             }
+
                             team.copy(players = playersToUse)
                         }
                         match.copy(teams = filteredTeams)

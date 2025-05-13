@@ -49,11 +49,7 @@ class AdminViewModel(
                 val allPlayers = mutableListOf<Player>()
                 match.teams.forEach { team ->
                     val teamId = team.id
-                    val teamPlayers = playersDataSource.getPlayersByTeamIdAndDate(
-                        teamId,
-                        match.startTime,
-                        match.blockName
-                    )
+                    val teamPlayers = playersDataSource.getAllPlayersByTeamId(teamId)
                     allPlayers.addAll(teamPlayers)
                 }
 

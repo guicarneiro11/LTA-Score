@@ -409,33 +409,15 @@ private fun navigateToMatchDetails(
 
             if (currentUser != null) {
                 val adminRepository = org.koin.core.context.GlobalContext.get().get<AdminRepository>()
-
-                var isAdmin = false
-                try {
-                    isAdmin = adminRepository.isUserAdmin(currentUser.id)
-                        .catch { e ->
-                            android.util.Log.e("NavigationDebug", "Erro capturado no flow: ${e.message}")
-                            emit(false)
-                        }
-                        .first()
-
-                    android.util.Log.d("NavigationDebug", "isAdmin: $isAdmin para usuário: ${currentUser.id}")
-                } catch (e: Exception) {
-                    android.util.Log.e("NavigationDebug", "Erro ao obter status admin: ${e.message}")
-                    isAdmin = false
+                val isAdmin = try {
+                    adminRepository.isUserAdmin(currentUser.id).first()
+                } catch (_: Exception) {
+                    false
                 }
 
                 if (isAdmin) {
-                    val matchUseCase = org.koin.core.context.GlobalContext.get().get<GetMatchByIdUseCase>()
-                    android.util.Log.d("NavigationDebug", "Obtendo match para admin: $matchId")
-                    val match = matchUseCase(matchId).first()
-
-                    android.util.Log.d("NavigationDebug", "Match encontrado: ${match != null}, estado: ${match?.state}")
-                    if (match != null && match.state != MatchState.COMPLETED) {
-                        android.util.Log.d("NavigationDebug", "Navegando para AdminMatchPlayers")
-                        navController.navigate(Screen.AdminMatchPlayers.createRoute(matchId))
-                        return@launch
-                    }
+                    navController.navigate(Screen.AdminMatchPlayers.createRoute(matchId))
+                    return@launch
                 }
 
                 val hasVotedLocally = userPreferencesRepository.hasUserVotedForMatch(currentUser.id, matchId).first()
@@ -459,8 +441,7 @@ private fun navigateToMatchDetails(
             } else {
                 navController.navigate(Screen.Login.route)
             }
-        } catch (e: Exception) {
-            android.util.Log.e("NavigationDebug", "Erro na navegação: ${e.message}")
+        } catch (_: Exception) {
             navController.navigate(Screen.Voting.createRoute(matchId))
         }
     }

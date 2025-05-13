@@ -3,6 +3,7 @@ package com.guicarneirodev.ltascore.android.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
+import com.guicarneirodev.ltascore.data.datasource.static.PlayersDataSource
 import com.guicarneirodev.ltascore.domain.models.Match
 import com.guicarneirodev.ltascore.domain.models.VoteSummary
 import com.guicarneirodev.ltascore.domain.repository.MatchPlayersRepository
@@ -30,7 +31,8 @@ class MatchSummaryViewModel(
     private val voteRepository: VoteRepository,
     private val userRepository: UserRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val matchPlayersRepository: MatchPlayersRepository
+    private val matchPlayersRepository: MatchPlayersRepository,
+    private val playersDataSource: PlayersDataSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MatchSummaryUiState(isLoading = true))
@@ -75,10 +77,19 @@ class MatchSummaryViewModel(
 
                 val finalMatch = if (participatingPlayerIds.isNotEmpty()) {
                     val filteredTeams = match.teams.map { team ->
-                        val filteredPlayers = team.players.filter { player ->
+                        val allTeamPlayers = playersDataSource.getAllPlayersByTeamId(team.id)
+
+                        // Filtrar apenas os jogadores selecionados pelo admin
+                        val selectedPlayers = allTeamPlayers.filter { player ->
                             participatingPlayerIds.contains(player.id)
                         }
-                        val playersToUse = if (filteredPlayers.isEmpty()) team.players else filteredPlayers
+
+                        val playersToUse = if (selectedPlayers.isEmpty()) {
+                            team.players
+                        } else {
+                            selectedPlayers
+                        }
+
                         team.copy(players = playersToUse)
                     }
                     match.copy(teams = filteredTeams)

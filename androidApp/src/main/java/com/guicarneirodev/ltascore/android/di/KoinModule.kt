@@ -92,8 +92,8 @@ val appModule = module {
     single { ManageMatchPredictionsUseCase(get(), get()) }
 
     viewModel { MatchesViewModel(get(), get(), get()) }
-    viewModel { VotingViewModel(get(), get(), get(), get(), get()) }
-    viewModel { MatchSummaryViewModel(get(), get(), get(), get(), get()) }
+    viewModel { VotingViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { MatchSummaryViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { AuthViewModel(get(), get(), get()) }
     viewModel { RankingViewModel(get(), get()) }
     viewModel { VoteHistoryViewModel(get(), get()) }
