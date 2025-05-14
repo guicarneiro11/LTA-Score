@@ -1,7 +1,9 @@
 package com.guicarneirodev.ltascore.domain.models
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Match(
     val id: String,
     val startTime: Instant,
@@ -15,6 +17,7 @@ data class Match(
     val vodUrl: String? = null
 )
 
+@Serializable
 enum class MatchState {
     UNSTARTED, INPROGRESS, COMPLETED
 }

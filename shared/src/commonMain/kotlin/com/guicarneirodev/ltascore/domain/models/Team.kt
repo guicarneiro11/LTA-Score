@@ -1,5 +1,8 @@
 package com.guicarneirodev.ltascore.domain.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Team(
     val id: String,
     val name: String,
@@ -9,6 +12,7 @@ data class Team(
     val result: TeamResult
 )
 
+@Serializable
 data class TeamResult(
     val outcome: Outcome?,
     val gameWins: Int,
