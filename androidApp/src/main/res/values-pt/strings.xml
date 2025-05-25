@@ -75,6 +75,8 @@
     <string name="exit_app_message">Tem certeza que deseja SAIR do aplicativo e abrir o navegador?</string>
     <string name="yes">Sim</string>
     <string name="no">Não</string>
+    <string name="sort_oldest_first">Mais Antigo</string>
+    <string name="sort_newest_first">Mais Recente</string>
 
     <!-- Match Summary Screen -->
     <string name="match_ratings">Avaliações da Partida</string>

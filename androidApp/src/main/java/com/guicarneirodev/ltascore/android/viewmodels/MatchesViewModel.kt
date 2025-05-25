@@ -12,11 +12,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.guicarneirodev.ltascore.android.R
+import com.guicarneirodev.ltascore.android.data.repository.UserPreferencesRepository
 import com.guicarneirodev.ltascore.domain.models.MatchPredictionStats
 import com.guicarneirodev.ltascore.domain.usecases.ManageMatchPredictionsUseCase
+import kotlinx.coroutines.flow.first
 
 enum class MatchFilter {
     ALL, UPCOMING, LIVE, COMPLETED
+}
+
+enum class SortOrder {
+    OLDEST_FIRST, NEWEST_FIRST
 }
 
 data class League(val name: String, val slug: String)
@@ -26,6 +32,7 @@ data class MatchesUiState(
     val matches: List<Match> = emptyList(),
     val filteredMatches: List<Match> = emptyList(),
     val filter: MatchFilter = MatchFilter.ALL,
+    val sortOrder: SortOrder = SortOrder.OLDEST_FIRST,
     val availableLeagues: List<League> = listOf(
         League("LTA South", "lta_s"),
         League("LTA North", "lta_n"),
@@ -43,7 +50,8 @@ data class MatchesUiState(
 class MatchesViewModel(
     private val getMatchesUseCase: GetMatchesUseCase,
     private val loLEsportsApi: LoLEsportsApi,
-    private val manageMatchPredictionsUseCase: ManageMatchPredictionsUseCase
+    private val manageMatchPredictionsUseCase: ManageMatchPredictionsUseCase,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MatchesUiState())
@@ -55,8 +63,20 @@ class MatchesViewModel(
 
         _uiState.value = _uiState.value.copy(splitTitle = initialSplitTitle)
 
+        loadSavedSortOrder()
         loadMatches()
         loadLtaCrossLogo()
+    }
+
+    private fun loadSavedSortOrder() {
+        viewModelScope.launch {
+            try {
+                val savedSortOrder = userPreferencesRepository.getMatchSortOrder().first()
+                _uiState.value = _uiState.value.copy(sortOrder = savedSortOrder)
+            } catch (e: Exception) {
+                println("Error loading saved sort order: ${e.message}")
+            }
+        }
     }
 
     private fun loadLtaCrossLogo() {
@@ -88,7 +108,7 @@ class MatchesViewModel(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         matches = matches,
-                        filteredMatches = filterMatches(matches, _uiState.value.filter),
+                        filteredMatches = filterAndSortMatches(matches, _uiState.value.filter, _uiState.value.sortOrder),
                         error = if (matches.isEmpty()) StringResources.getString(R.string.no_match_found) else null
                     )
 
@@ -122,13 +142,13 @@ class MatchesViewModel(
                     if (game?.vods?.isNotEmpty() == true) {
                         val ptBrVod = game.vods.find { it.locale == "pt-BR" }
 
-                        if (ptBrVod != null && ptBrVod.parameter != null) {
+                        if (ptBrVod?.parameter != null) {
                             val youtubeUrl = "https://www.youtube.com/watch?v=${ptBrVod.parameter}"
                             callback(youtubeUrl)
                             return@launch
                         } else {
                             val anyVod = game.vods.firstOrNull()
-                            if (anyVod != null && anyVod.parameter != null) {
+                            if (anyVod?.parameter != null) {
                                 val youtubeUrl = "https://www.youtube.com/watch?v=${anyVod.parameter}"
                                 callback(youtubeUrl)
                                 return@launch
@@ -168,17 +188,38 @@ class MatchesViewModel(
         if (filter != _uiState.value.filter) {
             _uiState.value = _uiState.value.copy(
                 filter = filter,
-                filteredMatches = filterMatches(_uiState.value.matches, filter)
+                filteredMatches = filterAndSortMatches(_uiState.value.matches, filter, _uiState.value.sortOrder)
             )
         }
     }
 
-    private fun filterMatches(matches: List<Match>, filter: MatchFilter): List<Match> {
-        return when (filter) {
+    fun toggleSortOrder() {
+        val newSortOrder = when (_uiState.value.sortOrder) {
+            SortOrder.OLDEST_FIRST -> SortOrder.NEWEST_FIRST
+            SortOrder.NEWEST_FIRST -> SortOrder.OLDEST_FIRST
+        }
+
+        _uiState.value = _uiState.value.copy(
+            sortOrder = newSortOrder,
+            filteredMatches = filterAndSortMatches(_uiState.value.matches, _uiState.value.filter, newSortOrder)
+        )
+
+        viewModelScope.launch {
+            userPreferencesRepository.setMatchSortOrder(newSortOrder)
+        }
+    }
+
+    private fun filterAndSortMatches(matches: List<Match>, filter: MatchFilter, sortOrder: SortOrder): List<Match> {
+        val filtered = when (filter) {
             MatchFilter.ALL -> matches
             MatchFilter.UPCOMING -> matches.filter { it.state == MatchState.UNSTARTED }
             MatchFilter.LIVE -> matches.filter { it.state == MatchState.INPROGRESS }
             MatchFilter.COMPLETED -> matches.filter { it.state == MatchState.COMPLETED }
+        }
+
+        return when (sortOrder) {
+            SortOrder.OLDEST_FIRST -> filtered.sortedBy { it.startTime }
+            SortOrder.NEWEST_FIRST -> filtered.sortedByDescending { it.startTime }
         }
     }
 
@@ -215,7 +256,7 @@ class MatchesViewModel(
         }
     }
 
-    fun loadMatchPredictionStats(matchId: String) {
+    private fun loadMatchPredictionStats(matchId: String) {
         viewModelScope.launch {
             manageMatchPredictionsUseCase.getMatchPredictionStats(matchId).collect { stats ->
                 _uiState.value = _uiState.value.copy(
@@ -225,7 +266,7 @@ class MatchesViewModel(
         }
     }
 
-    fun loadUserPrediction(matchId: String) {
+    private fun loadUserPrediction(matchId: String) {
         viewModelScope.launch {
             manageMatchPredictionsUseCase.getUserPrediction(matchId).collect { prediction ->
                 if (prediction != null) {

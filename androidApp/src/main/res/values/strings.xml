@@ -75,6 +75,8 @@
     <string name="exit_app_message">Are you sure you want to EXIT the app and open your browser?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="sort_oldest_first">Oldest</string>
+    <string name="sort_newest_first">Newest</string>
 
     <!-- Match Summary Screen -->
     <string name="match_ratings">Match Ratings</string>

@@ -3,6 +3,7 @@ package com.guicarneirodev.ltascore.android.ui.matches
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,6 +65,7 @@ import com.guicarneirodev.ltascore.android.LTAThemeColors
 import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.viewmodels.MatchFilter
 import com.guicarneirodev.ltascore.android.viewmodels.MatchesViewModel
+import com.guicarneirodev.ltascore.android.viewmodels.SortOrder
 import com.guicarneirodev.ltascore.data.datasource.static.TeamLogoMapper
 import com.guicarneirodev.ltascore.domain.models.MatchState
 import com.guicarneirodev.ltascore.domain.repository.AdminRepository
@@ -73,7 +76,6 @@ import org.koin.androidx.compose.koinViewModel
 import kotlinx.coroutines.flow.first
 import org.koin.compose.koinInject
 import androidx.core.net.toUri
-import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -261,16 +263,49 @@ fun MatchesScreen(
             }
         }
 
-        Text(
-            text = stringResource(R.string.split_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = LTAThemeColors.TextSecondary,
-            fontWeight = FontWeight.Medium,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(LTAThemeColors.DarkBackground)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-        )
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.split_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = LTAThemeColors.TextSecondary,
+                fontWeight = FontWeight.Medium
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier
+                    .clickable { viewModel.toggleSortOrder() }
+                    .padding(4.dp)
+            ) {
+                Text(
+                    text = when(uiState.sortOrder) {
+                        SortOrder.OLDEST_FIRST -> stringResource(R.string.sort_oldest_first)
+                        SortOrder.NEWEST_FIRST -> stringResource(R.string.sort_newest_first)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LTAThemeColors.PrimaryGold,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Icon(
+                    imageVector = Icons.Default.SwapVert,
+                    contentDescription = when(uiState.sortOrder) {
+                        SortOrder.OLDEST_FIRST -> "Ordenar: Mais recente primeiro"
+                        SortOrder.NEWEST_FIRST -> "Ordenar: Mais antigo primeiro"
+                    },
+                    tint = LTAThemeColors.PrimaryGold,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
 
         Row(
             modifier = Modifier
@@ -458,7 +493,16 @@ fun MatchesScreen(
                         "${dateTime.date.dayOfMonth.toString().padStart(2, '0')}/${dateTime.date.monthNumber.toString().padStart(2, '0')}"
                     }
 
-                    matchesByDay.forEach { (day, matchesOnDay) ->
+                    val sortedDays = when (uiState.sortOrder) {
+                        SortOrder.OLDEST_FIRST -> matchesByDay.entries.sortedBy { (_, matches) ->
+                            matches.minOfOrNull { it.startTime }
+                        }
+                        SortOrder.NEWEST_FIRST -> matchesByDay.entries.sortedByDescending { (_, matches) ->
+                            matches.maxOfOrNull { it.startTime }
+                        }
+                    }
+
+                    sortedDays.forEach { (day, matchesOnDay) ->
                         item {
                             Text(
                                 text = day,
@@ -469,7 +513,12 @@ fun MatchesScreen(
                             )
                         }
 
-                        items(matchesOnDay) { match ->
+                        val sortedMatches = when (uiState.sortOrder) {
+                            SortOrder.OLDEST_FIRST -> matchesOnDay.sortedBy { it.startTime }
+                            SortOrder.NEWEST_FIRST -> matchesOnDay.sortedByDescending { it.startTime }
+                        }
+
+                        items(sortedMatches) { match ->
                             MatchCard(
                                 match = match,
                                 onClick = { onMatchClick(match.id) },

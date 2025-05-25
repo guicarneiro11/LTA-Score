@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.guicarneirodev.ltascore.android.di
 
 import com.google.firebase.auth.FirebaseAuth
@@ -53,7 +51,7 @@ import com.guicarneirodev.ltascore.domain.usecases.ManageMatchPredictionsUseCase
 import com.guicarneirodev.ltascore.domain.usecases.ShareVoteToTeamFeedUseCase
 import com.guicarneirodev.ltascore.domain.usecases.SubmitPlayerVoteUseCase
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
@@ -91,7 +89,7 @@ val appModule = module {
     single { ShareVoteToTeamFeedUseCase(get(), get(), get()) }
     single { ManageMatchPredictionsUseCase(get(), get()) }
 
-    viewModel { MatchesViewModel(get(), get(), get()) }
+    viewModel { MatchesViewModel(get(), get(), get(), get()) }
     viewModel { VotingViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { MatchSummaryViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { AuthViewModel(get(), get(), get()) }
