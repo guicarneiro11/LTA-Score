@@ -208,11 +208,11 @@ class PlayersDataSource {
 
             if (matchDate < yuujiStartDate) {
                 println("Retornando time Team Liquid com UmTi na jungle (até 18/05)")
-                return allTeamPlayers.filter { it.id != "player_rise_umti" }
+                return allTeamPlayers.filter { it.id != "player_teamliquid_yuuji" }
             }
             else {
                 println("Retornando time Team Liquid com Yuuji na jungle (a partir de 18/05)")
-                return allTeamPlayers.filter { it.id != "player_rise_yuuji" }
+                return allTeamPlayers.filter { it.id != "player_teamliquid_umti" }
             }
         }
 
