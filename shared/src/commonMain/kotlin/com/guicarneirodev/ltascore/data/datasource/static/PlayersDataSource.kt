@@ -201,6 +201,21 @@ class PlayersDataSource {
             }
         }
 
+        if (teamId == "team-liquid-honda") {
+            val yuujiStartDate = Instant.parse("2025-05-18T00:00:00Z")
+
+            println("Partida Team Liquid de ${matchDate}, verificando elenco")
+
+            if (matchDate < yuujiStartDate) {
+                println("Retornando time Team Liquid com UmTi na jungle (até 18/05)")
+                return allTeamPlayers.filter { it.id != "player_rise_umti" }
+            }
+            else {
+                println("Retornando time Team Liquid com Yuuji na jungle (a partir de 18/05)")
+                return allTeamPlayers.filter { it.id != "player_rise_yuuji" }
+            }
+        }
+
         return allTeamPlayers
     }
 
@@ -708,6 +723,14 @@ class PlayersDataSource {
                 name = "Um Sung-hyeon",
                 nickname = "UmTi",
                 imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/e/e6/TL_UmTi_2025_Split_1.png/revision/latest?cb=20250311032359",
+                position = PlayerPosition.JUNGLE,
+                teamId = "team-liquid-honda"
+            ),
+            Player(
+                id = "player_teamliquid_yuuji",
+                name = "Ganbat Ulziidelger",
+                nickname = "Yuuji",
+                imageUrl = "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/0/0b/DSTL_Yuuji_AC_2024.png/revision/latest/scale-to-width-down/1024?cb=20240916213812",
                 position = PlayerPosition.JUNGLE,
                 teamId = "team-liquid-honda"
             ),
