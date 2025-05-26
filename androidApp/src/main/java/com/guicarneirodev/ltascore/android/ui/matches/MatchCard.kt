@@ -29,7 +29,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -93,7 +93,7 @@ fun MatchCard(
                 )
             }
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = Color(0xFF333340)
             )
@@ -117,7 +117,6 @@ fun MatchCard(
                             horizontalArrangement = Arrangement.End
                         ) {
                             LogoImage(
-                                imageUrl = match.teams[0].imageUrl,
                                 name = match.teams[0].name,
                                 code = match.teams[0].code
                             )
@@ -239,7 +238,6 @@ fun MatchCard(
                             Spacer(modifier = Modifier.width(8.dp))
 
                             LogoImage(
-                                imageUrl = match.teams[1].imageUrl,
                                 name = match.teams[1].name,
                                 code = match.teams[1].code
                             )

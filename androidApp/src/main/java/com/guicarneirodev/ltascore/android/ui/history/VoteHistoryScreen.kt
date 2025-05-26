@@ -180,7 +180,7 @@ fun VoteHistoryScreen(
                         }
 
                         item(key = "divider_$groupKey") {
-                            Divider(
+                            HorizontalDivider(
                                 color = Color(0xFF333340),
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )

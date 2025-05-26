@@ -47,7 +47,7 @@ class FirebaseMatchPredictionRepository(
             }
 
             val predictionId = "${prediction.userId}_${prediction.matchId}"
-            val predictionData = hashMapOf(
+            val predictionData = hashMapOf<String, Any>(
                 "id" to predictionId,
                 "matchId" to prediction.matchId,
                 "userId" to prediction.userId,

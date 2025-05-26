@@ -75,8 +75,7 @@ fun EditProfileScreen(
     }
 
     val actualOnBackClick = {
-        // Força refresh antes de voltar
-        FavoriteTeamCache.getFavoriteTeam()?.let { teamId ->
+        FavoriteTeamCache.getFavoriteTeam()?.let { _ ->
             authViewModel.triggerUserRefresh()
         }
         onBackClick()
@@ -235,7 +234,6 @@ fun TeamCard(
                 modifier = Modifier.padding(8.dp)
             ) {
                 LogoImage(
-                    imageUrl = team.imageUrl,
                     name = team.name,
                     code = team.code
                 )

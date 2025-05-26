@@ -60,11 +60,11 @@ class AuthViewModel(
     val usernameAvailabilityState: StateFlow<UsernameCheckState> = _usernameAvailabilityState.asStateFlow()
 
     sealed class UsernameCheckState {
-        object Initial : UsernameCheckState()
-        object Available : UsernameCheckState()
+        data object Initial : UsernameCheckState()
+        data object Available : UsernameCheckState()
         data class Unavailable(val message: String) : UsernameCheckState()
         data class Error(val message: String) : UsernameCheckState()
-        object Checking : UsernameCheckState()
+        data object Checking : UsernameCheckState()
     }
 
     private val _forceUserRefresh = MutableStateFlow(0)
@@ -83,7 +83,7 @@ class AuthViewModel(
 
     init {
         viewModelScope.launch {
-            UserEvents.userUpdated.collect { userId ->
+            UserEvents.userUpdated.collect {
                 userRepository.refreshCurrentUser()
                 triggerUserRefresh()
                 println("AuthViewModel recebeu evento de atualização e forçou refresh")

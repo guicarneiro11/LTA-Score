@@ -75,7 +75,7 @@ class FirebaseRankingRepository(
                 matchIds.add(match.id)
             }
 
-            println("📊 Encontradas ${matchIds.size} partidas do cache local")
+            println("Encontradas ${matchIds.size} partidas do cache local")
 
             if (matchIds.isEmpty()) {
                 try {
@@ -86,17 +86,17 @@ class FirebaseRankingRepository(
                         for (doc in votesSnapshot.documents) {
                             matchIds.add(doc.id)
                         }
-                        println("✅ Encontradas ${matchIds.size} partidas na coleção votes")
+                        println("Encontradas ${matchIds.size} partidas na coleção votes")
                     } else {
-                        println("⚠️ Nenhuma partida encontrada na coleção votes")
+                        println("Nenhuma partida encontrada na coleção votes")
                     }
                 } catch (e: Exception) {
-                    println("❌ Erro ao acessar coleção votes: ${e.message}")
+                    println("Erro ao acessar coleção votes: ${e.message}")
                 }
             }
 
             if (matchIds.isEmpty()) {
-                println("⚠️ Nenhuma partida encontrada das fontes primárias. Gerando IDs potenciais...")
+                println("Nenhuma partida encontrada das fontes primárias. Gerando IDs potenciais...")
 
                 val baseIds = listOf(
                     "114103277164844275",
@@ -113,10 +113,10 @@ class FirebaseRankingRepository(
                     }
                 }
 
-                println("📊 Gerados ${matchIds.size} IDs potenciais de partidas")
+                println("Gerados ${matchIds.size} IDs potenciais de partidas")
             }
 
-            println("📊 Total de ${matchIds.size} partidas para processar")
+            println("Total de ${matchIds.size} partidas para processar")
 
             var matchesProcessed = 0
             var playersFound = 0
@@ -133,7 +133,7 @@ class FirebaseRankingRepository(
                         matchesProcessed++
                         val playerCount = playersSnapshot.size()
                         playersFound += playerCount
-                        println("✅ Partida $matchId: encontrados $playerCount jogadores")
+                        println("Partida $matchId: encontrados $playerCount jogadores")
 
                         for (playerDoc in playersSnapshot.documents) {
                             val playerId = playerDoc.id
@@ -142,7 +142,7 @@ class FirebaseRankingRepository(
                             val lastUpdated = playerDoc.getDate("lastUpdated")
 
                             if (totalVotes > 0) {
-                                println("🎮 Jogador $playerId: rating $averageRating, $totalVotes votos")
+                                println("Jogador $playerId: rating $averageRating, $totalVotes votos")
 
                                 val playerData = result.getOrPut(playerId) {
                                     PlayerData(
@@ -166,27 +166,27 @@ class FirebaseRankingRepository(
                             }
                         }
                     } else {
-                        println("⚠️ Partida $matchId: não tem jogadores ou não existe")
+                        println("Partida $matchId: não tem jogadores ou não existe")
                     }
                 } catch (e: Exception) {
-                    println("❌ Erro ao processar partida $matchId: ${e.message}")
+                    println("Erro ao processar partida $matchId: ${e.message}")
                 }
             }
 
-            println("📊 Resumo: Processadas $matchesProcessed partidas, encontrados $playersFound jogadores totais")
+            println("Resumo: Processadas $matchesProcessed partidas, encontrados $playersFound jogadores totais")
 
             result.forEach { (playerId, data) ->
                 if (data.totalVotesAcrossMatches > 0) {
                     data.averageRating = data.totalRating / data.totalVotesAcrossMatches
-                    println("🏆 FINAL: Jogador $playerId - Média ${data.averageRating} com ${data.totalVotesAcrossMatches} votos em ${data.totalMatches} partidas")
+                    println("FINAL: Jogador $playerId - Média ${data.averageRating} com ${data.totalVotesAcrossMatches} votos em ${data.totalMatches} partidas")
                 }
             }
 
-            println("✅ Ranking completo: ${result.size} jogadores agregados com sucesso")
+            println("Ranking completo: ${result.size} jogadores agregados com sucesso")
 
             return result
         } catch (e: Exception) {
-            println("🛑 ERRO CRÍTICO: ${e.message}")
+            println("Erro: ${e.message}")
             e.printStackTrace()
             return emptyMap()
         }

@@ -253,16 +253,16 @@ class FirebaseFriendshipRepository(
             val friendsListener = firestore.collection("user_friends")
                 .document(currentUser.id)
                 .collection("friends")
-                .addSnapshotListener { friendsSnapshot, friendsError ->
+                .addSnapshotListener friendsListener@{ friendsSnapshot, friendsError ->
                     if (friendsError != null) {
                         println("Erro ao observar lista de amigos: ${friendsError.message}")
-                        return@addSnapshotListener
+                        return@friendsListener
                     }
 
                     if (friendsSnapshot == null || friendsSnapshot.isEmpty) {
                         println("Nenhum amigo encontrado")
                         trySend(emptyList())
-                        return@addSnapshotListener
+                        return@friendsListener
                     }
 
                     listeners.forEach { it.remove() }
@@ -280,17 +280,17 @@ class FirebaseFriendshipRepository(
                             .collection("votes")
                             .orderBy("timestamp", Query.Direction.DESCENDING)
                             .limit(15)
-                            .addSnapshotListener { votesSnapshot, votesError ->
+                            .addSnapshotListener votesListener@{ votesSnapshot, votesError ->
                                 if (votesError != null) {
                                     println("Erro ao observar votos do amigo $friendUsername: ${votesError.message}")
-                                    return@addSnapshotListener
+                                    return@votesListener
                                 }
 
                                 if (votesSnapshot == null || votesSnapshot.isEmpty) {
                                     println("Nenhum voto encontrado para o amigo $friendUsername")
                                     allFriendsVotes[friendId] = emptyList()
                                     updateFeed()
-                                    return@addSnapshotListener
+                                    return@votesListener
                                 }
 
                                 val friendVotes = votesSnapshot.documents.mapNotNull { doc ->

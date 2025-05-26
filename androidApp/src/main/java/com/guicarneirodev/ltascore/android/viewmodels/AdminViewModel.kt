@@ -55,9 +55,7 @@ class AdminViewModel(
 
                 val participatingPlayerIds = matchPlayersRepository.getParticipatingPlayers(matchId).first()
 
-                val selectedIds = if (participatingPlayerIds.isNotEmpty()) {
-                    participatingPlayerIds
-                } else {
+                val selectedIds = participatingPlayerIds.ifEmpty {
                     val defaultSelectedIds = mutableListOf<String>()
                     match.teams.forEach { team ->
                         val positionsSelected = mutableSetOf<String>()

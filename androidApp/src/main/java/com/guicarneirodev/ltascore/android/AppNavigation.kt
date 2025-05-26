@@ -30,43 +30,40 @@ import com.guicarneirodev.ltascore.android.ui.voting.VotingScreen
 import com.guicarneirodev.ltascore.android.viewmodels.AuthViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsViewModel
 import com.guicarneirodev.ltascore.android.viewmodels.MatchSummaryViewModel
-import com.guicarneirodev.ltascore.domain.models.MatchState
 import com.guicarneirodev.ltascore.domain.repository.AdminRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
 import com.guicarneirodev.ltascore.domain.repository.VoteRepository
-import com.guicarneirodev.ltascore.domain.usecases.GetMatchByIdUseCase
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 sealed class Screen(val route: String) {
-    object Login : Screen("login")
-    object Register : Screen("register")
-    object ResetPassword : Screen("reset_password")
-    object Matches : Screen("matches")
-    object Profile : Screen("profile?teamId={teamId}") {
+    data object Login : Screen("login")
+    data object Register : Screen("register")
+    data object ResetPassword : Screen("reset_password")
+    data object Matches : Screen("matches")
+    data object Profile : Screen("profile?teamId={teamId}") {
         fun createRoute(teamId: String? = null): String {
             return if (teamId != null) "profile?teamId=$teamId" else "profile"
         }
     }
-    object Ranking : Screen("ranking")
-    object VoteHistory : Screen("vote_history")
-    object FriendsFeed : Screen("friends_feed")
-    object EditProfile : Screen("edit_profile")
+    data object Ranking : Screen("ranking")
+    data object VoteHistory : Screen("vote_history")
+    data object FriendsFeed : Screen("friends_feed")
+    data object EditProfile : Screen("edit_profile")
 
-    object Voting : Screen("voting/{matchId}?isAdmin={isAdmin}") {
+    data object Voting : Screen("voting/{matchId}?isAdmin={isAdmin}") {
         fun createRoute(matchId: String, isAdmin: Boolean = false) =
             "voting/$matchId?isAdmin=$isAdmin"
     }
 
-    object MatchSummary : Screen("match_summary/{matchId}") {
+    data object MatchSummary : Screen("match_summary/{matchId}") {
         fun createRoute(matchId: String) = "match_summary/$matchId"
     }
 
-    object NotificationSettings : Screen("notification_settings")
+    data object NotificationSettings : Screen("notification_settings")
 
-    object AdminMatchPlayers : Screen("admin_match_players/{matchId}") {
+    data object AdminMatchPlayers : Screen("admin_match_players/{matchId}") {
         fun createRoute(matchId: String) = "admin_match_players/$matchId"
     }
 }
@@ -194,9 +191,6 @@ fun AppNavigation(
                 },
                 onNavigateToRanking = {
                     navController.navigate(Screen.Ranking.route)
-                },
-                onNavigateToFriendsFeed = {
-                    navController.navigate(Screen.FriendsFeed.route)
                 },
                 onNavigateToEditProfile = {
                     navController.navigate(Screen.EditProfile.route)
@@ -433,10 +427,10 @@ private fun navigateToMatchDetails(
                         userPreferencesRepository.markMatchVoted(currentUser.id, matchId)
                         navController.navigate(Screen.MatchSummary.createRoute(matchId))
                     } else {
-                        navController.navigate("voting/${matchId}?isAdmin=${isAdmin}")
+                        navController.navigate("voting/${matchId}?isAdmin=false")
                     }
                 } catch (_: Exception) {
-                    navController.navigate("voting/${matchId}?isAdmin=${isAdmin}")
+                    navController.navigate("voting/${matchId}?isAdmin=false")
                 }
             } else {
                 navController.navigate(Screen.Login.route)

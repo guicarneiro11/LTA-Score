@@ -1,6 +1,5 @@
 package com.guicarneirodev.ltascore.android.data.repository
 
-import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.tasks.await
@@ -33,38 +32,6 @@ class NotificationTokenRepository(
         }
     }
 
-    suspend fun verifyTokensForNotifications(): Map<String, Any> {
-        val result = mutableMapOf<String, Any>()
-
-        try {
-            val tokensSnapshot = firestore.collection("user_tokens")
-                .get()
-                .await()
-
-            val totalTokens = tokensSnapshot.size()
-            val validTokens = tokensSnapshot.documents.count { it.contains("token") }
-            val matchNotificationsEnabled = tokensSnapshot.documents.count {
-                it.getBoolean("matchNotifications") == true
-            }
-            val liveMatchNotificationsEnabled = tokensSnapshot.documents.count {
-                it.getBoolean("liveMatchNotifications") == true
-            }
-            val resultNotificationsEnabled = tokensSnapshot.documents.count {
-                it.getBoolean("resultNotifications") == true
-            }
-
-            result["totalTokens"] = totalTokens
-            result["validTokens"] = validTokens
-            result["matchNotificationsEnabled"] = matchNotificationsEnabled
-            result["liveMatchNotificationsEnabled"] = liveMatchNotificationsEnabled
-            result["resultNotificationsEnabled"] = resultNotificationsEnabled
-
-            return result
-        } catch (e: Exception) {
-            throw e
-        }
-    }
-
     suspend fun updateNotificationPreferences(
         userId: String,
         matchNotifications: Boolean? = null,
@@ -90,44 +57,6 @@ class NotificationTokenRepository(
             }
         } catch (e: Exception) {
             println("Failed to update notification preferences: ${e.message}")
-        }
-    }
-
-    suspend fun sendTestNotification(userId: String) {
-        try {
-            val userDoc = firestore.collection("user_tokens")
-                .document(userId)
-                .get()
-                .await()
-
-            if (!userDoc.exists()) {
-                Log.e("TestNotification", "Token não encontrado para usuário $userId")
-                return
-            }
-
-            val token = userDoc.getString("token")
-            if (token.isNullOrEmpty()) {
-                Log.e("TestNotification", "Token inválido para usuário $userId")
-                return
-            }
-
-            Log.d("TestNotification", "Token encontrado para usuário $userId: $token")
-            Log.d("TestNotification", "Para testar, envie uma notificação de teste pelo console do Firebase")
-        } catch (e: Exception) {
-            Log.e("TestNotification", "Erro ao enviar notificação de teste: ${e.message}")
-        }
-    }
-
-    suspend fun unregisterFromNotifications(userId: String) {
-        try {
-            firestore.collection("user_tokens")
-                .document(userId)
-                .delete()
-                .await()
-
-            println("User unregistered from notifications")
-        } catch (e: Exception) {
-            println("Failed to unregister from notifications: ${e.message}")
         }
     }
 }

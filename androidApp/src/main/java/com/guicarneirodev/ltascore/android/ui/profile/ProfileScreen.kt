@@ -39,8 +39,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -87,7 +87,6 @@ fun ProfileScreen(
     friendsViewModel: FriendsViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel(),
     editProfileViewModel: EditProfileViewModel = koinViewModel(),
-    onNavigateToFriendsFeed: () -> Unit,
     onNavigateToMatchHistory: () -> Unit,
     onNavigateToRanking: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
@@ -126,7 +125,7 @@ fun ProfileScreen(
     }
 
     LaunchedEffect(Unit) {
-        UserEvents.userUpdated.collect { userId ->
+        UserEvents.userUpdated.collect { _ ->
             updateTrigger++
             println("ProfileScreen recebeu evento de atualização, trigger: $updateTrigger")
         }
@@ -219,7 +218,6 @@ fun ProfileScreen(
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
                                     LogoImage(
-                                        imageUrl = displayTeam.imageUrl,
                                         name = displayTeam.name,
                                         code = displayTeam.code
                                     )
@@ -351,7 +349,9 @@ private fun createTemporaryTeamItem(teamId: String): TeamFilterItem {
 
     return TeamFilterItem(
         id = teamId,
-        name = teamId.split("-").joinToString(" ") { it.capitalize() },
+        name = teamId.split("-").joinToString(" ") {
+            it.replaceFirstChar { char -> char.titlecase() }
+        },
         code = code,
         imageUrl = ""
     )
@@ -722,7 +722,7 @@ fun ProfileOptionsSection(
                 onClick = onNavigateToMatchHistory
             )
 
-            Divider(color = LTAThemeColors.DarkBackground, thickness = 1.dp)
+            HorizontalDivider(color = LTAThemeColors.DarkBackground, thickness = 1.dp)
 
             ProfileOptionItem(
                 icon = Icons.Default.Leaderboard,

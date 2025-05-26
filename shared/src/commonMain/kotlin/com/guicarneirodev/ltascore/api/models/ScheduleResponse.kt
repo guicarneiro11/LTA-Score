@@ -50,7 +50,6 @@ data class League(
     val id: String = ""
 )
 
-// Modelo para detalhes de um evento específico
 @Serializable
 data class EventDetail(
     val id: String = "",

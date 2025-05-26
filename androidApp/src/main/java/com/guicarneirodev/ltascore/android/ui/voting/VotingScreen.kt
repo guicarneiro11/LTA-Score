@@ -1,6 +1,5 @@
 package com.guicarneirodev.ltascore.android.ui.voting
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,8 +18,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,10 +36,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
-import org.koin.androidx.compose.koinViewModel
 import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.ui.admin.AdminPlayerVotingItem
+import com.guicarneirodev.ltascore.android.viewmodels.VotingViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,7 +115,7 @@ fun VotingScreen(
                     team2Score = uiState.match!!.teams[1].result.gameWins,
                 )
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 if (isAdmin) {
                     Card(

@@ -3,7 +3,6 @@ package com.guicarneirodev.ltascore.android.ui.friends
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import com.guicarneirodev.ltascore.android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,8 +29,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
+import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.android.ui.friends.social.CommentSection
 import com.guicarneirodev.ltascore.android.ui.friends.social.ReactionBar
 import com.guicarneirodev.ltascore.android.viewmodels.FriendsFeedViewModel
@@ -132,14 +132,13 @@ fun FriendsFeedScreen(
                     }
                 )
 
-                // Abas
                 TabRow(
                     selectedTabIndex = uiState.activeTab,
                     containerColor = LTAThemeColors.PrimaryGold,
                     contentColor = Color.White,
                     indicator = { tabPositions ->
                         if (uiState.activeTab < tabPositions.size) {
-                            TabRowDefaults.Indicator(
+                            TabRowDefaults.SecondaryIndicator(
                                 modifier = Modifier.tabIndicatorOffset(tabPositions[uiState.activeTab]),
                                 height = 3.dp,
                                 color = Color.White
@@ -238,7 +237,9 @@ fun FriendsFeedScreen(
                     1 -> {
                         if (uiState.currentUserTeamId == null) {
                             NoTeamSelectedContent(
-                                onEditProfileClick = { /* Navegar para tela de edição de perfil */ }
+                                onEditProfileClick = {
+
+                                }
                             )
                         } else if (uiState.teamFeed.isEmpty()) {
                             EmptyTeamFeedContent()
@@ -401,7 +402,7 @@ fun TeamFeedContent(
             }
 
             item(key = "divider_$groupKey") {
-                Divider(
+                HorizontalDivider(
                     color = Color(0xFF333340),
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -582,7 +583,7 @@ fun FriendsFeedContent(
             }
 
             item(key = "divider_$groupKey") {
-                Divider(
+                HorizontalDivider(
                     color = Color(0xFF333340),
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -695,7 +696,6 @@ fun TeamVoteItem(
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Imagem do jogador
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(vote.playerImage)
@@ -708,7 +708,6 @@ fun TeamVoteItem(
                         .clip(RoundedCornerShape(8.dp))
                 )
 
-                // Informações do jogador
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -729,7 +728,6 @@ fun TeamVoteItem(
 
                         Spacer(modifier = Modifier.width(8.dp))
 
-                        // Mostrar quando foi compartilhado
                         Text(
                             text = stringResource(R.string.shared_at, formatTime(vote.sharedAt)),
                             style = MaterialTheme.typography.bodySmall,
@@ -738,7 +736,6 @@ fun TeamVoteItem(
                     }
                 }
 
-                // Nota do jogador
                 Column(
                     horizontalAlignment = Alignment.End
                 ) {
@@ -749,7 +746,6 @@ fun TeamVoteItem(
                         color = ratingColor
                     )
 
-                    // Barra visual da nota
                     Box(
                         modifier = Modifier
                             .width(60.dp)
@@ -771,7 +767,6 @@ fun TeamVoteItem(
                 }
             }
 
-            // Destaque visual se for o voto do usuário atual
             if (isCurrentUser) {
                 Box(
                     modifier = Modifier
@@ -781,7 +776,6 @@ fun TeamVoteItem(
                 )
             }
 
-            // Seção de reações
             ReactionBar(
                 voteId = vote.id,
                 reactions = reactions,
@@ -790,7 +784,6 @@ fun TeamVoteItem(
                 onReactionRemoved = onRemoveReaction
             )
 
-            // Separador entre reações e comentários
             Spacer(modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
@@ -798,7 +791,6 @@ fun TeamVoteItem(
                 .background(LTAThemeColors.DarkBackground)
             )
 
-            // Seção de comentários
             CommentSection(
                 voteId = vote.id,
                 comments = comments,
@@ -925,7 +917,7 @@ fun FriendVoteItem(
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
-                                .width(60.dp * (vote.rating.toFloat() / 10f))
+                                .width(60.dp * (vote.rating / 10f))
                                 .background(
                                     brush = Brush.horizontalGradient(
                                         colors = listOf(ratingColor.copy(alpha = 0.7f), ratingColor)

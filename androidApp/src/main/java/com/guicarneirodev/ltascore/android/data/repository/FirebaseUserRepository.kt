@@ -25,8 +25,6 @@ class FirebaseUserRepository(
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     override fun getCurrentUser(): Flow<User?> = callbackFlow {
-        var lastEmittedUserId: String? = null
-
         var lastUser: User? = null
 
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
@@ -61,7 +59,6 @@ class FirebaseUserRepository(
             coroutineScope.launch {
                 try {
                     val user = getUserData(auth.currentUser!!)
-                    lastEmittedUserId = user.id
                     trySend(user)
                     println("Emissão inicial de usuário: ${user.id}, time: ${user.favoriteTeamId}")
                 } catch (e: Exception) {

@@ -6,11 +6,11 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
@@ -25,6 +25,16 @@ class MainActivity : ComponentActivity() {
     private val userRepository: UserRepository by inject()
     private val voteRepository: VoteRepository by inject()
     private val userPreferencesRepository: UserPreferencesRepository by inject()
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            Log.d("MainActivity", "Notification permission granted")
+        } else {
+            Log.d("MainActivity", "Notification permission denied")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,28 +63,16 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val notificationPermission = android.Manifest.permission.POST_NOTIFICATIONS
 
-            if (ContextCompat.checkSelfPermission(
+            when {
+                ContextCompat.checkSelfPermission(
                     this,
                     notificationPermission
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(notificationPermission),
-                    100
-                )
-            }
-        }
-    }
-
-    private fun checkNotificationDiagnostics() {
-        lifecycleScope.launch {
-            try {
-                val tokenRepository = NotificationTokenRepository()
-                val diagnostics = tokenRepository.verifyTokensForNotifications()
-                Log.d("NotificationDiagnostics", "Tokens diagnóstico: $diagnostics")
-            } catch (e: Exception) {
-                Log.e("NotificationDiagnostics", "Falha ao verificar tokens: ${e.message}")
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    Log.d("MainActivity", "Notification permission already granted")
+                }
+                else -> {
+                    requestPermissionLauncher.launch(notificationPermission)
+                }
             }
         }
     }
@@ -88,25 +86,6 @@ class MainActivity : ComponentActivity() {
                 } catch (e: Exception) {
                     Log.e("MainActivity", "Failed to register FCM token: ${e.message}")
                 }
-            }
-        }
-    }
-
-    @Deprecated(
-        "This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)} passing\n      in a {@link RequestMultiplePermissions} object for the {@link ActivityResultContract} and\n      handling the result in the {@link ActivityResultCallback#onActivityResult(Object) callback}."
-    )
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == 100) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("MainActivity", "Notification permission granted")
-            } else {
-                Log.d("MainActivity", "Notification permission denied")
             }
         }
     }

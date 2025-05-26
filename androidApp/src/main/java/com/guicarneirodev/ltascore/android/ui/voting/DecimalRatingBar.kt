@@ -1,7 +1,6 @@
 package com.guicarneirodev.ltascore.android.ui.voting
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +17,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,7 +35,6 @@ fun DecimalRatingBar(
     maxRating: Float = 10f,
     steps: Int = 100
 ) {
-
     val formattedRating = String.format("%.1f", rating)
     val ratingColor = when {
         rating < 3f -> MaterialTheme.colorScheme.error

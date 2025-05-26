@@ -46,11 +46,4 @@ class ManageMatchPredictionsUseCase(
     suspend fun getMatchPredictionStats(matchId: String): Flow<MatchPredictionStats> {
         return predictionRepository.getMatchPredictionStats(matchId)
     }
-
-    suspend fun hasUserPredicted(matchId: String): Flow<Boolean> {
-        val currentUser = userRepository.getCurrentUser().first()
-            ?: return kotlinx.coroutines.flow.flowOf(false)
-
-        return predictionRepository.hasUserPredicted(currentUser.id, matchId)
-    }
 }

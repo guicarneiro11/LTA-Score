@@ -7,8 +7,10 @@ plugins {
 kotlin {
     androidTarget {
         compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+                }
             }
         }
     }
@@ -23,7 +25,6 @@ kotlin {
             isStatic = true
         }
     }
-
 
     sourceSets {
         commonMain.dependencies {
@@ -57,12 +58,10 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.ktor.client.android)
-
             implementation(libs.firebase.functions)
         }
 
         iosMain.dependencies {
-            // Ktor for iOS
             implementation(libs.ktor.client.ios)
         }
     }

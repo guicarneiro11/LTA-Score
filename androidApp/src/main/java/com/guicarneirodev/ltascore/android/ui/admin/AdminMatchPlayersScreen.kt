@@ -163,7 +163,6 @@ fun AdminMatchPlayersScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Agrupar jogadores por time
                     val playersByTeam = uiState.allPlayers.groupBy { player ->
                         uiState.match!!.teams.find { team -> team.id == player.teamId }?.name ?: "Time Desconhecido"
                     }
@@ -262,7 +261,7 @@ fun AdminMatchPlayersScreen(
                             }
 
                             item {
-                                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                             }
                         }
                     }

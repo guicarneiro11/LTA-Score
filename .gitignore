@@ -34,3 +34,13 @@ google-services.json
 
 # API Config
 /shared/src/commonMain/kotlin/com/guicarneirodev/ltascore/api/config/ApiConfig.kt
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/dev.gitlive-firebase-app-1.8.0-commonMain-R0Yf-Q.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/dev.gitlive-firebase-app-1.8.0-iosMain-wOCGIg.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/dev.gitlive-firebase-common-1.8.0-commonMain-2fPJ6w.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/dev.gitlive-firebase-common-1.8.0-iosMain-BM90kw.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/dev.gitlive-firebase-functions-1.8.0-commonMain-zkHdRQ.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/dev.gitlive-firebase-functions-1.8.0-iosMain-AwjG_g.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/org.jetbrains.kotlinx-kotlinx-serialization-core-1.7.3-commonMain-s2qClw.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/org.jetbrains.kotlinx-kotlinx-serialization-core-1.7.3-nativeMain-s2qClw.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/org.jetbrains.kotlinx-kotlinx-serialization-json-1.7.3-commonMain-O4ZS7Q.klib
+/.kotlin/metadata/kotlinTransformedMetadataLibraries/org.jetbrains.kotlinx-kotlinx-serialization-json-1.7.3-nativeMain-O4ZS7Q.klib

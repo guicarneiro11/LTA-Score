@@ -28,10 +28,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.guicarneirodev.ltascore.android.LTAThemeColors
@@ -70,12 +71,11 @@ import com.guicarneirodev.ltascore.data.datasource.static.TeamLogoMapper
 import com.guicarneirodev.ltascore.domain.models.MatchState
 import com.guicarneirodev.ltascore.domain.repository.AdminRepository
 import com.guicarneirodev.ltascore.domain.repository.UserRepository
+import kotlinx.coroutines.flow.first
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
-import kotlinx.coroutines.flow.first
 import org.koin.compose.koinInject
-import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -253,7 +253,9 @@ fun MatchesScreen(
                             text = when(league.name) {
                                 "LTA Sul" -> stringResource(R.string.lta_south)
                                 "LTA Norte" -> stringResource(R.string.lta_north)
-                                "Circuito Desafiante" -> stringResource(R.string.circuito_desafiante)
+                                "Circuito Desafiante" -> {
+                                    stringResource(R.string.circuito_desafiante)
+                                }
                                 else -> league.name
                             },
                             fontWeight = if (index == uiState.selectedLeagueIndex) FontWeight.Bold else FontWeight.Normal
@@ -408,7 +410,7 @@ fun MatchesScreen(
             }
         }
 
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp),
             color = Color(0xFF333340)
         )

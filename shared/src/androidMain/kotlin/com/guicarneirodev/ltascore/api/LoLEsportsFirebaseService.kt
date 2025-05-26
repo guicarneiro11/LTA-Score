@@ -8,6 +8,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
 import com.google.gson.Gson
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class LoLEsportsFirebaseService : LoLEsportsService {
     private val functions = Firebase.functions("us-central1")
     private val json = Json {

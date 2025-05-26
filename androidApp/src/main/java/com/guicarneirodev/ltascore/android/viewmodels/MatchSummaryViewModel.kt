@@ -79,15 +79,12 @@ class MatchSummaryViewModel(
                     val filteredTeams = match.teams.map { team ->
                         val allTeamPlayers = playersDataSource.getAllPlayersByTeamId(team.id)
 
-                        // Filtrar apenas os jogadores selecionados pelo admin
                         val selectedPlayers = allTeamPlayers.filter { player ->
                             participatingPlayerIds.contains(player.id)
                         }
 
-                        val playersToUse = if (selectedPlayers.isEmpty()) {
+                        val playersToUse = selectedPlayers.ifEmpty {
                             team.players
-                        } else {
-                            selectedPlayers
                         }
 
                         team.copy(players = playersToUse)

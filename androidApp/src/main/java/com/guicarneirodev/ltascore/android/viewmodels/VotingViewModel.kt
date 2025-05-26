@@ -60,10 +60,8 @@ class VotingViewModel(
                                 participatingPlayerIds.contains(player.id)
                             }
 
-                            val playersToUse = if (selectedPlayers.isEmpty()) {
+                            val playersToUse = selectedPlayers.ifEmpty {
                                 team.players
-                            } else {
-                                selectedPlayers
                             }
 
                             team.copy(players = playersToUse)

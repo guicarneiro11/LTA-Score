@@ -594,7 +594,7 @@ class FriendsFeedViewModel(
             try {
                 println("Removendo reação do voto da torcida $voteId")
 
-                val currentUserId = _uiState.value.currentUserId
+                _uiState.value.currentUserId
 
                 val currentState = _uiState.value
                 val currentReactionsState = currentState.teamVoteReactions[voteId] ?: VoteReactionsState()

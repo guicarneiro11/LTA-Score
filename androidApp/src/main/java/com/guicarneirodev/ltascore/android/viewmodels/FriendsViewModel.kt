@@ -129,7 +129,7 @@ class FriendsViewModel(
         }
     }
 
-    fun loadFriends() {
+    private fun loadFriends() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
@@ -152,7 +152,7 @@ class FriendsViewModel(
         }
     }
 
-    fun loadFriendRequests() {
+    private fun loadFriendRequests() {
         viewModelScope.launch {
             _requestsUiState.value = _requestsUiState.value.copy(
                 isLoading = true,

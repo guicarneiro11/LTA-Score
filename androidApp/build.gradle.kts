@@ -15,8 +15,10 @@ android {
         targetSdk = 35
         versionCode = 20
         versionName = "1.8.0"
-
-        resourceConfigurations.addAll(listOf("en", "pt"))
+    }
+    @Suppress("UnstableApiUsage")
+    androidResources {
+        localeFilters += listOf("en", "pt")
     }
     buildFeatures {
         compose = true

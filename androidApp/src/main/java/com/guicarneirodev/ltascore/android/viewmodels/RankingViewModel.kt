@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.Locale
 import com.guicarneirodev.ltascore.android.R
 import com.guicarneirodev.ltascore.domain.models.TeamFilterItem
 
@@ -53,7 +52,9 @@ class RankingViewModel(
 
                     TeamFilterItem(
                         id = teamId,
-                        name = teamId.split("-").joinToString(" ") { it.capitalize(Locale.ROOT) },
+                        name = teamId.split("-").joinToString(" ") {
+                            it.replaceFirstChar { char -> char.titlecase() }
+                        },
                         code = teamCode,
                         imageUrl = ""
                     )
@@ -66,7 +67,7 @@ class RankingViewModel(
         }
     }
 
-    fun loadRanking() {
+    private fun loadRanking() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 

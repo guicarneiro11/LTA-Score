@@ -27,8 +27,7 @@ data class EditProfileUiState(
 
 class EditProfileViewModel(
     private val userRepository: UserRepository,
-    private val matchRepository: MatchRepository,
-    private val authViewModel: AuthViewModel
+    private val matchRepository: MatchRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
@@ -73,7 +72,6 @@ class EditProfileViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             try {
-                // Definir os times padrão com IDs internos
                 val ltaSulTeamsDefault = listOf(
                     TeamFilterItem("loud", "LOUD", "LOUD", ""),
                     TeamFilterItem("pain-gaming", "paiN Gaming", "PAIN", ""),
@@ -107,41 +105,28 @@ class EditProfileViewModel(
                     TeamFilterItem("corinthians", "Corinthians Esports", "SCCP", "")
                 )
 
-                // Aplicar os logos estáticos para cada time
                 val ltaSulTeams = ltaSulTeamsDefault.map { TeamLogoMapper.updateTeamLogoUrl(it) }
                 val ltaNorteTeams = ltaNorteTeamsDefault.map { TeamLogoMapper.updateTeamLogoUrl(it) }
                 val circuitoTeams = circuitoTeamsDefault.map { TeamLogoMapper.updateTeamLogoUrl(it) }
                     .filter { circuitoTeam ->
-                        // Filtrar times do Circuito que já existem na LTA
                         !ltaSulTeams.any { it.id == circuitoTeam.id } &&
                                 !ltaNorteTeams.any { it.id == circuitoTeam.id }
                     }
 
-                // Combinar todos os times
                 val allTeams = ltaSulTeams + ltaNorteTeams + circuitoTeams
 
-                // Tentar obter dados atualizados para nomes, etc. (não para URLs de imagens)
                 try {
-                    // Esse trecho pode ser mantido se você quiser continuar obtendo dados atualizados
-                    // sobre nomes de times, etc. da API, mas não usaremos as URLs de imagem da API
-                    val matchesSul = matchRepository.getMatches("lta_s").first()
-                    val matchesNorte = matchRepository.getMatches("lta_n").first()
-                    val matchesCircuito = try {
+                    matchRepository.getMatches("lta_s").first()
+                    matchRepository.getMatches("lta_n").first()
+                    try {
                         matchRepository.getMatches("cd").first()
                     } catch (e: Exception) {
                         emptyList()
                     }
-
-                    // Aqui você pode processar esses dados se quiser atualizar nomes de times, etc.
-                    // Mas não usamos as URLs de logo da API em nenhum momento
-
-                    // Para simplificar, vamos apenas usar os dados padrão com as URLs estáticas
                 } catch (e: Exception) {
-                    // Se falhar ao buscar da API, apenas continue com os dados padrão
                     println("Aviso: Não foi possível obter dados atualizados da API: ${e.message}")
                 }
 
-                // Atualizar o estado com os times e seus logos estáticos
                 _uiState.value = _uiState.value.copy(
                     availableTeams = allTeams,
                     isLoading = false

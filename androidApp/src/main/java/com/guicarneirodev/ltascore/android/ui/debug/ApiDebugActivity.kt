@@ -50,7 +50,7 @@ class ApiDebugActivity : ComponentActivity() {
 fun ApiDebugScreen(
     onTestApi: (String) -> Unit
 ) {
-    var logText by remember { mutableStateOf("Logs de API aparecerão aqui...") }
+    val logText by remember { mutableStateOf("Logs de API aparecerão aqui...") }
     var selectedLeague by remember { mutableStateOf("lta_s") }
 
     Column(

@@ -28,11 +28,9 @@ import java.util.TimeZone
 
 @Composable
 fun LogoImage(
-    imageUrl: String,
     name: String,
     code: String
 ) {
-    // Extrair o ID do time a partir do código ou nome, se necessário
     val teamId = when(code) {
         "LOUD" -> "loud"
         "PAIN" -> "pain-gaming"
@@ -61,12 +59,11 @@ fun LogoImage(
         else -> null
     }
 
-    // Usar a URL estática do logo em vez da URL da API
     val staticLogoUrl = TeamLogoMapper.getTeamLogoUrl(teamId)
 
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
-            .data(staticLogoUrl) // Use a URL estática em vez de imageUrl da API
+            .data(staticLogoUrl)
             .crossfade(true)
             .diskCachePolicy(CachePolicy.ENABLED)
             .memoryCachePolicy(CachePolicy.ENABLED)

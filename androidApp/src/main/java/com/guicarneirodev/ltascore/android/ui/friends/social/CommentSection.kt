@@ -24,7 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -133,13 +133,13 @@ fun CommentSection(
                         }
                     }
 
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(vertical = 8.dp),
                         color = LTAThemeColors.DarkBackground
                     )
                 } else {
                     Text(
-                        stringResource(R.string.comments_count, uniqueComments.size),
+                        stringResource(R.string.no_comments),
                         style = MaterialTheme.typography.bodySmall,
                         color = LTAThemeColors.TextSecondary,
                         modifier = Modifier

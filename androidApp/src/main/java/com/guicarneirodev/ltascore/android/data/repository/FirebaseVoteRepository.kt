@@ -36,12 +36,12 @@ class FirebaseVoteRepository(
             .limit(50)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    trySend(emptyList<Vote>())
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
 
                 if (snapshot != null) {
-                    trySend(emptyList<Vote>())
+                    trySend(emptyList())
                 }
             }
 
@@ -250,7 +250,7 @@ class FirebaseVoteRepository(
         )
     }
 
-    suspend fun updateVoteSummary(matchId: String, playerId: String) {
+    private suspend fun updateVoteSummary(matchId: String, playerId: String) {
         try {
             val querySnapshot = votesCollection
                 .document(matchId)

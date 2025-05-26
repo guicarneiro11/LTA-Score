@@ -5,7 +5,7 @@
 
     <!-- Auth Screens -->
     <string name="login_title">LTA Score</string>
-    <string name="login_subtitle">Faça login para avaliar jogadores</string>
+    <string name="login_subtitle">Faça o login</string>
     <string name="email">Email</string>
     <string name="password">Senha</string>
     <string name="forgot_password">Esqueci minha senha</string>
