@@ -5,13 +5,13 @@
 *A platform for the League of Legends fan community in Brazil to rate professional players from LTA South and LTA North*
 </div>
 
-## 📌 Overview
+## Overview
 
 **LTA Score** is an Android application that connects esports fans to the competitive League of Legends scene in the LTA South (formerly CBLOL) and LTA North (formerly LCS) leagues. The platform allows the community to express their appreciation for professional players through a continuous rating system based on their performances in official matches.
 
 Created by fans and for fans, LTA Score does not intend to be an alternative classification system to official rankings, but rather a way to engage the community in constructive discussions about the performance of professional players and celebrate great plays.
 
-## 🖼️ Screenshots and Videos
+## Screenshots and Videos
 
 https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
 
@@ -26,7 +26,7 @@ https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
 <img src="https://i.imgur.com/1Z4ZKa4.png" alt="Team Feed" width="200"/>
 </div>
 
-## ✨ Key Features
+## Key Features
 
 ### 🏆 Rating System
 - Rate players from 0-10 after each match
@@ -66,7 +66,7 @@ https://github.com/user-attachments/assets/5ed31fe6-0254-4efa-b7fd-19199fa4e30d
 - Track personal voting history
 - Manage account settings
 
-## 🔧 Technologies
+## Technologies
 
 The application was developed using Android development best practices, focusing on a fluid and responsive user experience:
 
@@ -80,7 +80,7 @@ The application was developed using Android development best practices, focusing
 - **Koin**: Dependency injection
 - **Coroutines & Flow**: Efficient asynchronous programming
 
-## 🛠️ Architecture
+## Architecture
 
 The project follows a clean architecture with clear separation of responsibilities:
 
@@ -103,7 +103,7 @@ The project follows a clean architecture with clear separation of responsibiliti
     └── friends     # Social system
 ```
 
-## 🔐 Security and Integrity
+## Security and Integrity
 
 LTA Score was developed with the highest security standards:
 
@@ -112,11 +112,11 @@ LTA Score was developed with the highest security standards:
 - **Firestore Rules**: Security rules ensure users only access permitted data
 - **Secure Local Cache**: Local storage with DataStore for better performance
 
-## 📝 Compliance with Riot Policies
+## Compliance with Riot Policies
 
 LTA Score was developed in full compliance with Riot Games' policies for third-party applications.
 
-## 🚀 How to Run the Project
+## How to Run the Project
 
 1. Clone this repository
 2. Open the project in Android Studio
@@ -124,14 +124,14 @@ LTA Score was developed in full compliance with Riot Games' policies for third-p
 4. Configure Firebase
 5. Run the application on an emulator or physical device
 
-## 📞 Contact
+## Contact
 
 For questions, suggestions, or collaborations, contact:
 
 - Email: guicarneiro.dev@gmail.com
 - GitHub: [github.com/guicarneiro11](https://github.com/guicarneiro11)
 
-## 📜 License
+## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
